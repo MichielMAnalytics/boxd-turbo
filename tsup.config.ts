@@ -13,7 +13,7 @@ export default defineConfig([
     clean: true,
   },
   {
-    entry: { planner: "src/planner/planner.ts", automation: "src/automation/bundle.ts" },
+    entry: { planner: "src/planner/main.ts", automation: "src/automation/bundle.ts" },
     format: "esm",
     platform: "node",
     target: "node20",

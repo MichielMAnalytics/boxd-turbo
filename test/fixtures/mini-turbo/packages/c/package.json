@@ -1,0 +1,1 @@
+{ "name": "c", "version": "1.0.0", "scripts": { "lint": "echo lint-c", "test": "echo c" } }

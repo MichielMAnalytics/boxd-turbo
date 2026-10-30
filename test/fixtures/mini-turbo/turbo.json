@@ -1,0 +1,10 @@
+{
+  // JSONC: comments are allowed here, as in any turbo.json
+  "$schema": "https://turborepo.dev/schema.json",
+  "tasks": {
+    "build": { "outputs": ["dist/**"] },
+    "test": { "dependsOn": ["build", "^build"], "tags": ["ci"] },
+    "lint": { "tags": ["ci"] },
+    "//#lint": { "tags": ["ci"] }
+  }
+}

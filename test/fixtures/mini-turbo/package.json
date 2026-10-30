@@ -1,0 +1,7 @@
+{
+  "name": "mini-turbo",
+  "private": true,
+  "packageManager": "npm@11.6.1",
+  "workspaces": ["packages/*"],
+  "scripts": { "lint": "echo root-lint" }
+}

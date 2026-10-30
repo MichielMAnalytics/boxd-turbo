@@ -1,0 +1,1 @@
+{ "name": "a", "version": "1.0.0", "scripts": { "build": "mkdir -p dist && echo a > dist/a.txt", "test": "test -f dist/a.txt", "lint": "echo lint-a" } }

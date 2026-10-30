@@ -1,0 +1,1 @@
+{ "extends": ["//"], "tasks": { "test": { "tags": ["!ci"] }, "lint": { "tags": ["$TURBO_EXTENDS$", "ci:cpus:4"] } } }
