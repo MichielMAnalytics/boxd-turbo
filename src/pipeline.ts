@@ -8,9 +8,12 @@ import type { BoxdLike, ExecOutput } from "./boxd/sdk.js";
 import {
   depsHashScript,
   depsSnapshotName,
+  devSnapshotName,
   PLANNER_PATH,
+  pruneDepsSnapshots,
   type RepoRecord,
   repoSlug,
+  runSnapshotName,
   saveDepsSnapshot,
   snapshotReady,
 } from "./boxd/snapshot.js";
@@ -30,6 +33,10 @@ export type RunInput = {
   /** The branch, or "local". */
   ref: string;
   prepare: PrepareSpec;
+  /** Names of boxd secrets every machine of the run gets. */
+  secrets?: string[];
+  /** The GitHub check that reports the run, kept in its record. */
+  checkId?: number;
 };
 
 export type PipelineEvent =
@@ -38,7 +45,7 @@ export type PipelineEvent =
   | { type: "plan"; tasks: number; toRun: number };
 
 export type PipelineDeps = {
-  boxd: { snapshots: Pick<BoxdLike["snapshots"], "create" | "get"> };
+  boxd: { snapshots: Pick<BoxdLike["snapshots"], "create" | "get" | "list" | "delete"> };
   store: Store;
   cache: { url: string; token: string };
   org?: string;
@@ -67,6 +74,10 @@ export function cacheEnv(cache: { url: string; token: string }, repo: string): R
     CI: "1",
   };
 }
+
+/** Every secret value replaced, so a task that prints its environment shows none in a check or a log. */
+const redact = (text: string, secrets: string[]) =>
+  secrets.reduce((t, s) => (s.length >= 8 ? t.replaceAll(s, "[redacted]") : t), text);
 
 const outputTail = (out: ExecOutput) =>
   `${out.stderr}\n${out.stdout}`.trim().slice(-3000) || `exit code ${out.exitCode}`;
@@ -102,6 +113,7 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     machines: 0,
     snapshot: repo.snapshot,
     warnings: [],
+    ...(input.checkId !== undefined ? { checkId: input.checkId } : {}),
   };
   const phase = (message: string) => deps.onEvent?.({ type: "phase", message });
   const cancelled = () => {
@@ -121,10 +133,13 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     env,
     runId: id,
     repo: repoSlug(repo.repo),
+    ...(input.secrets?.length ? { secrets: input.secrets } : {}),
     outputsOf: (tasks) => (graph ? closureOutputs(graph, tasks) : tasks.map((t) => ({ dir: t.dir, globs: t.outputs }))),
   });
   let selectors: string[] = [];
+  let runSnapshot: string | undefined;
   const logs: Record<string, string> = {};
+  const secretValues = [deps.cache.token];
 
   try {
     phase(`restoring ${repo.snapshot}`);
@@ -133,23 +148,36 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
 
     const hash = (await planner.sh(depsHashScript(repo.workdir))).stdout.trim();
     if (/^[0-9a-f]{16}$/.test(hash) && hash !== repo.depsHash) {
-      const name = depsSnapshotName(repo.repo, hash);
-      if (await snapshotReady(deps.boxd, name, deps.org)) {
-        phase(`the dependency files changed, and ${name} has them installed`);
-        pool.setSnapshot(name);
+      // A dependency snapshot holds whatever its install ran, so who made it decides who restores it.
+      const local = input.trigger === "local";
+      const shared = depsSnapshotName(repo.repo, hash);
+      const reusable = local ? [shared, devSnapshotName(repo.repo, hash)] : [shared];
+      let found: string | undefined;
+      for (const name of reusable) if (!found && (await snapshotReady(deps.boxd, name, deps.org))) found = name;
+      if (found) {
+        phase(`the dependency files changed, and ${found} has them installed`);
+        pool.setSnapshot(found);
         await planner.release({ failed: false });
         planner = await pool.acquire();
+        record.snapshot = found;
       } else {
+        const name = local
+          ? devSnapshotName(repo.repo, hash)
+          : input.ref === repo.defaultBranch
+            ? shared
+            : runSnapshotName(repo.repo, hash, Math.random().toString(36).slice(2, 6).padEnd(4, "0"));
         phase("the dependency files changed, installing them once for every machine of this run");
         await saveDepsSnapshot(deps.boxd, planner, {
           record: repo,
-          depsHash: hash,
+          name,
           ...(deps.org ? { org: deps.org } : {}),
           ...(input.prepare.kind === "patch" ? { patch: { path: PATCH_PATH, data: input.prepare.patch } } : {}),
         });
-        pool.setSnapshot(name);
+        // Saved at the run's commit: its machines check that out, and no token reaches them.
+        pool.setSnapshot(name, input.prepare.kind === "commit" ? { checkedOut: true } : undefined);
+        if (name !== shared && !local) runSnapshot = name;
+        record.snapshot = name;
       }
-      record.snapshot = name;
       cancelled();
     }
 
@@ -161,6 +189,7 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     );
     cancelled();
     record.warnings = plan.warnings;
+    if (plan.selectors.length === 0) throw new Error(plan.nothingToRun ?? "nothing to run");
     selectors = plan.selectors.map((s) => s.selector);
     graph = buildGraph(plan.dry, plan.selectors);
     deps.onEvent?.({ type: "plan", tasks: graph.nodes.size, toRun: toRun(graph).length });
@@ -183,6 +212,7 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     for (const r of results) {
       const at = started.get(r.id);
       if (at !== undefined) r.at = at;
+      r.logTail = redact(r.logTail, secretValues);
       if (r.status === "ran" || r.status === "failed") logs[r.id] = r.logTail;
     }
     // The record keeps the logs a reader needs first; every log is in the run's logs file.
@@ -190,12 +220,16 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     record.status = results.some((r) => r.status === "failed") ? "failure" : "success";
   } catch (e) {
     record.status = "failure";
-    record.error = deps.signal?.aborted ? "the run was cancelled" : (e as Error).message;
+    record.error = deps.signal?.aborted ? "the run was cancelled" : redact((e as Error).message, secretValues);
   } finally {
     await pool.drain();
     record.machines = pool.machines();
     record.machineSeconds = pool.machineSeconds();
+    const kept = pool.kept();
+    if (kept.length) record.kept = kept;
     record.finishedAt = now().toISOString();
+    if (runSnapshot)
+      await deps.boxd.snapshots.delete(runSnapshot, deps.org ? { org: deps.org } : undefined).catch(() => {});
   }
 
   await Promise.all([
@@ -203,7 +237,13 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     Object.keys(logs).length ? writeJson(deps.store, paths.logs(repo.repo, id), logs) : undefined,
     updateDurations(deps.store, repo.repo, record),
   ]).catch((e: Error) => phase(`could not store the run: ${e.message}`));
-  await deps.onFinish?.(record);
+  // A report that fails (GitHub down, a token that expired) must not keep the default branch from moving on.
+  try {
+    await deps.onFinish?.(record);
+  } catch (e) {
+    phase(`could not report the run: ${(e as Error).message}`);
+  }
+  await pruneDepsSnapshots(deps.boxd, repo.repo, deps.org ? { org: deps.org } : {}).catch(() => {});
 
   const green = record.status === "success" && input.trigger === "push" && input.ref === repo.defaultBranch;
   if (green && deps.promote) {

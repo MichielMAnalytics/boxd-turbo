@@ -7,7 +7,7 @@
 // by those files, so only that change pays an install.
 
 import { createHash } from "node:crypto";
-import { commit, fetchScript, q } from "./scripts.js";
+import { commit, fetchScript, GITHUB_AUTH, q, SUBMODULES } from "./scripts.js";
 import type { BoxdLike, ExecOutput } from "./sdk.js";
 import type { BoxWorker } from "./worker.js";
 
@@ -74,14 +74,72 @@ export function repoSlug(repo: string): string {
 }
 
 export const snapshotName = (repo: string, sha: string) => `bci-${repoSlug(repo)}-${commit(sha).slice(0, 7)}`;
+/**
+ * Dependency snapshots, one name per maker, since a snapshot runs code its maker installed:
+ * `deps`, made by a push to the default branch, which every run may restore; `dev`, made by
+ * `boxd-ci run`, which only `boxd-ci run` restores; `run`, made by a branch push for its own machines
+ * and deleted when the run ends.
+ */
 export const depsSnapshotName = (repo: string, depsHash: string) =>
   `bci-${repoSlug(repo)}-deps-${depsHash.slice(0, 10)}`;
+export const devSnapshotName = (repo: string, depsHash: string) => `bci-${repoSlug(repo)}-dev-${depsHash.slice(0, 10)}`;
+export const runSnapshotName = (repo: string, depsHash: string, tag: string) =>
+  `bci-${repoSlug(repo)}-run-${depsHash.slice(0, 6)}${tag.slice(0, 4)}`;
+/** A shared or dev dependency snapshot this old is deleted; the next run that needs it installs again. */
+export const DEPS_KEEP_MS = 7 * 86_400_000;
 export const workdirFor = (repo: string) => `/home/boxd/work/${repo.split("/").pop()}`;
 
-/** Prints 16 hex characters that change exactly when a dependency file or the patches folder does. */
+/** The package.json fields that decide what an install produces. Scripts and versions do not. */
+const INSTALL_FIELDS = [
+  "name",
+  "dependencies",
+  "devDependencies",
+  "optionalDependencies",
+  "peerDependencies",
+  "bundleDependencies",
+  "bundledDependencies",
+  "dependenciesMeta",
+  "peerDependenciesMeta",
+  "workspaces",
+  "packageManager",
+  "overrides",
+  "resolutions",
+  "pnpm",
+];
+const INSTALL_SCRIPTS = ["preinstall", "install", "postinstall", "prepare"];
+/** In the hash script, so a reader (or a test) can tell it apart. */
+export const DEPS_HASH_MARK = "boxd-ci deps hash";
+
+/**
+ * Prints 16 hex characters that change exactly when an install could come out differently: a
+ * lockfile or other dependency file git tracks, the patches folder, or what any package.json says to
+ * install (new packages included, before they are committed). A lockfile git does not track is left
+ * out: an install without one writes it, and it would pin the hash to that first install.
+ */
 export function depsHashScript(workdir: string): string {
-  const files = DEPENDENCY_FILES.map(q).join(" ");
-  return `cd ${q(workdir)} && { for f in ${files}; do if [ -f "$f" ]; then sha256sum "$f"; else echo "- $f"; fi; done; if [ -d patches ]; then find patches -type f | LC_ALL=C sort | xargs sha256sum; fi; } | sha256sum | cut -c1-16`;
+  const js = `// ${DEPS_HASH_MARK}
+const { execFileSync } = require("node:child_process"), fs = require("node:fs");
+const h = require("node:crypto").createHash("sha256");
+const ls = (...a) => execFileSync("git", ["ls-files", "-z", ...a]).toString().split("\\0").filter(Boolean);
+const tracked = new Set(${JSON.stringify(DEPENDENCY_FILES)});
+const files = [...new Set([
+  ...ls("--", ...tracked).filter((f) => tracked.has(f)),
+  ...ls("--cached", "--others", "--exclude-standard", "--", "package.json", "*/package.json", "patches"),
+])].filter((f) => fs.existsSync(f)).sort();
+for (const f of files) {
+  let body = fs.readFileSync(f, "utf8");
+  if (f === "package.json" || f.endsWith("/package.json")) {
+    try {
+      const j = JSON.parse(body), pick = {};
+      for (const k of ${JSON.stringify(INSTALL_FIELDS)}) if (j[k] !== undefined) pick[k] = j[k];
+      for (const k of ${JSON.stringify(INSTALL_SCRIPTS)}) if (j.scripts && j.scripts[k] !== undefined) pick["scripts." + k] = j.scripts[k];
+      body = JSON.stringify(pick);
+    } catch {}
+  }
+  h.update(f + "\\0").update(body).update("\\0");
+}
+process.stdout.write(h.digest("hex").slice(0, 16));`;
+  return `cd ${q(workdir)} && node -e ${q(js)}`;
 }
 
 /**
@@ -111,14 +169,14 @@ else npm install --no-audit --no-fund
 fi`;
 }
 
-/** A full clone (later fetches are then small), checked out at the commit. */
+/** A full clone (later fetches are then small), checked out at the commit, with its submodules. */
 export function cloneScript(cloneUrl: string, workdir: string, sha: string): string {
   commit(sha);
-  const auth = `-c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$BOXD_CI_FETCH_TOKEN" | base64 -w0)"`;
   return `set -eo pipefail
+${GITHUB_AUTH}
 rm -rf ${q(workdir)} && mkdir -p "$(dirname ${q(workdir)})"
-if [ -n "$BOXD_CI_FETCH_TOKEN" ]; then git ${auth} clone -q ${q(cloneUrl)} ${q(workdir)}; else git clone -q ${q(cloneUrl)} ${q(workdir)}; fi
-cd ${q(workdir)} && git checkout -q -f ${sha}`;
+git clone -q ${q(cloneUrl)} ${q(workdir)}
+cd ${q(workdir)} && git -c core.hooksPath=/dev/null checkout -q -f ${sha} && ${SUBMODULES}`;
 }
 
 /**
@@ -330,7 +388,8 @@ export async function saveDepsSnapshot(
   worker: BoxWorker,
   o: {
     record: RepoRecord;
-    depsHash: string;
+    /** The snapshot to save (see depsSnapshotName). */
+    name: string;
     org?: string;
     pollMs?: number;
     /** A working copy (boxd-ci run): taken out before the snapshot is saved, put back after. */
@@ -348,7 +407,7 @@ export async function saveDepsSnapshot(
     await sh("taking the working copy out before the snapshot", `${apply} -R ${q(o.patch.path)}`);
     await sh("removing the patch file", `rm -f ${q(o.patch.path)}`);
   }
-  const name = depsSnapshotName(o.record.repo, o.depsHash);
+  const name = o.name;
   try {
     await saveSnapshot(boxd, worker.machineId, name, {
       ...(o.org ? { org: o.org } : {}),
@@ -384,4 +443,31 @@ export async function pruneSnapshots(
     else await boxd.snapshots.delete(old.name, o.org ? { org: o.org } : undefined).catch(() => {});
   }
   return { ...r, retired: keep };
+}
+
+/**
+ * Deletes the repository's dependency snapshots nobody should need any more: shared and dev ones
+ * older than a week, and run ones a run that never ended left behind. Returns the names deleted.
+ */
+export async function pruneDepsSnapshots(
+  boxd: { snapshots: Pick<BoxdLike["snapshots"], "list" | "delete"> },
+  repo: string,
+  o: { org?: string; now?: number } = {},
+): Promise<string[]> {
+  const now = o.now ?? Date.now();
+  const scope = o.org ? { org: o.org } : undefined;
+  const prefix = `bci-${repoSlug(repo)}-`;
+  const deleted: string[] = [];
+  for (const s of await boxd.snapshots.list(scope)) {
+    const kind = s.name.startsWith(prefix)
+      ? /^(deps|dev|run)-[0-9a-z]{10}$/.exec(s.name.slice(prefix.length))?.[1]
+      : undefined;
+    const age = s.createdAt ? now - s.createdAt.getTime() : 0;
+    if (!kind || age < (kind === "run" ? RETIRED_KEEP_MS : DEPS_KEEP_MS)) continue;
+    await boxd.snapshots
+      .delete(s.name, scope)
+      .then(() => deleted.push(s.name))
+      .catch(() => {});
+  }
+  return deleted;
 }

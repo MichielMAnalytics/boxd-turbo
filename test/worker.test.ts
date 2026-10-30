@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { SUMMARY_MARK } from "../src/boxd/scripts.js";
 import { createPool, type PoolBoxd, type PoolOptions } from "../src/boxd/worker.js";
 import type { TaskNode } from "../src/core/graph.js";
@@ -315,6 +315,59 @@ describe("createPool", () => {
     await pool.acquire();
     const tokens = boxd.execs.filter((e) => e.script.includes("fetch -q origin")).map((e) => e.env.BOXD_CI_FETCH_TOKEN);
     expect(tokens).toEqual(["ghs_1", "ghs_2"]);
+  });
+
+  test("the secrets a run asks for go in the machine's spec, with its isolation and labels", async () => {
+    const boxd = new FakeBoxd();
+    await createPool(boxd, options({ secrets: ["DATABASE_URL", "NPM_TOKEN"] })).acquire();
+    expect(boxd.lastCreate).toMatchObject({
+      fromSnapshot: "bci-app-a",
+      deleteAfter: 3600,
+      spec: {
+        isolated: true,
+        labels: { "boxd-ci": "worker", "boxd-ci/run": "20261030-091400-abc1234" },
+        secrets: ["DATABASE_URL", "NPM_TOKEN"],
+      },
+    });
+    expect(boxd.lastCreate).not.toHaveProperty("labels");
+  });
+
+  test("machines from a snapshot that has the run's commit check it out, and no token is asked for", async () => {
+    const boxd = new FakeBoxd();
+    let asked = 0;
+    const fetchToken = async () => {
+      asked += 1;
+      return "ghs_x";
+    };
+    const pool = createPool(boxd, options({ prepare: { kind: "commit", sha: "abc1234def", fetchToken } }));
+    pool.setSnapshot("bci-app-run-1234abcd", { checkedOut: true });
+    await pool.acquire();
+    const prepare = boxd.execs.find((e) => e.script.includes("checkout -q -f abc1234def"));
+    expect(prepare?.script).not.toContain("fetch");
+    expect(prepare?.env).toEqual({});
+    expect(asked).toBe(0);
+  });
+
+  test("every live machine's timer is re-armed while the run goes on, so an idle one waiting for its next task survives", async () => {
+    vi.useFakeTimers();
+    try {
+      const boxd = new FakeBoxd();
+      const pool = createPool(boxd, options({ rearmMs: 600_000 }));
+      await pool.acquire();
+      await pool.acquire();
+      boxd.log = [];
+      await vi.advanceTimersByTimeAsync(600_000);
+      expect(boxd.log.filter((l) => l.startsWith("deleteAfter")).sort()).toEqual([
+        "deleteAfter m1 3600",
+        "deleteAfter m2 3600",
+      ]);
+      await pool.drain();
+      boxd.log = [];
+      await vi.advanceTimersByTimeAsync(1_200_000);
+      expect(boxd.log).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   test("setSnapshot changes where the next machines start", async () => {

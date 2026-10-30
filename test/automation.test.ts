@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { type AutomationDeps, createHandler, type PushEvent } from "../src/automation/handler.js";
-import type { RepoRecord } from "../src/boxd/snapshot.js";
+import { DEPS_HASH_MARK, type RepoRecord } from "../src/boxd/snapshot.js";
 import { fsStore } from "../src/boxd/store.js";
 import type { BoxWorker, Pool } from "../src/boxd/worker.js";
 import type { ChecksApi } from "../src/github/check.js";
@@ -47,7 +47,7 @@ const fakePool = (fail = false): Pool => {
       release: async () => {},
       upload: async () => {},
       sh: async (script) =>
-        script.includes("sha256sum")
+        script.includes(DEPS_HASH_MARK)
           ? { stdout: "aaaaaaaaaaaaaaaa\n", stderr: "", exitCode: 0 }
           : { stdout: planJson, stderr: "", exitCode: 0 },
     };

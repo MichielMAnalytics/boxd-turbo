@@ -8,8 +8,15 @@
 
 import type { TaskNode } from "../core/graph.js";
 import type { TaskResult, Worker, WorkerPool } from "../core/scheduler.js";
-import { applyPatchScript, cleanOutputsScript, fetchScript, parseRunOutput, turboRunScript } from "./scripts.js";
-import type { BoxdLike, ExecOutput } from "./sdk.js";
+import {
+  applyPatchScript,
+  checkoutScript,
+  cleanOutputsScript,
+  fetchScript,
+  parseRunOutput,
+  turboRunScript,
+} from "./scripts.js";
+import { type BoxdLike, type ExecOutput, isolatedShape } from "./sdk.js";
 
 /** The part of the boxd SDK a pool uses. */
 export type PoolBoxd = {
@@ -49,6 +56,10 @@ export type PoolOptions = {
   runId: string;
   /** The repository's short name, a label on every machine (`boxd-ci doctor --sweep` reads it). */
   repo?: string;
+  /** Names of boxd secrets every machine gets (unattached secrets reach only machines that name them). */
+  secrets?: string[];
+  /** How often the timers of live machines are set again, so one idling for its next task lives on. */
+  rearmMs?: number;
   /** What a group deletes before it runs. Default: the group's own declared outputs. */
   outputsOf?: (tasks: TaskNode[]) => { dir: string; globs: string[] }[];
   /** How long one group may run. Default 45 minutes. */
@@ -71,8 +82,12 @@ export type BoxWorker = Worker & {
 /** A {@link WorkerPool} of boxd machines. */
 export type Pool = {
   acquire(cpus?: number): Promise<BoxWorker>;
-  /** Where machines started from now on restore from (a run whose dependencies changed). */
-  setSnapshot(name: string): void;
+  /**
+   * Where machines started from now on restore from (a run whose dependencies changed). `checkedOut`:
+   * the snapshot was saved at the run's commit, so its machines check it out without a fetch, and no
+   * token reaches them.
+   */
+  setSnapshot(name: string, o?: { checkedOut?: boolean }): void;
   /** Hands a ready machine to the next acquire of its size (the planner's machine, for one). */
   park(w: BoxWorker): void;
   /** Deletes every machine that is still running. Afterwards acquire fails. */
@@ -107,6 +122,7 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
   let created = 0;
   let named = 0;
   let snapshot = o.snapshot;
+  let checkedOut = false;
   let closed = false;
   const now = o.now ?? Date.now;
   const born = new Map<string, { at: number; cpus: number }>(); // machine id → when it was asked for
@@ -136,7 +152,9 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
   const prepare = async (id: string): Promise<void> => {
     const p = o.prepare;
     let out: ExecOutput;
-    if (p.kind === "commit") {
+    if (p.kind === "commit" && checkedOut) {
+      out = await sh(id, checkoutScript(o.workdir, p.sha));
+    } else if (p.kind === "commit") {
       const token = typeof p.fetchToken === "function" ? await p.fetchToken() : p.fetchToken;
       out = await sh(id, fetchScript(o.workdir, p.sha), token ? { env: { BOXD_CI_FETCH_TOKEN: token } } : {});
     } else {
@@ -200,9 +218,11 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
           name,
           ...(o.org ? { org: o.org } : {}),
           fromSnapshot: snapshot,
-          isolated: true,
           deleteAfter: SAFETY_SECONDS,
-          labels: { "boxd-ci": "worker", "boxd-ci/run": o.runId, ...(o.repo ? { "boxd-ci/repo": o.repo } : {}) },
+          ...isolatedShape(
+            { "boxd-ci": "worker", "boxd-ci/run": o.runId, ...(o.repo ? { "boxd-ci/repo": o.repo } : {}) },
+            o.secrets,
+          ),
         });
       } catch (e) {
         if (closed || attempt >= delays.length) throw e;
@@ -229,6 +249,15 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
     }
   };
 
+  // A machine idling while a long task elsewhere finishes would outlive its create-time timer.
+  const rearm = setInterval(
+    () => {
+      for (const id of live.keys()) void m.setDeleteAfter(id, SAFETY_SECONDS).catch(() => {});
+    },
+    o.rearmMs ?? 10 * 60_000,
+  );
+  rearm.unref?.();
+
   return {
     async acquire(cpus?: number) {
       if (closed) throw new Error("the run is over");
@@ -239,14 +268,16 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
       for (const w of parked.splice(0)) void w.release({ failed: false });
       return start(size);
     },
-    setSnapshot(name) {
+    setSnapshot(name, x) {
       snapshot = name;
+      checkedOut = x?.checkedOut === true;
     },
     park(w) {
       if (!closed && live.has(w.machineId)) parked.push(w);
     },
     async drain() {
       closed = true;
+      clearInterval(rearm);
       parked.length = 0;
       await Promise.all([...live.keys()].map(remove));
     },

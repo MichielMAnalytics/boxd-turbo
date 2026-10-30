@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import type { SnapshotInfo } from "../src/boxd/sdk.js";
-import type { RepoRecord } from "../src/boxd/snapshot.js";
+import { DEPS_HASH_MARK, type RepoRecord } from "../src/boxd/snapshot.js";
 import { fsStore, type Store } from "../src/boxd/store.js";
 import type { BoxWorker, Pool, PoolOptions } from "../src/boxd/worker.js";
 import type { TaskNode } from "../src/core/graph.js";
@@ -49,6 +49,8 @@ class FakePool implements Pool {
   depsHash = "aaaaaaaaaaaaaaaa";
   plan = { stdout: planJson([], []), stderr: "", exitCode: 0 };
   options?: PoolOptions;
+  snapshotOpts: [string, unknown][] = [];
+  keptNames: string[] = [];
 
   async acquire(cpus?: number): Promise<BoxWorker> {
     const p = this.parked.findIndex((w) => w.cpus === (cpus ?? 2));
@@ -76,7 +78,7 @@ class FakePool implements Pool {
         pool.live.delete(id);
       },
       async sh(script: string) {
-        if (script.includes("sha256sum")) return ok(`${pool.depsHash}\n`);
+        if (script.includes(DEPS_HASH_MARK)) return ok(`${pool.depsHash}\n`);
         if (script.includes("boxd-ci-planner.mjs")) return pool.plan;
         if (script.includes("--frozen-lockfile")) {
           pool.installs += 1;
@@ -87,8 +89,9 @@ class FakePool implements Pool {
       async upload() {},
     };
   }
-  setSnapshot(name: string) {
+  setSnapshot(name: string, o?: { checkedOut?: boolean }) {
     this.snapshots.push(name);
+    this.snapshotOpts.push([name, o]);
   }
   park(w: BoxWorker) {
     this.parked.push(w);
@@ -101,7 +104,7 @@ class FakePool implements Pool {
     return this.created;
   }
   kept() {
-    return [];
+    return this.keptNames;
   }
   machineSeconds() {
     return {};
@@ -121,12 +124,13 @@ const repo: RepoRecord = {
   builtAt: "2026-10-30T00:00:00.000Z",
 };
 
-const setup = (o: { pool?: FakePool; readySnapshots?: string[] } = {}) => {
+const setup = (o: { pool?: FakePool; readySnapshots?: string[]; listed?: SnapshotInfo[] } = {}) => {
   const pool = o.pool ?? new FakePool();
   const store: Store = fsStore(mkdtempSync(join(tmpdir(), "boxd-ci-pipe-")));
   const calls: string[] = [];
   const events: PipelineEvent[] = [];
   const saved: string[] = [];
+  const deleted: string[] = [];
   const deps: PipelineDeps = {
     boxd: {
       snapshots: {
@@ -138,6 +142,10 @@ const setup = (o: { pool?: FakePool; readySnapshots?: string[] } = {}) => {
           if (saved.includes(name) || o.readySnapshots?.includes(name))
             return { name, version: 1, status: "ready", vcpu: 2 };
           throw new Error("no such snapshot");
+        },
+        list: async () => o.listed ?? [],
+        delete: async (name: string) => {
+          deleted.push(name);
         },
       },
     },
@@ -159,7 +167,7 @@ const setup = (o: { pool?: FakePool; readySnapshots?: string[] } = {}) => {
     },
     onEvent: (e) => events.push(e),
   };
-  return { pool, store, calls, events, saved, deps };
+  return { pool, store, calls, events, saved, deleted, deps };
 };
 
 const push = (ref = "main"): RunInput => ({
@@ -171,6 +179,57 @@ const push = (ref = "main"): RunInput => ({
 });
 
 describe("runPipeline", () => {
+  test("a plan with nothing to run fails the run with the planner's reason", async () => {
+    const { pool, deps } = setup();
+    pool.plan = ok(
+      JSON.stringify({
+        ...JSON.parse(planJson([], [])),
+        nothingToRun: "nothing to run. No task in turbo.json is tagged ci.",
+      }),
+    );
+    const r = await runPipeline(deps, push());
+    expect(r.status).toBe("failure");
+    expect(r.error).toBe("nothing to run. No task in turbo.json is tagged ci.");
+  });
+
+  test("the secrets the run asks for reach every machine it starts", async () => {
+    const { pool, deps } = setup();
+    pool.plan = ok(planJson([{ id: "a#test", hit: true }], ["a#test"]));
+    await runPipeline(deps, { ...push(), secrets: ["DATABASE_URL"] });
+    expect(pool.options?.secrets).toEqual(["DATABASE_URL"]);
+  });
+
+  test("the record names the machines that were kept, and the cache token never reaches a log", async () => {
+    const { pool, deps, store } = setup();
+    const token = "t".repeat(48);
+    pool.fail.add("a#test");
+    pool.keptNames = ["w2"];
+    pool.plan = ok(planJson([{ id: "a#test" }], ["a#test"]));
+    const original = pool.acquire.bind(pool);
+    pool.acquire = async (cpus?: number) => {
+      const w = await original(cpus);
+      w.run = async (tasks) =>
+        tasks.map((t) => ({ id: t.id, status: "failed", seconds: 1, logTail: `TURBO_TOKEN=${token}`, machine: w.id }));
+      return w;
+    };
+    const r = await runPipeline(deps, push("feature"));
+    expect(r.kept).toEqual(["w2"]);
+    expect(JSON.stringify(r)).not.toContain(token);
+    expect((await store.read(`runs/acme-web/${r.id}.logs.json`)) ?? "").not.toContain(token);
+    expect(r.results[0]?.logTail).toBe("TURBO_TOKEN=[redacted]");
+  });
+
+  test("a report that throws still lets a green push to the default branch promote", async () => {
+    const { pool, deps, calls } = setup();
+    pool.plan = ok(planJson([{ id: "a#test", hit: true }], ["a#test"]));
+    deps.onFinish = async () => {
+      throw new Error("GitHub said no");
+    };
+    const r = await runPipeline(deps, push("main"));
+    expect(r.status).toBe("success");
+    expect(calls).toContain("promote d00d2fe");
+  });
+
   test("a planner that fails ends the run as a failure with its error, and drains the machines", async () => {
     const { pool, store, deps, calls } = setup();
     pool.plan = { stdout: '{"error":"turbo is not installed in this repository"}', stderr: "", exitCode: 1 };
@@ -285,15 +344,84 @@ describe("runPipeline", () => {
     expect(local.calls).not.toContain("promote d00d2fe");
   });
 
-  test("changed dependency files install once, on the planner, and the other machines restore that snapshot", async () => {
-    const { pool, deps, saved } = setup();
+  test("a push to the default branch with changed dependency files installs once and saves the shared dependency snapshot", async () => {
+    const { pool, deps, saved, deleted } = setup();
     pool.depsHash = "bbbbbbbbbbbbbbbb";
     pool.plan = ok(planJson([{ id: "a#test" }, { id: "b#test" }], ["a#test", "b#test"]));
-    const r = await runPipeline(deps, push("feature"));
+    const r = await runPipeline(deps, push("main"));
     expect(pool.installs).toBe(1);
     expect(saved).toEqual(["bci-acme-web-deps-bbbbbbbbbb"]);
-    expect(pool.snapshots).toEqual(["bci-acme-web-deps-bbbbbbbbbb"]);
+    expect(pool.snapshotOpts).toEqual([["bci-acme-web-deps-bbbbbbbbbb", { checkedOut: true }]]);
     expect(r.snapshot).toBe("bci-acme-web-deps-bbbbbbbbbb");
+    expect(deleted).toEqual([]);
+  });
+
+  test("a branch push with changed dependency files installs into a snapshot for this run only, checked out, deleted after", async () => {
+    const { pool, deps, saved, deleted } = setup();
+    pool.depsHash = "bbbbbbbbbbbbbbbb";
+    pool.plan = ok(planJson([{ id: "a#test" }, { id: "b#test" }], ["a#test", "b#test"]));
+    await runPipeline(deps, push("feature"));
+    expect(pool.installs).toBe(1);
+    expect(saved).toHaveLength(1);
+    expect(saved[0]).toMatch(/^bci-acme-web-run-bbbbbb[a-z0-9]{4}$/);
+    // Its machines already have the commit: they check it out, and no token reaches them.
+    expect(pool.snapshotOpts).toEqual([[saved[0], { checkedOut: true }]]);
+    expect(deleted).toEqual([saved[0]]);
+  });
+
+  test("a branch push never restores a dependency snapshot that boxd-ci run made", async () => {
+    const { pool, deps, saved } = setup({ readySnapshots: ["bci-acme-web-dev-bbbbbbbbbb"] });
+    pool.depsHash = "bbbbbbbbbbbbbbbb";
+    pool.plan = ok(planJson([{ id: "a#test" }], ["a#test"]));
+    await runPipeline(deps, push("feature"));
+    expect(pool.installs).toBe(1);
+    expect(saved[0]).toMatch(/^bci-acme-web-run-/);
+  });
+
+  test("boxd-ci run saves its own dependency snapshot, and restores it next time", async () => {
+    const local: RunInput = {
+      repo,
+      trigger: "local",
+      sha: repo.commit,
+      ref: "local",
+      prepare: { kind: "patch", base: repo.commit, patch: new Uint8Array([1]) },
+    };
+    const first = setup();
+    first.pool.depsHash = "bbbbbbbbbbbbbbbb";
+    first.pool.plan = ok(planJson([{ id: "a#test" }], ["a#test"]));
+    await runPipeline(first.deps, local);
+    expect(first.saved).toEqual(["bci-acme-web-dev-bbbbbbbbbb"]);
+    expect(first.deleted).toEqual([]);
+
+    const next = setup({ readySnapshots: ["bci-acme-web-dev-bbbbbbbbbb"] });
+    next.pool.depsHash = "bbbbbbbbbbbbbbbb";
+    next.pool.plan = ok(planJson([{ id: "a#test" }], ["a#test"]));
+    await runPipeline(next.deps, local);
+    expect(next.pool.installs).toBe(0);
+    expect(next.pool.snapshots).toEqual(["bci-acme-web-dev-bbbbbbbbbb"]);
+  });
+
+  test("at the end of a run, the repository's dependency snapshots older than a week are deleted", async () => {
+    const day = 86_400_000;
+    const at = (ago: number) => ({ createdAt: new Date(Date.now() - ago) });
+    const { deps, deleted, pool } = setup({
+      listed: [
+        { name: "bci-acme-web-deps-0000000000", version: 1, status: "ready", vcpu: 2, ...at(8 * day) },
+        { name: "bci-acme-web-deps-1111111111", version: 1, status: "ready", vcpu: 2, ...at(1 * day) },
+        { name: "bci-acme-web-dev-2222222222", version: 1, status: "ready", vcpu: 2, ...at(9 * day) },
+        { name: "bci-acme-web-run-333333abcd", version: 1, status: "ready", vcpu: 2, ...at(7 * 3600_000) },
+        { name: "bci-acme-web-run-444444abcd", version: 1, status: "ready", vcpu: 2, ...at(1 * 3600_000) },
+        { name: "bci-acme-web-app-deps-4444444444", version: 1, status: "ready", vcpu: 2, ...at(30 * day) },
+        { name: "bci-acme-web-c0ffee1", version: 1, status: "ready", vcpu: 2, ...at(30 * day) },
+      ],
+    });
+    pool.plan = ok(planJson([{ id: "a#test", hit: true }], ["a#test"]));
+    await runPipeline(deps, push("feature"));
+    expect(deleted.sort()).toEqual([
+      "bci-acme-web-deps-0000000000",
+      "bci-acme-web-dev-2222222222",
+      "bci-acme-web-run-333333abcd",
+    ]);
   });
 
   test("a dependency snapshot that already exists is restored instead of installing", async () => {

@@ -6,13 +6,17 @@ import { describe, expect, test } from "vitest";
 import type { CreateParams, ExecOutput, SnapshotInfo } from "../src/boxd/sdk.js";
 import {
   buildSnapshot,
+  cloneScript,
+  DEPS_HASH_MARK,
   depsHashScript,
   depsSnapshotName,
+  devSnapshotName,
   installScript,
   promote,
   pruneSnapshots,
   type RepoRecord,
   repoSlug,
+  runSnapshotName,
   type SnapshotBoxd,
   saveDepsSnapshot,
   saveSnapshot,
@@ -24,28 +28,51 @@ const bash = (script: string, env: Record<string, string> = {}) =>
 
 describe("repoSlug and names", () => {
   test("two long names that share their first 40 characters keep different slugs", () => {
-    const a = repoSlug("melchior-analytics/advertising-dashboard-api");
-    const b = repoSlug("melchior-analytics/advertising-dashboard-app");
+    const a = repoSlug("acme-engineering/payments-dashboard-service-api");
+    const b = repoSlug("acme-engineering/payments-dashboard-service-app");
     expect(a).not.toBe(b);
     expect(a.length).toBeLessThanOrEqual(40);
-    expect(a).toMatch(/^melchior-analytics-advertising-[a-z0-9-]*-[0-9a-f]{6}$/);
+    expect(a).toMatch(/^acme-engineering-payments-[a-z0-9-]*-[0-9a-f]{6}$/);
   });
 
   test("a repository becomes a lowercase name boxd accepts", () => {
     expect(repoSlug("Azin-Tech/bench.AI")).toBe("azin-tech-bench-ai");
     expect(depsSnapshotName("azin-tech/bench-ai", "0123456789abcdef")).toBe("bci-azin-tech-bench-ai-deps-0123456789");
   });
+
+  test("dependency snapshots name who made them, and stay within 63 characters for the longest slug", () => {
+    const long = "acme-engineering/payments-dashboard-service-api";
+    expect(devSnapshotName("acme/web", "0123456789abcdef")).toBe("bci-acme-web-dev-0123456789");
+    expect(runSnapshotName("acme/web", "0123456789abcdef", "x7k2")).toBe("bci-acme-web-run-012345x7k2");
+    for (const n of [
+      depsSnapshotName(long, "0".repeat(16)),
+      devSnapshotName(long, "0".repeat(16)),
+      runSnapshotName(long, "0".repeat(16), "abcd"),
+    ])
+      expect(n.length).toBeLessThanOrEqual(63);
+  });
 });
 
 describe("depsHashScript", () => {
-  const repo = () => {
+  const git = (cwd: string, ...args: string[]) =>
+    execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", ...args], { cwd, stdio: "pipe" });
+  const pkg = (deps: Record<string, string>, extra: Record<string, unknown> = {}) =>
+    `${JSON.stringify({ name: "a", version: "1.0.0", scripts: { build: "tsc" }, dependencies: deps, ...extra }, null, 2)}\n`;
+  /** A committed repository with a root package, one workspace package, and (unless told) a lockfile. */
+  const repo = (o: { lockfile?: boolean } = {}) => {
     const dir = mkdtempSync(join(tmpdir(), "boxd-ci-deps-"));
-    writeFileSync(join(dir, "pnpm-lock.yaml"), "lockfileVersion: 9\n");
+    if (o.lockfile !== false) writeFileSync(join(dir, "pnpm-lock.yaml"), "lockfileVersion: 9\n");
     writeFileSync(join(dir, "README.md"), "hi\n");
+    writeFileSync(join(dir, "package.json"), pkg({}, { name: "root" }));
+    mkdirSync(join(dir, "packages", "a"), { recursive: true });
+    writeFileSync(join(dir, "packages", "a", "package.json"), pkg({ zod: "^3.0.0" }));
+    git(dir, "init", "-q");
+    git(dir, "add", ".");
+    git(dir, "commit", "-q", "-m", "one");
     return dir;
   };
 
-  test("changes with the lockfile and the patches folder, and nothing else", () => {
+  test("changes with the lockfile and the patches folder, and not with other files", () => {
     const dir = repo();
     const h = () => bash(depsHashScript(dir));
     const first = h();
@@ -58,6 +85,50 @@ describe("depsHashScript", () => {
     mkdirSync(join(dir, "patches"));
     writeFileSync(join(dir, "patches", "x.patch"), "diff\n");
     expect(h()).not.toBe(second);
+  });
+
+  test("changes when a package.json changes what gets installed, and not when only its scripts or version do", () => {
+    const dir = repo();
+    const file = join(dir, "packages", "a", "package.json");
+    const h = () => bash(depsHashScript(dir));
+    const first = h();
+    writeFileSync(file, pkg({ zod: "^3.0.0" }, { version: "2.0.0", scripts: { build: "tsc -b" } }));
+    expect(h()).toBe(first);
+    writeFileSync(file, pkg({ zod: "^4.0.0" }));
+    const bumped = h();
+    expect(bumped).not.toBe(first);
+    writeFileSync(file, pkg({ zod: "^4.0.0" }, { scripts: { build: "tsc", postinstall: "node setup.js" } }));
+    expect(h()).not.toBe(bumped);
+  });
+
+  test("a new workspace package changes it, before anyone commits it", () => {
+    const dir = repo();
+    const first = bash(depsHashScript(dir));
+    mkdirSync(join(dir, "packages", "b"));
+    writeFileSync(join(dir, "packages", "b", "package.json"), pkg({}, { name: "b" }));
+    expect(bash(depsHashScript(dir))).not.toBe(first);
+  });
+
+  test("a lockfile git does not track, which an install without one writes, is not part of it", () => {
+    const dir = repo({ lockfile: false });
+    const first = bash(depsHashScript(dir));
+    writeFileSync(join(dir, "package-lock.json"), '{"lockfileVersion":3}\n');
+    expect(bash(depsHashScript(dir))).toBe(first);
+  });
+
+  test("carries a marker, so tests and logs can tell it apart", () => {
+    expect(depsHashScript("/w")).toContain(DEPS_HASH_MARK);
+  });
+});
+
+describe("cloneScript", () => {
+  test("clones with the token as a github.com header from the environment, then checks out with submodules", () => {
+    const s = cloneScript("https://github.com/acme/web.git", "/home/boxd/work/web", "abc1234");
+    expect(s).toContain("GIT_CONFIG_KEY_0=http.https://github.com/.extraheader");
+    expect(s).toContain("clone -q 'https://github.com/acme/web.git' '/home/boxd/work/web'");
+    expect(s).toContain("checkout -q -f abc1234");
+    expect(s).toContain("submodule update --init --recursive");
+    expect(s).not.toContain("git -c http.extraheader");
   });
 });
 
@@ -128,7 +199,7 @@ class FakeBoxd implements SnapshotBoxd {
           ? "ancestor"
           : script.includes("fetch -q origin")
             ? "fetch"
-            : script.includes("sha256sum")
+            : script.includes(DEPS_HASH_MARK)
               ? "hash"
               : script.includes("--frozen-lockfile")
                 ? "install"
@@ -362,7 +433,7 @@ describe("saveDepsSnapshot", () => {
     const log = boxd.log;
     const name = await saveDepsSnapshot(boxd, worker(log), {
       record: record(),
-      depsHash: "bbbbbbbbbbbbbbbb",
+      name: "bci-acme-web-deps-bbbbbbbbbb",
       patch,
       pollMs: 1,
     });
@@ -382,7 +453,7 @@ describe("saveDepsSnapshot", () => {
     await expect(
       saveDepsSnapshot(boxd, worker(boxd.log, "unapply"), {
         record: record(),
-        depsHash: "b".repeat(16),
+        name: "bci-acme-web-deps-bbbbbbbbbb",
         patch,
         pollMs: 1,
       }),

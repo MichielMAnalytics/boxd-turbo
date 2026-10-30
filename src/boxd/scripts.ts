@@ -19,15 +19,34 @@ export function commit(sha: string): string {
   return sha;
 }
 
-/** Fetches one commit and checks it out. The GitHub token reaches git only as an auth header. */
+/** Git as boxd-ci runs it: hooks a task may have planted in .git (a snapshot keeps them) never run. */
+const GIT = "git -c core.hooksPath=/dev/null";
+
+/**
+ * The GitHub token as an auth header for github.com only (a submodule elsewhere never sees it), set
+ * through the environment so it is in no process's arguments.
+ */
+export const GITHUB_AUTH = `if [ -n "$BOXD_CI_FETCH_TOKEN" ]; then export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$BOXD_CI_FETCH_TOKEN" | base64 -w0)"; fi`;
+
+/** The submodules at the checked-out commit, when the repository has any. */
+export const SUBMODULES = `{ [ ! -f .gitmodules ] || ${GIT} submodule update --init --recursive -q; }`;
+
+/** Fetches one commit and checks it out, with its submodules. */
 export function fetchScript(workdir: string, sha: string): string {
   commit(sha);
-  const auth = `-c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$BOXD_CI_FETCH_TOKEN" | base64 -w0)"`;
   return [
     `cd ${q(workdir)}`,
-    `if [ -n "$BOXD_CI_FETCH_TOKEN" ]; then git ${auth} fetch -q origin ${sha}; else git fetch -q origin ${sha}; fi`,
-    `git checkout -q -f ${sha}`,
+    GITHUB_AUTH,
+    `${GIT} fetch -q origin ${sha}`,
+    `${GIT} checkout -q -f ${sha}`,
+    SUBMODULES,
   ].join(" && ");
+}
+
+/** Checks out a commit the machine already has (its snapshot was saved there): no fetch, no token. */
+export function checkoutScript(workdir: string, sha: string): string {
+  commit(sha);
+  return [`cd ${q(workdir)}`, `${GIT} checkout -q -f ${sha}`, SUBMODULES].join(" && ");
 }
 
 /**
@@ -38,8 +57,8 @@ export function applyPatchScript(workdir: string, base: string, patchPath: strin
   commit(base);
   return [
     `cd ${q(workdir)}`,
-    `{ git cat-file -e ${base}^{commit} 2>/dev/null || git fetch -q origin ${base}; }`,
-    `git checkout -q -f ${base}`,
+    `{ git cat-file -e ${base}^{commit} 2>/dev/null || ${GIT} fetch -q origin ${base}; }`,
+    `${GIT} checkout -q -f ${base}`,
     `if [ -s ${q(patchPath)} ]; then git apply --binary --whitespace=nowarn ${q(patchPath)}; fi`,
   ].join(" && ");
 }

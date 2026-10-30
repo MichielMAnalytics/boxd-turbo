@@ -1,10 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import {
   applyPatchScript,
+  checkoutScript,
   cleanOutputsScript,
   fetchScript,
   LOG_MARK,
@@ -28,13 +29,70 @@ const node = (id: string, logFile = `packages/${id.split("#")[0]}/.turbo/turbo-x
 });
 
 describe("fetchScript", () => {
-  test("fetches and checks out the commit, with the token only as an auth header", () => {
+  test("fetches and checks out the commit, with the token only as an auth header for github.com", () => {
     const s = fetchScript("/home/boxd/work/app", "abc1234");
     expect(s).toContain("cd '/home/boxd/work/app'");
     expect(s).toContain("fetch -q origin abc1234");
     expect(s).toContain("checkout -q -f abc1234");
     expect(s).toContain('"$BOXD_CI_FETCH_TOKEN"');
+    // From the environment, so the header is in no process's arguments, and for github.com only,
+    // so a submodule elsewhere never sees it.
+    expect(s).toContain("GIT_CONFIG_KEY_0=http.https://github.com/.extraheader");
+    expect(s).not.toContain("git -c http.extraheader");
     expect(s).not.toMatch(/ghs_|x-access-token:[a-z0-9]/);
+  });
+
+  test("on a real repository: checks out the commit with its submodules, and runs no hook the repository planted", () => {
+    const root = mkdtempSync(join(tmpdir(), "boxd-ci-fetch-"));
+    const git = (cwd: string, ...args: string[]) =>
+      execFileSync("git", ["-c", "protocol.file.allow=always", "-c", "user.name=t", "-c", "user.email=t@t", ...args], {
+        cwd,
+        stdio: "pipe",
+      })
+        .toString()
+        .trim();
+    const sub = join(root, "sub");
+    const main = join(root, "main");
+    for (const d of [sub, main]) {
+      mkdirSync(d);
+      git(d, "init", "-q", "-b", "main");
+    }
+    writeFileSync(join(sub, "sub.txt"), "from the submodule");
+    git(sub, "add", ".");
+    git(sub, "commit", "-q", "-m", "sub");
+    writeFileSync(join(main, "a.txt"), "one");
+    git(main, "add", ".");
+    git(main, "commit", "-q", "-m", "one");
+    const work = join(root, "work");
+    git(root, "clone", "-q", main, work);
+    git(main, "submodule", "add", "-q", sub, "packages/sub");
+    git(main, "commit", "-q", "-m", "two");
+    const sha = git(main, "rev-parse", "HEAD");
+    // What a task on an earlier run could have left in the snapshot.
+    writeFileSync(join(work, ".git/hooks/post-checkout"), `#!/bin/sh\ntouch ${join(root, "hook-ran")}\n`);
+    chmodSync(join(work, ".git/hooks/post-checkout"), 0o755);
+    execFileSync("bash", ["-c", fetchScript(work, sha)], {
+      env: {
+        ...process.env,
+        GIT_CONFIG_COUNT: "1",
+        GIT_CONFIG_KEY_0: "protocol.file.allow",
+        GIT_CONFIG_VALUE_0: "always",
+      },
+      stdio: "pipe",
+    });
+    expect(readFileSync(join(work, "packages/sub/sub.txt"), "utf8")).toBe("from the submodule");
+    expect(existsSync(join(root, "hook-ran"))).toBe(false);
+  });
+});
+
+describe("checkoutScript", () => {
+  test("checks out a commit the machine already has: no fetch, no token, no hooks", () => {
+    const s = checkoutScript("/w", "abc1234");
+    expect(s).toContain("checkout -q -f abc1234");
+    expect(s).toContain("core.hooksPath=/dev/null");
+    expect(s).not.toContain("fetch");
+    expect(s).not.toContain("BOXD_CI_FETCH_TOKEN");
+    expect(() => checkoutScript("/w", "$(id)")).toThrow("not a commit hash");
   });
 });
 
@@ -57,7 +115,9 @@ describe("applyPatchScript", () => {
 
   test("fetches a base commit the snapshot does not have, and keeps untracked files an install made", () => {
     const s = applyPatchScript("/w", "ba5e123", "/tmp/p.patch");
-    expect(s).toContain("git cat-file -e ba5e123^{commit} 2>/dev/null || git fetch -q origin ba5e123");
+    expect(s).toContain(
+      "git cat-file -e ba5e123^{commit} 2>/dev/null || git -c core.hooksPath=/dev/null fetch -q origin ba5e123",
+    );
     expect(s).not.toContain("git clean");
   });
 });

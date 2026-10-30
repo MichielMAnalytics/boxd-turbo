@@ -8,23 +8,29 @@ import { Boxd } from "@boxd-sh/sdk";
 
 export type ExecOutput = { stdout: string; stderr: string; exitCode: number };
 
+/** Isolation and labels, or the same in a spec that also names the secrets the machine gets. */
+export type Shape =
+  | { isolated?: boolean; labels: Record<string, string> }
+  | { spec: { version: 1; isolated: boolean; labels: Record<string, string>; secrets: string[] } };
+
 export type CreateParams =
-  | {
-      name: string;
-      org?: string;
-      fromSnapshot: string;
-      isolated: boolean;
-      deleteAfter: number;
-      labels: Record<string, string>;
-    }
-  | {
+  | ({ name: string; org?: string; fromSnapshot: string; deleteAfter: number } & Shape)
+  | ({
       name: string;
       org?: string;
       config: { vcpu: number; memory: string; autoSuspendTimeout: number };
-      isolated?: boolean;
       deleteAfter?: number;
-      labels: Record<string, string>;
-    };
+    } & Shape);
+
+/**
+ * An isolated machine with these labels. Secrets go in a spec: the SDK refuses labels or isolation
+ * next to one, and a machine only gets an unattached secret its spec names.
+ */
+export function isolatedShape(labels: Record<string, string>, secrets: string[] = []): Shape {
+  return secrets.length
+    ? { spec: { version: 1, isolated: true, labels, secrets: [...secrets] } }
+    : { isolated: true, labels };
+}
 
 export type MachineInfo = {
   id: string;
@@ -34,7 +40,13 @@ export type MachineInfo = {
   labels?: Record<string, string>;
   createdAt?: Date | null;
 };
-export type SnapshotInfo = { name: string; version: number | null; status: string; vcpu: number };
+export type SnapshotInfo = {
+  name: string;
+  version: number | null;
+  status: string;
+  vcpu: number;
+  createdAt?: Date | null;
+};
 
 /** Every SDK call boxd-ci makes. `new Boxd()` is one. */
 export type BoxdLike = {

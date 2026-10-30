@@ -22,6 +22,10 @@ export type RunRecord = {
   warnings: string[];
   /** Why the run stopped before or around its tasks (planner, snapshot, an exception). */
   error?: string;
+  /** The machines of failed tasks that were kept for debugging, by name. */
+  kept?: string[];
+  /** The GitHub check run that reports it (pushes), so a restarted automation can close it. */
+  checkId?: number;
 };
 
 export const runSeconds = (r: RunRecord): number =>
