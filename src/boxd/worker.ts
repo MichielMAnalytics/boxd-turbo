@@ -8,29 +8,14 @@
 import type { TaskNode } from "../core/graph.js";
 import type { TaskResult, Worker, WorkerPool } from "../core/scheduler.js";
 import { applyPatchScript, cleanOutputsScript, fetchScript, parseRunOutput, turboRunScript } from "./scripts.js";
+import type { BoxdLike, ExecOutput } from "./sdk.js";
 
-/** The part of the boxd SDK (`new Boxd()`) a pool uses. */
-export type BoxdLike = {
-  machines: {
-    create(p: {
-      name: string;
-      org?: string;
-      fromSnapshot: string;
-      isolated: boolean;
-      deleteAfter: number;
-      labels: Record<string, string>;
-    }): Promise<{ id: string; name: string }>;
-    waitUntilReady(id: string, p?: { timeout?: number }): Promise<unknown>;
-    exec(
-      id: string,
-      p: { command: string[]; env?: Record<string, string>; timeout?: number },
-    ): Promise<{ stdout: string; stderr: string; exitCode: number }>;
-    resize(id: string, p: { vcpu: number; memory: string }): Promise<unknown>;
-    pause(id: string): Promise<unknown>;
-    delete(id: string): Promise<void>;
-    setDeleteAfter(id: string, seconds: number): Promise<unknown>;
-    files: { upload(id: string, path: string, source: Uint8Array): Promise<number> };
-  };
+/** The part of the boxd SDK a pool uses. */
+export type PoolBoxd = {
+  machines: Pick<
+    BoxdLike["machines"],
+    "create" | "waitUntilReady" | "exec" | "resize" | "pause" | "delete" | "setDeleteAfter" | "files"
+  >;
 };
 
 export type PrepareSpec =
@@ -77,18 +62,18 @@ export type Pool = {
   kept(): string[];
 };
 
-type ExecOutput = { stdout: string; stderr: string; exitCode: number };
-
 /** A machine lives at most this long after its last group started, whatever happens to the controller. */
 export const SAFETY_SECONDS = 3600;
 /** How long a machine with a failed task is kept. */
 export const KEEP_FAILED_SECONDS = 86_400;
 const PATCH_PATH = "/tmp/boxd-ci.patch";
+/** A restore from a large snapshot can take longer than the SDK's 90-second default. */
+const READY_MS = 180_000;
 const MEMORY: Record<number, string> = { 1: "4G", 2: "8G", 4: "16G", 8: "32G" };
 
 const randomTag = () => Math.random().toString(36).slice(2, 6).padEnd(4, "0");
 
-export function createPool(boxd: BoxdLike, o: PoolOptions): Pool {
+export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
   const m = boxd.machines;
   const prefix = `bci-${o.runId.split("-").at(-1)?.slice(0, 7) ?? "run"}-${randomTag()}`;
   const live = new Map<string, BoxWorker>(); // by machine id
@@ -173,10 +158,10 @@ export function createPool(boxd: BoxdLike, o: PoolOptions): Pool {
     live.set(machine.id, w);
     try {
       if (closed) throw new Error("the run is over");
-      await m.waitUntilReady(machine.id);
+      await m.waitUntilReady(machine.id, { timeout: READY_MS });
       if (cpus !== o.baseCpus) {
         await m.resize(machine.id, { vcpu: cpus, memory: MEMORY[cpus] ?? "8G" });
-        await m.waitUntilReady(machine.id);
+        await m.waitUntilReady(machine.id, { timeout: READY_MS });
       }
       await prepare(machine.id);
       if (closed) throw new Error("the run is over");

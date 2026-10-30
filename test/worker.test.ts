@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { SUMMARY_MARK } from "../src/boxd/scripts.js";
-import { type BoxdLike, createPool, type PoolOptions } from "../src/boxd/worker.js";
+import { createPool, type PoolBoxd, type PoolOptions } from "../src/boxd/worker.js";
 import type { TaskNode } from "../src/core/graph.js";
 
 const node = (id: string, outputs: string[] = []): TaskNode => ({
@@ -19,7 +19,7 @@ const node = (id: string, outputs: string[] = []): TaskNode => ({
 type Exec = { id: string; script: string; env: Record<string, string> };
 
 /** Records every call; turbo runs succeed unless `exitCodes` says otherwise. */
-class FakeBoxd implements BoxdLike {
+class FakeBoxd implements PoolBoxd {
   log: string[] = [];
   execs: Exec[] = [];
   uploads: { id: string; path: string; bytes: number }[] = [];
@@ -30,7 +30,7 @@ class FakeBoxd implements BoxdLike {
   private n = 0;
 
   machines = {
-    create: async (p: Parameters<BoxdLike["machines"]["create"]>[0]) => {
+    create: async (p: Parameters<PoolBoxd["machines"]["create"]>[0]) => {
       this.log.push(`create ${p.name}`);
       this.lastCreate = p;
       if (this.createGate) await this.createGate;
@@ -77,7 +77,7 @@ class FakeBoxd implements BoxdLike {
       },
     },
   };
-  lastCreate?: Parameters<BoxdLike["machines"]["create"]>[0];
+  lastCreate?: Parameters<PoolBoxd["machines"]["create"]>[0];
 }
 
 const options = (o: Partial<PoolOptions> = {}): PoolOptions => ({

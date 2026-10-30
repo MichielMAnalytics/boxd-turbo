@@ -21,7 +21,10 @@ let graph: TaskGraph;
 /** One group on the "machine": clean the outputs, run Turborepo, parse what comes back. */
 const runGroup = (ids: string[]) => {
   const tasks = ids.map((id) => graph.nodes.get(id) ?? expect.fail(`no node ${id}`));
-  const script = `${cleanOutputsScript(repo, tasks.map((t) => ({ dir: t.dir, globs: t.outputs })))}; ${turboRunScript(repo, tasks)}`;
+  const script = `${cleanOutputsScript(
+    repo,
+    tasks.map((t) => ({ dir: t.dir, globs: t.outputs })),
+  )}; ${turboRunScript(repo, tasks)}`;
   const out = spawnSync("bash", ["-c", script], { env, encoding: "utf8" });
   return parseRunOutput(`${out.stderr}\n${out.stdout}`, tasks, "local");
 };
