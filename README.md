@@ -59,14 +59,18 @@ with Turborepo. Vercel CI spent a median of 27 s bootstrapping before its first 
   </picture>
 </p>
 
-Every run, the method and the caveats are in [`bench/`](bench/README.md).
+The cost counts every task machine for every second it was up and the server for the length of the
+run. It leaves out snapshot storage, kept machines of failed tasks (hibernated, disk only) and the
+promotion after a green push to the default branch, which these branch pushes did not trigger. Every
+run, the method and the caveats are in [`bench/`](bench/README.md).
 
 ### The case Vercel CI won
 
 The first boxd prototype ran CI as one machine plus a fixed set of test shards, each restored from a
-snapshot, with the Turborepo cache. It won the small changes and lost the core change to Vercel CI,
-since a fixed set of shards waits for its slowest one. Scheduling every Turborepo task on its own
-machine, the way Vercel CI does, is what boxd CI adds.
+snapshot, with the Turborepo cache. With 16 shards it won the small changes and lost the core change
+to Vercel CI, since a fixed set of shards waits for its slowest one. Doubling to 32 shards beat Vercel
+CI by 13 seconds, at a higher cost than 16. Scheduling every Turborepo task on its own machine, the
+way Vercel CI does, is what boxd CI adds.
 
 | A core change, push to green | median |
 |---|---|
@@ -117,10 +121,11 @@ thing is a few thousand lines of TypeScript under the MIT license.
    outputs of the task's dependencies and uploads the task's own. The declared outputs are deleted
    first, so every file in `dist` comes from this run or from the cache.
 4. **Report.** A `boxd-ci` check on the commit shows every task that ran, its time and its machine, and
-   the end of every failed log. A failed task's machine is paused and kept for a day, exactly as the
-   task left it.
-5. **Promote.** After a green push to the default branch, the snapshot moves to that commit, with
-   every task's output in its local Turborepo cache.
+   the end of every failed log. A failed task's machine is hibernated and kept for a day, as the task
+   left it, so `boxd connect` lands on its disk. A run keeps at most three.
+5. **Promote.** After a green push to the default branch, a new snapshot of that commit is saved,
+   with every task's output in its local Turborepo cache, and runs start from it. The one before is
+   deleted six hours later, after any run still restoring from it.
 
 <p align="center">
   <picture>
@@ -187,9 +192,10 @@ own change before it pushes.
 | | What | When it costs |
 |---|---|---|
 | `boxd-ci-server` | the Turborepo remote cache and the run history, 2 vCPU, 8 GiB | while awake. It sleeps after a minute without requests and wakes on the next one. |
-| `bci-<repo>-a`, `-b` | the repository's snapshots, taking turns | storage |
+| `bci-<repo>-<commit>` | the snapshot runs start from, named after its commit | storage |
 | `bci-<repo>-deps-*` | snapshots for lockfiles that differ from the default branch's | storage |
-| `bci-<sha>-*` | task machines | for the seconds they run, then deleted at the end of the run |
+| `bci-<commit>-*` | task machines | for the seconds they run, then deleted at the end of the run |
+| `bci-<commit>-*`, hibernated | the machines of failed tasks, at most three per run | disk only, for 24 hours |
 
 Every task machine is created with a one-hour delete-after timer, so a run that dies halfway leaves
 nothing running for long. `boxd-ci doctor --sweep` cleans up sooner.
@@ -197,8 +203,10 @@ nothing running for long. `boxd-ci doctor --sweep` cleans up sooner.
 ## Security
 
 - Task machines are isolated, so nothing else on your boxd account can reach them. They hold no boxd
-  credentials. The commit is fetched with a GitHub App installation token that lives in the
-  environment of that one command and expires within the hour.
+  credentials.
+- Secrets reach a machine as environment variables on the command boxd runs there: the cache token
+  for each Turborepo run, and, for the one command that fetches the commit, a GitHub App installation
+  token that expires within the hour.
 - The cache token lives on the server in files only its owner can read, and reaches tasks as
   `TURBO_TOKEN`.
 - v1 is for teams that trust their own branches. Every run of a repository reads and writes one cache

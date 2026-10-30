@@ -2,8 +2,9 @@
 // run's commit, then handed to the scheduler to run task groups through Turborepo.
 //
 // Every machine is born with a delete-after timer, so a controller that dies mid-run leaks nothing
-// for longer than an hour. A machine whose tasks passed is deleted; one with a failed task is paused
-// and kept for a day, so its disk can be inspected.
+// for longer than an hour. A machine whose tasks passed is deleted. One with a failed task is
+// hibernated (disk only) and kept for a day, so `boxd connect` lands where the task left off; a run
+// keeps at most three.
 
 import type { TaskNode } from "../core/graph.js";
 import type { TaskResult, Worker, WorkerPool } from "../core/scheduler.js";
@@ -14,7 +15,7 @@ import type { BoxdLike, ExecOutput } from "./sdk.js";
 export type PoolBoxd = {
   machines: Pick<
     BoxdLike["machines"],
-    "create" | "waitUntilReady" | "exec" | "resize" | "pause" | "delete" | "setDeleteAfter" | "files"
+    "create" | "waitUntilReady" | "exec" | "resize" | "hibernate" | "delete" | "setDeleteAfter" | "files"
   >;
 };
 
@@ -46,6 +47,8 @@ export type PoolOptions = {
   groupTimeoutMs?: number;
   /** The clock (tests replace it). */
   now?: () => number;
+  /** Waits before each new try at starting a machine. Default 2 s, then 5 s. */
+  retryDelaysMs?: number[];
 };
 
 export type BoxWorker = Worker & {
@@ -78,6 +81,8 @@ export type Pool = {
 export const SAFETY_SECONDS = 3600;
 /** How long a machine with a failed task is kept. */
 export const KEEP_FAILED_SECONDS = 86_400;
+/** How many failed machines one run keeps; the others are deleted (their logs are in the run). */
+export const KEEP_FAILED_MAX = 3;
 export const PATCH_PATH = "/tmp/boxd-ci.patch";
 /** A restore from a large snapshot can take longer than the SDK's 90-second default. */
 const READY_MS = 180_000;
@@ -92,12 +97,13 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
   const parked: BoxWorker[] = [];
   const keptNames: string[] = [];
   let created = 0;
+  let named = 0;
   let snapshot = o.snapshot;
   let closed = false;
   const now = o.now ?? Date.now;
   const born = new Map<string, { at: number; cpus: number }>(); // machine id → when it was asked for
   const seconds: Record<string, number> = {};
-  /** The machine stops costing compute: deleted, or paused for debugging. */
+  /** The machine stops costing compute: deleted, or hibernated for debugging. */
   const ended = (id: string) => {
     const b = born.get(id);
     if (!b) return;
@@ -147,7 +153,7 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
       async run(tasks: TaskNode[]): Promise<TaskResult[]> {
         const script = `${cleanOutputsScript(o.workdir, outputsOf(tasks))}; ${turboRunScript(o.workdir, tasks)}`;
         try {
-          await m.setDeleteAfter(id, SAFETY_SECONDS);
+          await m.setDeleteAfter(id, SAFETY_SECONDS).catch(() => {}); // the create-time timer still stands
           const out = await sh(id, script, { env: o.env, timeout: o.groupTimeoutMs ?? 45 * 60_000 });
           return parseRunOutput(`${out.stderr}\n${out.stdout}`, tasks, name);
         } catch (e) {
@@ -158,10 +164,11 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
       async release({ failed }) {
         if (!live.has(id)) return;
         if (!failed) return remove(id);
+        if (keptNames.length >= KEEP_FAILED_MAX) return remove(id);
         live.delete(id);
         ended(id);
         keptNames.push(name);
-        await m.pause(id).catch(() => {});
+        await m.hibernate(id).catch(() => {});
         await m.setDeleteAfter(id, KEEP_FAILED_SECONDS).catch(() => {});
       },
     };
@@ -169,17 +176,30 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
   };
 
   const start = async (cpus: number): Promise<BoxWorker> => {
+    // A brief API error or a full account should not turn into red tasks: try again, twice.
+    const delays = o.retryDelaysMs ?? [2000, 5000];
+    let machine: { id: string; name: string } | undefined;
+    let name = "";
+    let at = 0;
+    for (let attempt = 0; !machine; attempt++) {
+      named += 1;
+      name = `${prefix}-${named}`;
+      at = now();
+      try {
+        machine = await m.create({
+          name,
+          ...(o.org ? { org: o.org } : {}),
+          fromSnapshot: snapshot,
+          isolated: true,
+          deleteAfter: SAFETY_SECONDS,
+          labels: { "boxd-ci": "worker", "boxd-ci/run": o.runId, ...(o.repo ? { "boxd-ci/repo": o.repo } : {}) },
+        });
+      } catch (e) {
+        if (closed || attempt >= delays.length) throw e;
+        await new Promise((r) => setTimeout(r, delays[attempt]));
+      }
+    }
     created += 1;
-    const name = `${prefix}-${created}`;
-    const at = now();
-    const machine = await m.create({
-      name,
-      ...(o.org ? { org: o.org } : {}),
-      fromSnapshot: snapshot,
-      isolated: true,
-      deleteAfter: SAFETY_SECONDS,
-      labels: { "boxd-ci": "worker", "boxd-ci/run": o.runId, ...(o.repo ? { "boxd-ci/repo": o.repo } : {}) },
-    });
     const w = worker(machine.id, name, cpus);
     live.set(machine.id, w);
     born.set(machine.id, { at, cpus });

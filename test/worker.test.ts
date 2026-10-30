@@ -25,6 +25,8 @@ class FakeBoxd implements PoolBoxd {
   uploads: { id: string; path: string; bytes: number }[] = [];
   exitCodes = new Map<string, number>();
   failPrepare = false;
+  failCreates = 0;
+  failTimer = false;
   execError?: Error;
   createGate?: Promise<void>;
   private n = 0;
@@ -32,6 +34,10 @@ class FakeBoxd implements PoolBoxd {
   machines = {
     create: async (p: Parameters<PoolBoxd["machines"]["create"]>[0]) => {
       this.log.push(`create ${p.name}`);
+      if (this.failCreates > 0) {
+        this.failCreates -= 1;
+        throw new Error("UNAVAILABLE: try again");
+      }
       this.lastCreate = p;
       if (this.createGate) await this.createGate;
       this.n += 1;
@@ -64,11 +70,15 @@ class FakeBoxd implements PoolBoxd {
     pause: async (id: string) => {
       this.log.push(`pause ${id}`);
     },
+    hibernate: async (id: string) => {
+      this.log.push(`hibernate ${id}`);
+    },
     delete: async (id: string) => {
       this.log.push(`delete ${id}`);
     },
     setDeleteAfter: async (id: string, seconds: number) => {
       this.log.push(`deleteAfter ${id} ${seconds}`);
+      if (this.failTimer) throw new Error("UNAVAILABLE");
     },
     files: {
       upload: async (id: string, path: string, source: Uint8Array) => {
@@ -88,6 +98,7 @@ const options = (o: Partial<PoolOptions> = {}): PoolOptions => ({
   prepare: { kind: "commit", sha: "abc1234def", fetchToken: "ghs_secret" },
   env: { TURBO_TOKEN: "t0k", CI: "1" },
   runId: "20261030-091400-abc1234",
+  retryDelaysMs: [0, 0],
   ...o,
 });
 
@@ -184,6 +195,27 @@ describe("createPool", () => {
     expect(r[0]?.logTail).toContain("deadline exceeded");
   });
 
+  test("a machine that fails to start is tried twice more before its tasks fail", async () => {
+    const boxd = new FakeBoxd();
+    boxd.failCreates = 2;
+    const pool = createPool(boxd, options());
+    const w = await pool.acquire();
+    expect(boxd.log.filter((l) => l.startsWith("create"))).toHaveLength(3);
+    expect(pool.machines()).toBe(1);
+    expect(w.id).toMatch(/-3$/);
+    boxd.failCreates = 3;
+    await expect(pool.acquire()).rejects.toThrow("UNAVAILABLE: try again");
+  });
+
+  test("a timer that cannot be re-armed does not fail the group", async () => {
+    const boxd = new FakeBoxd();
+    const pool = createPool(boxd, options());
+    const w = await pool.acquire();
+    boxd.failTimer = true;
+    const r = await w.run([node("a#test")]);
+    expect(r.map((x) => x.status)).toEqual(["ran"]);
+  });
+
   test("a task asking for another size gets its machine resized before it is prepared", async () => {
     const boxd = new FakeBoxd();
     const pool = createPool(boxd, options());
@@ -211,14 +243,24 @@ describe("createPool", () => {
     expect(boxd.log).not.toContain("pause m1");
   });
 
-  test("a failed release pauses the machine and keeps it for 24 hours", async () => {
+  test("a failed release hibernates the machine (disk only, no memory billed) and keeps it for 24 hours", async () => {
     const boxd = new FakeBoxd();
     const pool = createPool(boxd, options());
     const w = await pool.acquire();
     await w.release({ failed: true });
-    expect(boxd.log.slice(-2)).toEqual(["pause m1", "deleteAfter m1 86400"]);
+    expect(boxd.log.slice(-2)).toEqual(["hibernate m1", "deleteAfter m1 86400"]);
     expect(boxd.log).not.toContain("delete m1");
     expect(pool.kept()).toEqual([w.id]);
+  });
+
+  test("a run keeps at most three failed machines, and deletes the rest", async () => {
+    const boxd = new FakeBoxd();
+    const pool = createPool(boxd, options());
+    const ws = [await pool.acquire(), await pool.acquire(), await pool.acquire(), await pool.acquire()];
+    for (const w of ws) await w.release({ failed: true });
+    expect(pool.kept()).toEqual(ws.slice(0, 3).map((w) => w.id));
+    expect(boxd.log).toContain("delete m4");
+    expect(boxd.log).not.toContain("hibernate m4");
   });
 
   test("a machine that cannot be prepared is deleted and the acquire fails with git's error", async () => {

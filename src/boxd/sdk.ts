@@ -46,6 +46,7 @@ export type BoxdLike = {
     exec(id: string, p: { command: string[]; env?: Record<string, string>; timeout?: number }): Promise<ExecOutput>;
     resize(id: string, p: { vcpu: number; memory: string }): Promise<unknown>;
     pause(id: string): Promise<unknown>;
+    hibernate(id: string): Promise<unknown>;
     delete(id: string): Promise<void>;
     setDeleteAfter(id: string, seconds: number): Promise<unknown>;
     files: { upload(id: string, path: string, source: Uint8Array): Promise<number> };

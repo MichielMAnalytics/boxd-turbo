@@ -63,11 +63,20 @@ export async function updateCheck(gh: ChecksApi, repo: string, id: number, recor
     return;
   }
   const out = checkSummary(record);
-  await gh.rest.checks.update({
+  const done = {
     ...base,
-    status: "completed",
-    conclusion: record.status === "success" ? "success" : "failure",
+    status: "completed" as const,
+    conclusion: record.status === "success" ? ("success" as const) : ("failure" as const),
     completed_at: record.finishedAt ?? new Date().toISOString(),
-    output: { title: out.title, summary: out.summary, ...(out.text ? { text: out.text } : {}) },
-  });
+  };
+  try {
+    await gh.rest.checks.update({
+      ...done,
+      output: { title: out.title, summary: out.summary, ...(out.text ? { text: out.text } : {}) },
+    });
+  } catch {
+    // A check left in progress blocks a merge, so whatever GitHub refused, complete it with less.
+    const short = `${out.summary.slice(0, 20_000)}\n\nGitHub refused the full report. \`boxd-ci logs ${record.id} --failed\` prints it.`;
+    await gh.rest.checks.update({ ...done, output: { title: out.title.slice(0, 200), summary: short } });
+  }
 }

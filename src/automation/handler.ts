@@ -3,7 +3,7 @@
 // record of, tags and deleted branches are ignored.
 
 import type { BoxdLike } from "../boxd/sdk.js";
-import { promote, type RepoRecord } from "../boxd/snapshot.js";
+import { promote, pruneSnapshots, type RepoRecord } from "../boxd/snapshot.js";
 import type { Store } from "../boxd/store.js";
 import type { Pool, PoolOptions } from "../boxd/worker.js";
 import { formatSeconds } from "../core/report.js";
@@ -52,7 +52,7 @@ export function createHandler(deps: AutomationDeps) {
           onProgress: (l) => deps.log(`${repo}: ${l}`),
         });
         if (promoted) {
-          await writeJson(deps.store, paths.repo(repo), promoted);
+          await writeJson(deps.store, paths.repo(repo), await pruneSnapshots(deps.boxd, promoted, org ? { org } : {}));
           deps.log(`${repo}: runs now start from ${promoted.snapshot} (${sha.slice(0, 7)})`);
         }
       });
@@ -94,7 +94,8 @@ export function createHandler(deps: AutomationDeps) {
         onFinish: async (r) => {
           say(`${r.status}${r.error ? `: ${r.error}` : ""}`);
           if (check !== null)
-            await updateCheck(gh, name, check, r).catch((err: Error) =>
+            // A fresh client: an installation token expires within the hour, and runs can be longer.
+            await updateCheck(await deps.github.client(), name, check, r).catch((err: Error) =>
               say(`could not update the check: ${err.message}`),
             );
         },

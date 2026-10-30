@@ -10,6 +10,7 @@ import {
   depsSnapshotName,
   installScript,
   promote,
+  pruneSnapshots,
   type RepoRecord,
   repoSlug,
   type SnapshotBoxd,
@@ -22,6 +23,14 @@ const bash = (script: string, env: Record<string, string> = {}) =>
   execFileSync("bash", ["-c", script], { encoding: "utf8", env: { ...process.env, ...env } }).trim();
 
 describe("repoSlug and names", () => {
+  test("two long names that share their first 40 characters keep different slugs", () => {
+    const a = repoSlug("melchior-analytics/advertising-dashboard-api");
+    const b = repoSlug("melchior-analytics/advertising-dashboard-app");
+    expect(a).not.toBe(b);
+    expect(a.length).toBeLessThanOrEqual(40);
+    expect(a).toMatch(/^melchior-analytics-advertising-[a-z0-9-]*-[0-9a-f]{6}$/);
+  });
+
   test("a repository becomes a lowercase name boxd accepts", () => {
     expect(repoSlug("Azin-Tech/bench.AI")).toBe("azin-tech-bench-ai");
     expect(depsSnapshotName("azin-tech/bench-ai", "0123456789abcdef")).toBe("bci-azin-tech-bench-ai-deps-0123456789");
@@ -170,8 +179,7 @@ const record = (o: Partial<RepoRecord> = {}): RepoRecord => ({
   cloneUrl: "https://github.com/acme/web.git",
   defaultBranch: "main",
   workdir: "/home/boxd/work/web",
-  slots: ["bci-acme-web-a", "bci-acme-web-b"],
-  snapshot: "bci-acme-web-a",
+  snapshot: "bci-acme-web-c0ffee1",
   commit: "c0ffee1",
   depsHash: "aaaaaaaaaaaaaaaa",
   cpus: 2,
@@ -204,7 +212,7 @@ describe("buildSnapshot", () => {
     pollMs: 1,
   };
 
-  test("clones, installs, fills the cache, saves the first slot, and deletes the builder", async () => {
+  test("clones, installs, fills the cache, saves a snapshot named after the commit, and deletes the builder", async () => {
     const boxd = new FakeBoxd();
     const r = await buildSnapshot(boxd, opts);
     expect(boxd.creates[0]).toMatchObject({
@@ -220,7 +228,7 @@ describe("buildSnapshot", () => {
       "install",
       "hash",
       "warm",
-      "save b1 bci-acme-web-a",
+      "save b1 bci-acme-web-c0ffee1",
       "delete b1",
     ]);
     expect(boxd.execs.find((e) => e.script.includes("clone"))?.env).toEqual({ BOXD_CI_FETCH_TOKEN: "ghs_x" });
@@ -229,8 +237,7 @@ describe("buildSnapshot", () => {
     expect(r).toMatchObject({
       repo: "acme/web",
       workdir: "/home/boxd/work/web",
-      slots: ["bci-acme-web-a", "bci-acme-web-b"],
-      snapshot: "bci-acme-web-a",
+      snapshot: "bci-acme-web-c0ffee1",
       commit: "c0ffee1",
       depsHash: "aaaaaaaaaaaaaaaa",
       cpus: 2,
@@ -258,7 +265,7 @@ describe("buildSnapshot", () => {
     const { selectors: _, ...rest } = opts;
     await buildSnapshot(boxd, { ...rest, plannerBundle: new Uint8Array([1]) });
     expect(boxd.log).not.toContain("warm");
-    expect(boxd.log).toContain("save b1 bci-acme-web-a");
+    expect(boxd.log).toContain("save b1 bci-acme-web-c0ffee1");
   });
 
   test("a failed install deletes the builder and says what broke", async () => {
@@ -280,19 +287,29 @@ describe("promote", () => {
     pollMs: 1,
   });
 
-  test("restores the current snapshot, checks out the commit, and saves it to the other slot", async () => {
+  test("restores the current snapshot, checks out the commit, saves it under its own name and retires the old one", async () => {
     const boxd = new FakeBoxd();
     const next = await promote(boxd, opts(record()));
     expect(boxd.log).toEqual([
-      "create bci-acme-web-a",
+      "create bci-acme-web-c0ffee1",
       "fetch",
       "ancestor",
       "hash",
       "warm",
-      "save b1 bci-acme-web-b",
+      "save b1 bci-acme-web-d00d2fe",
       "delete b1",
     ]);
-    expect(next).toMatchObject({ snapshot: "bci-acme-web-b", commit: "d00d2fe" });
+    expect(next).toMatchObject({
+      snapshot: "bci-acme-web-d00d2fe",
+      commit: "d00d2fe",
+      retired: [{ name: "bci-acme-web-c0ffee1" }],
+    });
+  });
+
+  test("the commit the snapshot already has is not saved again", async () => {
+    const boxd = new FakeBoxd();
+    expect(await promote(boxd, { ...opts(record()), sha: "c0ffee1" })).toBeNull();
+    expect(boxd.creates).toHaveLength(0);
   });
 
   test("installs only when the dependency files changed", async () => {
@@ -313,29 +330,86 @@ describe("promote", () => {
 });
 
 describe("saveDepsSnapshot", () => {
-  const worker = (log: string[]): BoxWorker => ({
+  const worker = (log: string[], failOn?: string): BoxWorker => ({
     id: "w1",
     machineId: "w1",
     cpus: 2,
     run: async () => [],
     release: async () => {},
-    upload: async () => {},
+    upload: async (path: string) => {
+      log.push(`upload ${path}`);
+    },
     sh: async (script: string) => {
-      log.push(script.includes("--frozen-lockfile") ? "install" : script.includes(" -R ") ? "unapply" : "apply");
-      return { stdout: "", stderr: "", exitCode: 0 };
+      const step = script.includes("--frozen-lockfile")
+        ? "install"
+        : script.includes(" -R ")
+          ? "unapply"
+          : script.startsWith("rm ")
+            ? "remove patch"
+            : "apply";
+      log.push(step);
+      return {
+        stdout: "",
+        stderr: step === failOn ? "error: patch does not apply" : "",
+        exitCode: step === failOn ? 1 : 0,
+      };
     },
   });
+  const patch = { path: "/tmp/boxd-ci.patch", data: new Uint8Array([1, 2, 3]) };
 
-  test("installs, and keeps a working copy out of the snapshot it saves", async () => {
+  test("installs, and saves the snapshot with neither the working copy nor its patch file on the machine", async () => {
     const boxd = new FakeBoxd();
-    const log: string[] = [];
+    const log = boxd.log;
     const name = await saveDepsSnapshot(boxd, worker(log), {
       record: record(),
       depsHash: "bbbbbbbbbbbbbbbb",
-      patchPath: "/tmp/boxd-ci.patch",
+      patch,
       pollMs: 1,
     });
     expect(name).toBe("bci-acme-web-deps-bbbbbbbbbb");
-    expect([...log, ...boxd.log]).toEqual(["install", "unapply", "apply", "save w1 bci-acme-web-deps-bbbbbbbbbb"]);
+    expect(log).toEqual([
+      "install",
+      "unapply",
+      "remove patch",
+      "save w1 bci-acme-web-deps-bbbbbbbbbb",
+      "upload /tmp/boxd-ci.patch",
+      "apply",
+    ]);
+  });
+
+  test("a working copy that cannot be taken back out is an error, and nothing is saved", async () => {
+    const boxd = new FakeBoxd();
+    await expect(
+      saveDepsSnapshot(boxd, worker(boxd.log, "unapply"), {
+        record: record(),
+        depsHash: "b".repeat(16),
+        patch,
+        pollMs: 1,
+      }),
+    ).rejects.toThrow("taking the working copy out before the snapshot failed: error: patch does not apply");
+    expect(boxd.log.some((l) => l.startsWith("save"))).toBe(false);
+  });
+});
+
+describe("pruneSnapshots", () => {
+  test("deletes snapshots retired more than six hours ago, which no run can still be restoring", async () => {
+    const deleted: string[] = [];
+    const boxd = {
+      snapshots: {
+        delete: async (name: string) => {
+          deleted.push(name);
+        },
+      },
+    };
+    const now = Date.parse("2026-10-30T20:00:00Z");
+    const r = record({
+      retired: [
+        { name: "bci-acme-web-0000001", at: "2026-10-30T10:00:00Z" },
+        { name: "bci-acme-web-0000002", at: "2026-10-30T17:00:00Z" },
+      ],
+    });
+    const next = await pruneSnapshots(boxd, r, { now });
+    expect(deleted).toEqual(["bci-acme-web-0000001"]);
+    expect(next.retired).toEqual([{ name: "bci-acme-web-0000002", at: "2026-10-30T17:00:00Z" }]);
   });
 });

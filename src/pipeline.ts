@@ -145,7 +145,7 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
           record: repo,
           depsHash: hash,
           ...(deps.org ? { org: deps.org } : {}),
-          ...(input.prepare.kind === "patch" ? { patchPath: PATCH_PATH } : {}),
+          ...(input.prepare.kind === "patch" ? { patch: { path: PATCH_PATH, data: input.prepare.patch } } : {}),
         });
         pool.setSnapshot(name);
       }

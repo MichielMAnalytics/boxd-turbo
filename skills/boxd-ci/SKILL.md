@@ -48,12 +48,12 @@ A run id prefix or its commit's short hash both work as `<run-id>`.
 
 ## Get on the machine of a failed task
 
-The machine a task failed on is paused and kept for 24 hours, with the repository as the task left
-it. Its name is the task's `machine`:
+The machine a task failed on is hibernated and kept for 24 hours, with the repository as the task
+left it (a run keeps at most three). Its name is the task's `machine`. Connecting wakes it:
 
 ```bash
-boxd machine resume <machine>
 boxd machine exec <machine> -- bash -lc 'cd /home/boxd/work/<repo> && <the failing command>'
+boxd connect <machine>      # an interactive shell
 ```
 
 ## When something is off

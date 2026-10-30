@@ -75,9 +75,9 @@ export async function runCommand(ctx: Ctx, flags: Record<string, string | boolea
     if (kept.length) {
       out.line();
       out.line(
-        `The machine${kept.length > 1 ? "s" : ""} of the failed tasks ${kept.length > 1 ? "are" : "is"} kept for 24 hours:`,
+        `${kept.length === 1 ? "This machine is" : "These machines are"} kept for 24 hours, as the failed tasks left them:`,
       );
-      for (const k of kept) out.line(`  ${bold(`boxd machine resume ${k} && boxd connect ${k}`)}`);
+      for (const k of kept) out.line(`  ${bold(`boxd connect ${k}`)}`);
       out.line(dim(`  boxd-ci logs ${record.id} --failed   the end of each failed log`));
     }
     out.line(

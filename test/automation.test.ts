@@ -70,15 +70,14 @@ const repo: RepoRecord = {
   cloneUrl: "https://github.com/acme/web.git",
   defaultBranch: "main",
   workdir: "/home/boxd/work/web",
-  slots: ["bci-acme-web-a", "bci-acme-web-b"],
-  snapshot: "bci-acme-web-a",
+  snapshot: "bci-acme-web-c0ffee1",
   commit: "c0ffee1",
   depsHash: "aaaaaaaaaaaaaaaa",
   cpus: 2,
   builtAt: "2026-10-30T00:00:00.000Z",
 };
 
-const setup = async (o: { fail?: boolean } = {}) => {
+const setup = async (o: { fail?: boolean; refuseText?: boolean } = {}) => {
   const store = fsStore(mkdtempSync(join(tmpdir(), "boxd-ci-auto-")));
   await writeJson(store, paths.repo("acme/web"), repo);
   const checks: { op: string; [k: string]: unknown }[] = [];
@@ -91,6 +90,7 @@ const setup = async (o: { fail?: boolean } = {}) => {
         },
         update: async (p) => {
           checks.push({ op: "update", ...p });
+          if (o.refuseText && p.output.text) throw new Error("Validation Failed: Only 65535 characters are allowed");
           return {};
         },
       },
@@ -98,6 +98,7 @@ const setup = async (o: { fail?: boolean } = {}) => {
   };
   const promoted: string[] = [];
   const chain: string[] = [];
+  const clients = { n: 0 };
   const deps: AutomationDeps = {
     boxd: {
       snapshots: { create: async () => ({ version: 1 }), get: async () => Promise.reject(new Error("none")) },
@@ -105,17 +106,23 @@ const setup = async (o: { fail?: boolean } = {}) => {
     store,
     server: { cacheUrl: "https://cache.x.boxd.sh", token: "t" },
     plannerBundle: new Uint8Array(),
-    github: { client: async () => gh, getToken: async () => "ghs_fresh" },
+    github: {
+      client: async () => {
+        clients.n += 1;
+        return gh;
+      },
+      getToken: async () => "ghs_fresh",
+    },
     pool: () => fakePool(o.fail),
     promoteSnapshot: async (_boxd, { record, sha }) => {
       promoted.push(sha);
       chain.push(`${record.commit}->${sha}`);
       await new Promise((r) => setTimeout(r, 5));
-      return { ...record, snapshot: "bci-acme-web-b", commit: sha };
+      return { ...record, snapshot: `bci-acme-web-${sha.slice(0, 7)}`, commit: sha };
     },
     log: () => {},
   };
-  return { store, checks, promoted, chain, handle: createHandler(deps) };
+  return { store, checks, promoted, chain, clients, handle: createHandler(deps) };
 };
 
 const event = (o: Partial<PushEvent> = {}): PushEvent => ({
@@ -151,6 +158,26 @@ describe("the push handler", () => {
     expect(done.output.title).toMatch(/^green in \d+s: 1 ran, 0 restored$/);
   });
 
+  test("a check GitHub refuses is completed again with the summary alone, never left in progress", async () => {
+    const { checks, handle } = await setup({ fail: true, refuseText: true });
+    await handle(event({ ref: "refs/heads/feature" }));
+    const last = checks.at(-1) as {
+      op: string;
+      status: string;
+      conclusion: string;
+      output: { text?: string; summary: string };
+    };
+    expect(last).toMatchObject({ op: "update", status: "completed", conclusion: "failure" });
+    expect(last.output.text).toBeUndefined();
+    expect(last.output.summary).toContain("boxd-ci logs");
+  });
+
+  test("the result is reported with a client asked for at the end, since tokens expire within an hour", async () => {
+    const { clients, handle } = await setup();
+    await handle(event({ ref: "refs/heads/feature" }));
+    expect(clients.n).toBe(2);
+  });
+
   test("a failed run completes the check as a failure, and nothing is promoted", async () => {
     const { checks, promoted, handle } = await setup({ fail: true });
     await handle(event());
@@ -163,7 +190,7 @@ describe("the push handler", () => {
     await handle(event());
     expect(promoted).toEqual(["d00d2fe1234567"]);
     const next = await readJson<RepoRecord>(store, paths.repo("acme/web"));
-    expect(next).toMatchObject({ snapshot: "bci-acme-web-b", commit: "d00d2fe1234567" });
+    expect(next).toMatchObject({ snapshot: "bci-acme-web-d00d2fe", commit: "d00d2fe1234567" });
   });
 
   test("promotions of one repository run one after another, each from the record the last one wrote", async () => {

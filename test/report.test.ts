@@ -40,7 +40,7 @@ describe("checkSummary", () => {
   test("a failed run says how to get onto the machines kept for the failed tasks", () => {
     const out = checkSummary(run([r("a#test", "failed", 3, "boom"), r("b#test", "ran")], "failure"));
     expect(out.summary).toContain(
-      "The machine of a failed task is kept for 24 hours: `boxd machine resume bci-r1-1 && boxd connect bci-r1-1`",
+      "The machine of a failed task is kept for 24 hours, as the task left it: `boxd connect bci-r1-1`",
     );
     expect(checkSummary(run([r("b#test", "ran")])).summary).not.toContain("kept for 24 hours");
   });
@@ -79,6 +79,16 @@ describe("checkSummary", () => {
     expect(s.summary.length).toBeLessThanOrEqual(GITHUB_LIMIT);
     expect(s.text?.length).toBeLessThanOrEqual(GITHUB_LIMIT);
     expect(s.text?.match(/THE REAL ERROR/g)).toHaveLength(2);
+  });
+
+  test("logs full of multibyte glyphs stay under GitHub's limit in bytes, keeping each log's end", () => {
+    const glyphs = " ✓ src/thing.test.ts (12 tests) ❯ × ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ failed\n".repeat(2000);
+    const tasks = ["a", "b", "c", "d", "e"].map((p) => r(`${p}#test`, "failed", 5, `${glyphs}END OF ${p}`));
+    const s = checkSummary(run(tasks, "failure"));
+    expect(Buffer.byteLength(s.text ?? "")).toBeLessThanOrEqual(GITHUB_LIMIT);
+    expect(Buffer.byteLength(s.summary)).toBeLessThanOrEqual(GITHUB_LIMIT);
+    for (const p of ["a", "b", "c", "d", "e"]) expect(s.text).toContain(`END OF ${p}`);
+    expect(s.text).not.toContain("\uFFFD");
   });
 
   test("a run that never got to its tasks explains why", () => {

@@ -8,6 +8,7 @@ import { type RepoRecord, snapshotReady } from "../../boxd/snapshot.js";
 import { machineStore } from "../../boxd/store.js";
 import { ciTaggedTasks } from "../../core/propose.js";
 import type { RunRecord } from "../../core/record.js";
+import { leftovers } from "../../core/sweep.js";
 import { paths, readJson } from "../../state.js";
 import type { Ctx } from "../context.js";
 import { turboFiles } from "../git.js";
@@ -15,8 +16,6 @@ import { GITHUB_HELP, githubAccess } from "../setup.js";
 import { ago, bold, dim, green, type Out, red, yellow } from "../ui.js";
 
 type Check = { ok: boolean | "warn"; what: string; fix?: string };
-
-const STALE_MS = 3 * 3600_000;
 
 export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boolean>, out: Out): Promise<number> {
   const checks: Check[] = [];
@@ -97,30 +96,39 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
   }
 
   // Machines of finished runs that are still up: a controller that died, or a sweep nobody ran.
-  const now = Date.now();
-  const machines = await boxd.machines.list({ ...(ctx.org ? { org: ctx.org } : {}), labels: { "boxd-ci": "worker" } });
-  const builders = await boxd.machines.list({ ...(ctx.org ? { org: ctx.org } : {}), labels: { "boxd-ci": "builder" } });
-  const leftovers: { id: string; name: string }[] = [];
-  for (const m of machines) {
-    if (m.status === "standby") continue; // a failed task's machine, kept on purpose with its own timer
-    const run = m.labels?.["boxd-ci/run"];
-    const slug = m.labels?.["boxd-ci/repo"];
-    const record = run && slug ? await readJson<RunRecord>(store, `runs/${slug}/${run}.json`) : null;
-    const age = m.createdAt ? now - m.createdAt.getTime() : 0;
-    if ((record && record.status !== "running") || age > STALE_MS) leftovers.push(m);
-  }
-  for (const b of builders) if (b.createdAt && now - b.createdAt.getTime() > STALE_MS) leftovers.push(b);
-  if (!leftovers.length) add({ ok: true, what: "no machine of a finished run is left running" });
+  const scope = ctx.org ? { org: ctx.org } : {};
+  const machines = [
+    ...(await boxd.machines.list({ ...scope, labels: { "boxd-ci": "worker" } })),
+    ...(await boxd.machines.list({ ...scope, labels: { "boxd-ci": "builder" } })),
+  ];
+  const asked = [
+    ...new Set(
+      machines
+        .filter((m) => m.status === "running" && m.labels?.["boxd-ci/run"] && m.labels?.["boxd-ci/repo"])
+        .map((m) => `runs/${m.labels?.["boxd-ci/repo"]}/${m.labels?.["boxd-ci/run"]}.json`),
+    ),
+  ];
+  const statuses = new Map<string, string>();
+  (await store.readMany(asked)).forEach((text, i) => {
+    if (!text) return;
+    try {
+      statuses.set(asked[i] as string, (JSON.parse(text) as RunRecord).status);
+    } catch {
+      // an unreadable record says nothing about the run
+    }
+  });
+  const left = leftovers(machines, (repo, run) => statuses.get(`runs/${repo}/${run}.json`));
+  if (!left.length) add({ ok: true, what: "no machine of a finished run is left running" });
   else if (flags.sweep) {
-    await Promise.all(leftovers.map((m) => boxd.machines.delete(m.id).catch(() => {})));
+    await Promise.all(left.map((m) => boxd.machines.delete(m.id).catch(() => {})));
     add({
       ok: true,
-      what: `deleted ${leftovers.length} machines finished runs left behind: ${leftovers.map((m) => m.name).join(", ")}`,
+      what: `deleted ${left.length} machines finished runs left behind: ${left.map((m) => m.name).join(", ")}`,
     });
   } else {
     add({
       ok: "warn",
-      what: `${leftovers.length} machines of finished runs are still running: ${leftovers.map((m) => m.name).join(", ")}`,
+      what: `${left.length} machines of finished runs are still running: ${left.map((m) => m.name).join(", ")}`,
       fix: "boxd-ci doctor --sweep deletes them",
     });
   }

@@ -1,10 +1,12 @@
 // Snapshots: a machine with the repository checked out, its dependencies installed and every ci task
 // built once. Every task machine starts from one, so no task installs anything.
 //
-// A repository has two snapshot names that take turns: a green run on the default branch saves the
-// next snapshot under the name runs are not using, then switches. A commit that changes the
-// dependency files gets its own snapshot, keyed by those files, so only that change pays an install.
+// Every snapshot is named after its commit. A green run on the default branch saves the next one and
+// switches the record to it; the one before is retired and deleted six hours later, after any run that
+// was still restoring from it. A commit that changes the dependency files gets its own snapshot, keyed
+// by those files, so only that change pays an install.
 
+import { createHash } from "node:crypto";
 import { commit, fetchScript, q } from "./scripts.js";
 import type { BoxdLike, ExecOutput } from "./sdk.js";
 import type { BoxWorker } from "./worker.js";
@@ -17,10 +19,10 @@ export type RepoRecord = {
   defaultBranch: string;
   /** The repository inside the snapshot. */
   workdir: string;
-  /** The two names the snapshot alternates between. */
-  slots: [string, string];
   /** The one runs restore from. */
   snapshot: string;
+  /** Snapshots runs used before, with when they were replaced: deleted once no run can need them. */
+  retired?: { name: string; at: string }[];
   /** Its commit. */
   commit: string;
   /** Of the dependency files at that commit (see depsHashScript). */
@@ -34,6 +36,9 @@ export type SnapshotBoxd = {
   machines: Pick<BoxdLike["machines"], "create" | "waitUntilReady" | "exec" | "delete" | "files">;
   snapshots: Pick<BoxdLike["snapshots"], "create" | "get">;
 };
+
+/** A snapshot retired this long ago has no run left restoring from it (machines live at most an hour per group). */
+export const RETIRED_KEEP_MS = 6 * 3600_000;
 
 /** The files that decide what `install` produces. A change to any of them means a fresh install. */
 export const DEPENDENCY_FILES = [
@@ -54,14 +59,21 @@ const MEMORY: Record<number, string> = { 1: "4G", 2: "8G", 4: "16G", 8: "32G" };
 export const PLANNER_PATH = "/tmp/boxd-ci-planner.mjs";
 const BUILDER_SECONDS = 7200;
 
-export const repoSlug = (repo: string) =>
-  repo
+/**
+ * A repository's short name in boxd: lowercase, dashes, at most 40 characters. A name that has to be
+ * shortened keeps a hash of the full one, so two long names never share a snapshot or a cache.
+ */
+export function repoSlug(repo: string): string {
+  const slug = repo
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 40);
+    .replace(/^-+|-+$/g, "");
+  if (slug.length <= 40) return slug;
+  const hash = createHash("sha256").update(repo.toLowerCase()).digest("hex").slice(0, 6);
+  return `${slug.slice(0, 33).replace(/-+$/, "")}-${hash}`;
+}
 
-export const slotNames = (repo: string): [string, string] => [`bci-${repoSlug(repo)}-a`, `bci-${repoSlug(repo)}-b`];
+export const snapshotName = (repo: string, sha: string) => `bci-${repoSlug(repo)}-${commit(sha).slice(0, 7)}`;
 export const depsSnapshotName = (repo: string, depsHash: string) =>
   `bci-${repoSlug(repo)}-deps-${depsHash.slice(0, 10)}`;
 export const workdirFor = (repo: string) => `/home/boxd/work/${repo.split("/").pop()}`;
@@ -184,7 +196,7 @@ export type BuildOptions = {
 export async function buildSnapshot(boxd: SnapshotBoxd, o: BuildOptions): Promise<RepoRecord> {
   const say = o.onProgress ?? (() => {});
   const cpus = o.cpus ?? 2;
-  const slots = slotNames(o.repo.repo);
+  const target = snapshotName(o.repo.repo, o.sha);
   const workdir = workdirFor(o.repo.repo);
   const name = `bci-${repoSlug(o.repo.repo).slice(0, 30)}-build-${Math.random().toString(36).slice(2, 6)}`;
   return withBuilder(
@@ -226,8 +238,8 @@ export async function buildSnapshot(boxd: SnapshotBoxd, o: BuildOptions): Promis
         say(`running the ${selectors.length} ci tasks once, to fill the cache`);
         await sh("the warm-up run", warmScript(workdir, selectors), o.env);
       } else if (!o.selectors) say("no task on the default branch is tagged ci yet, so nothing is built ahead");
-      say(`saving the snapshot ${slots[0]}`);
-      await saveSnapshot(boxd, id, slots[0], {
+      say(`saving the snapshot ${target}`);
+      await saveSnapshot(boxd, id, target, {
         ...(o.org ? { org: o.org } : {}),
         ...(o.pollMs ? { pollMs: o.pollMs } : {}),
       });
@@ -237,8 +249,7 @@ export async function buildSnapshot(boxd: SnapshotBoxd, o: BuildOptions): Promis
         cloneUrl: o.repo.cloneUrl,
         defaultBranch: o.repo.defaultBranch,
         workdir,
-        slots,
-        snapshot: slots[0],
+        snapshot: target,
         commit: o.sha,
         depsHash,
         cpus,
@@ -267,7 +278,8 @@ export type PromoteOptions = {
 export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<RepoRecord | null> {
   const r = o.record;
   const say = o.onProgress ?? (() => {});
-  const target = r.slots[0] === r.snapshot ? r.slots[1] : r.slots[0];
+  if (o.sha === r.commit) return null;
+  const target = snapshotName(r.repo, o.sha);
   const runtime = { ...(o.org ? { org: o.org } : {}), ...(o.pollMs ? { pollMs: o.pollMs } : {}) };
   return withBuilder(
     boxd,
@@ -301,7 +313,9 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
       await sh("the warm-up run", warmScript(r.workdir, o.selectors), o.env);
       say(`saving ${o.sha.slice(0, 7)} as ${target}`);
       await saveSnapshot(boxd, id, target, runtime);
-      return { ...r, snapshot: target, commit: o.sha, depsHash, builtAt: new Date().toISOString() };
+      const now = new Date().toISOString();
+      const retired = [...(r.retired ?? []), { name: r.snapshot, at: now }];
+      return { ...r, snapshot: target, commit: o.sha, depsHash, builtAt: now, retired };
     },
   );
 }
@@ -314,13 +328,26 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
 export async function saveDepsSnapshot(
   boxd: Pick<SnapshotBoxd, "snapshots">,
   worker: BoxWorker,
-  o: { record: RepoRecord; depsHash: string; org?: string; pollMs?: number; patchPath?: string },
+  o: {
+    record: RepoRecord;
+    depsHash: string;
+    org?: string;
+    pollMs?: number;
+    /** A working copy (boxd-ci run): taken out before the snapshot is saved, put back after. */
+    patch?: { path: string; data: Uint8Array };
+  },
 ): Promise<string> {
-  const out = await worker.sh(installScript(o.record.workdir), { timeout: 60 * 60_000 });
-  if (out.exitCode !== 0) throw new Error(`installing the changed dependencies failed: ${tail(out)}`);
-  // A working copy (boxd-ci run) stays out of the snapshot: only its dependencies go in.
-  const patch = o.patchPath ? `cd ${q(o.record.workdir)} && git apply --binary --whitespace=nowarn` : "";
-  if (patch) await worker.sh(`${patch} -R ${q(o.patchPath as string)}`);
+  const sh = async (what: string, script: string, timeout?: number) => {
+    const out = await worker.sh(script, timeout ? { timeout } : undefined);
+    if (out.exitCode !== 0) throw new Error(`${what} failed: ${tail(out)}`);
+  };
+  await sh("installing the changed dependencies", installScript(o.record.workdir), 60 * 60_000);
+  const apply = `cd ${q(o.record.workdir)} && git apply --binary --whitespace=nowarn`;
+  // Only the dependencies go into the snapshot: neither your changes nor the patch file that carried them.
+  if (o.patch) {
+    await sh("taking the working copy out before the snapshot", `${apply} -R ${q(o.patch.path)}`);
+    await sh("removing the patch file", `rm -f ${q(o.patch.path)}`);
+  }
   const name = depsSnapshotName(o.record.repo, o.depsHash);
   try {
     await saveSnapshot(boxd, worker.machineId, name, {
@@ -328,7 +355,10 @@ export async function saveDepsSnapshot(
       ...(o.pollMs ? { pollMs: o.pollMs } : {}),
     });
   } finally {
-    if (patch) await worker.sh(`${patch} ${q(o.patchPath as string)}`);
+    if (o.patch) {
+      await worker.upload(o.patch.path, o.patch.data);
+      await sh("putting the working copy back", `${apply} ${q(o.patch.path)}`);
+    }
   }
   return name;
 }
@@ -339,4 +369,19 @@ export async function snapshotReady(boxd: Pick<SnapshotBoxd, "snapshots">, name:
     .get(name, org ? { org } : undefined)
     .then((s) => s.status === "ready" && s.version !== null)
     .catch(() => false);
+}
+
+/** Deletes the retired snapshots no run can still be restoring from, and returns the record without them. */
+export async function pruneSnapshots(
+  boxd: { snapshots: Pick<BoxdLike["snapshots"], "delete"> },
+  r: RepoRecord,
+  o: { org?: string; now?: number } = {},
+): Promise<RepoRecord> {
+  const now = o.now ?? Date.now();
+  const keep: NonNullable<RepoRecord["retired"]> = [];
+  for (const old of r.retired ?? []) {
+    if (old.name === r.snapshot || now - Date.parse(old.at) < RETIRED_KEEP_MS) keep.push(old);
+    else await boxd.snapshots.delete(old.name, o.org ? { org: o.org } : undefined).catch(() => {});
+  }
+  return { ...r, retired: keep };
 }

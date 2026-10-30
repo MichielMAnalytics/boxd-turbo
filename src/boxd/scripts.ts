@@ -1,6 +1,6 @@
 // The shell a task machine runs, as pure functions of their inputs, and the parser for what comes
-// back. Every value that reaches a shell is single-quoted; secrets only ever arrive as environment
-// variables of the one command that needs them.
+// back. Every value that reaches a shell is single-quoted or checked first. Secrets are never written
+// into a script: they arrive as environment variables on the exec of the one command that needs them.
 
 import type { TaskNode } from "../core/graph.js";
 import type { TaskResult } from "../core/scheduler.js";

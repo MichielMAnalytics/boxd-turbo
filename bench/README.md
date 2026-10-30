@@ -49,3 +49,9 @@ npx tsx scripts/charts.ts        # redraws assets/ from the results
   Both start from `vercel/ai` at `dfed8e8` with the same `ci` tags.
 - Both sides had a warm cache for everything the push did not touch, which is the everyday case.
 - Times include GitHub's own delay in delivering the push event, on both sides.
+- boxd CI's time ends at the run's own finish, which it sends as the check's `completed_at`. The update
+  reaches GitHub a fraction of a second later. Vercel CI's ends at its commit status. GitHub gives both
+  to the second, so the docs-only figure carries about a second of rounding.
+- The cost leaves out snapshot storage, kept machines of failed tasks (hibernated, disk only) and the
+  promotion that follows a green push to the default branch. The benchmark pushed to branches, so it
+  triggered none.
