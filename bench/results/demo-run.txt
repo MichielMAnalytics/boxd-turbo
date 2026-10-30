@@ -1,17 +1,17 @@
-   2.1s  your working copy (main) on 0b8443a: a 1 kB patch
-   2.6s  restoring bci-azin-tech-bench-ai-b
-   4.9s  planning with Turborepo
-   6.9s  251 tasks in the graph, 3 to run, the rest restored from the cache
-   7.3s  ▸ @ai-sdk/mistral#build on bci-0b8443a-fqcl-1
-  11.1s  ✓ @ai-sdk/mistral#build 3s
-  11.1s  ▸ @ai-sdk/mistral#test on bci-0b8443a-fqcl-2
-  11.1s  ▸ @ai-sdk/mistral#type-check on bci-0b8443a-fqcl-1
-  20.1s  ✓ @ai-sdk/mistral#type-check 8s
-  23.2s  ✓ @ai-sdk/mistral#test 11s
+   2.7s  your working copy (main) on 3b3c1a0: a 1 kB patch
+   3.2s  restoring bci-azin-tech-bench-ai-3b3c1a0
+   6.3s  planning with Turborepo
+   8.2s  249 tasks, 3 to run, 246 restored from the cache
+   8.4s  ▸ @ai-sdk/mistral#build on bci-3b3c1a0-8oqi-1
+  12.2s  ✓ @ai-sdk/mistral#build 3s
+  12.2s  ▸ @ai-sdk/mistral#test on bci-3b3c1a0-8oqi-2
+  12.2s  ▸ @ai-sdk/mistral#type-check on bci-3b3c1a0-8oqi-1
+  21.1s  ✓ @ai-sdk/mistral#type-check 8s
+  23.7s  ✓ @ai-sdk/mistral#test 10s
 
-✓ @ai-sdk/mistral#test                           11s
+✓ @ai-sdk/mistral#test                           10s
 ✓ @ai-sdk/mistral#type-check                      8s
 ✓ @ai-sdk/mistral#build                           3s
 
 green in 21s · 3 ran · 246 restored · 2 machines
-run 20261030-172101-0b8443a · 21s · boxd-ci ls
+run 20261030-221445-3b3c1a0 · 21s · boxd-ci ls

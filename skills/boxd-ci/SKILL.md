@@ -5,9 +5,10 @@ description: Run CI for a Turborepo monorepo on boxd and read the results with t
 
 # boxd-ci
 
-boxd-ci runs every Turborepo task tagged `ci` on its own boxd machine, restored from a snapshot of the
-repository with its dependencies installed. Results come from the Turborepo remote cache whenever a
-task's inputs did not change, so a run only executes what your change touched.
+boxd-ci runs a Turborepo monorepo's CI tasks on boxd machines restored from a snapshot of the
+repository with its dependencies installed. Each task starts as soon as its dependencies finish.
+Results come from the Turborepo remote cache whenever a task's inputs did not change, so a run only
+executes what your change touched.
 
 Every command takes `--json`. Use it, since that output is stable and made for you. Until boxd-ci is
 on npm, run it as `npx github:azin-tech/boxd-ci <command>`. The examples below write `boxd-ci`.
@@ -28,6 +29,7 @@ is the run record:
   "status": "failure",
   "results": [{ "id": "@ai-sdk/mistral#test", "status": "failed", "seconds": 9.1, "logTail": "...", "machine": "bci-0b8443a-0vnu-1" }],
   "machines": 2,
+  "kept": ["bci-0b8443a-0vnu-1"],
   "error": "only set when the run stopped before its tasks"
 }
 ```
@@ -44,12 +46,12 @@ boxd-ci logs <run-id> --task <pkg#task> --json
 boxd-ci grep "<error text>" --json      # which runs and tasks printed it
 ```
 
-A run id prefix or its commit's short hash both work as `<run-id>`.
+A run id, the start of one, or its commit's hash (7 to 40 characters) works as `<run-id>`.
 
 ## Get on the machine of a failed task
 
 The machine a task failed on is hibernated and kept for 24 hours, with the repository as the task
-left it (a run keeps at most three). Its name is the task's `machine`. Connecting wakes it:
+left it. A run keeps at most three, listed in the run's `kept`. Connecting wakes one:
 
 ```bash
 boxd machine exec <machine> -- bash -lc 'cd /home/boxd/work/<repo> && <the failing command>'
@@ -67,6 +69,10 @@ GitHub App. `--sweep` deletes machines that a finished run left behind.
 
 ## Rules
 
-- Never paste the cache token or a GitHub token into a task, a log or a commit.
-- Fix the failing task, then run `boxd-ci run` again. A run is cheap: unchanged tasks are restored.
-- Tasks to run are the ones tagged `ci` in turbo.json (root or package level), as Vercel CI reads them.
+- Never paste the cache token, a GitHub token or a secret's value into a task, a log or a commit.
+- Fix the failing task, then run `boxd-ci run` again. A run is cheap, since unchanged tasks are restored.
+- The tasks CI runs are the ones tagged `ci` in turbo.json (root or package level), as Vercel CI reads
+  them. A repository with no `ci` tag runs the usual checks its turbo.json defines (lint, type checks,
+  tests). `boxd-ci doctor` says which.
+- A task that needs a secret gets it from `boxd-ci secret set NAME` (the value on stdin), with the name
+  in that task's `env` in turbo.json. Ask the person for the value. Never invent one.

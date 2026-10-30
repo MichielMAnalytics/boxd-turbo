@@ -1,5 +1,6 @@
 // boxd-ci run: CI on the working copy, now. The working copy goes up as one patch on the snapshot's
-// commit; every ci task runs on its own machine; failed machines stay for a day.
+// commit, the run's tasks are scheduled on machines restored from the snapshot, and the machines of
+// failed tasks stay for a day.
 
 import { connect } from "../../boxd/sdk.js";
 import { createPool } from "../../boxd/worker.js";

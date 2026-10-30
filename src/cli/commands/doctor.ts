@@ -6,7 +6,7 @@ import { connect } from "../../boxd/sdk.js";
 import { cacheAnswers, SERVER_ROOT } from "../../boxd/server.js";
 import { type RepoRecord, snapshotReady } from "../../boxd/snapshot.js";
 import { machineStore } from "../../boxd/store.js";
-import { ciTaggedTasks } from "../../core/ci-tasks.js";
+import { ciTaggedTasks, usualChecks } from "../../core/ci-tasks.js";
 import type { RunRecord } from "../../core/record.js";
 import { leftovers } from "../../core/sweep.js";
 import { paths, readJson } from "../../state.js";
@@ -27,11 +27,19 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
     }
   };
 
-  const tagged = ciTaggedTasks(turboFiles(ctx.root).map((f) => readFileSync(join(ctx.root, f), "utf8")));
+  const texts = turboFiles(ctx.root).map((f) => readFileSync(join(ctx.root, f), "utf8"));
+  const tagged = ciTaggedTasks(texts);
+  const usual = tagged.length ? [] : usualChecks(texts);
   add(
     tagged.length
       ? { ok: true, what: `turbo.json tags ${tagged.join(", ")} with ci` }
-      : { ok: false, what: "no task in turbo.json is tagged ci", fix: "boxd-ci init tags the usual checks" },
+      : usual.length
+        ? { ok: true, what: `no task in turbo.json is tagged ci, so CI runs the usual checks: ${usual.join(", ")}` }
+        : {
+            ok: false,
+            what: "no task in turbo.json is tagged ci, and it defines none of the usual checks",
+            fix: "tag the tasks CI should run with ci (turbo 2.11 or newer)",
+          },
   );
 
   const boxd = connect();

@@ -100,9 +100,17 @@ const SCENARIOS = [
   { key: "core", label: "A core package", sub: "packages/provider-utils" },
 ] as const;
 
-/** boxd's price: $0.059 per vCPU-hour and $0.018 per GiB-hour; sizes are 4 GiB per vCPU. */
-const BOXD_PER_VCPU_SECOND = (0.059 + 4 * 0.018) / 3600;
-const SERVER_PER_SECOND = (2 * 0.059 + 8 * 0.018) / 3600;
+/**
+ * boxd's USD list price (boxd.sh/pricing): $0.047 per vCPU-hour, $0.014 per GiB-hour of RAM in use.
+ * Every machine is counted with all its RAM (4 GiB per vCPU) in use, an upper bound. Disk, at
+ * $0.000096 per GiB-hour written, is left out: under a hundredth of a cent per run.
+ */
+const VCPU_HOUR = 0.047;
+const GIB_HOUR = 0.014;
+const BOXD_PER_VCPU_SECOND = (VCPU_HOUR + 4 * GIB_HOUR) / 3600;
+const SERVER_PER_SECOND = (2 * VCPU_HOUR + 8 * GIB_HOUR) / 3600;
+/** The server stays awake this long after a run (its auto-suspend timeout), so each push pays for it. */
+const SERVER_TAIL_S = 60;
 
 export function boxdMedians() {
   const rows = readFileSync(join(results, "boxd-ci.jsonl"), "utf8")
@@ -114,13 +122,13 @@ export function boxdMedians() {
   for (const s of SCENARIOS) {
     const rs = rows.filter((r) => r.scenario === s.key);
     if (!rs.length) throw new Error(`no measured boxd-ci run for ${s.key}`);
-    // Every machine for every second it was up, and the server for the whole run.
+    // Every machine for every second it was up, and the server for the run plus the minute after it.
     const usd = rs.map((r) => {
       const machines = Object.entries(r.machineSeconds ?? {}).reduce(
         (sum, [cpus, sec]) => sum + Number(cpus) * sec * BOXD_PER_VCPU_SECOND,
         0,
       );
-      return machines + r.wall_s * SERVER_PER_SECOND;
+      return machines + (r.wall_s + SERVER_TAIL_S) * SERVER_PER_SECOND;
     });
     const first = rs.map((r) => r.first_s).filter((x): x is number => typeof x === "number");
     if (first.length !== rs.length)
@@ -317,14 +325,17 @@ function howItWorks(t: Theme) {
   });
   body += box(704, 120, 144, 62, "GitHub check", "green, red, logs");
   body += arrow(162, 151, 196, 151);
-  body += text(430, 268, "One machine per task, restored from the repository's snapshot:", { size: 12, fill: t.muted });
+  body += text(430, 268, "Each task on a machine restored from the repository's snapshot:", {
+    size: 12,
+    fill: t.muted,
+  });
   body += text(430, 286, "dependencies installed, outputs from the Turborepo cache.", { size: 12, fill: t.muted });
   return svg(
     W,
     H,
     t,
     body,
-    "How a push becomes a check: plan with Turborepo, one snapshot machine per task, a GitHub check",
+    "How a push becomes a check: plan with Turborepo, each task on a snapshot machine, a GitHub check",
   );
 }
 
@@ -336,7 +347,9 @@ function howItWorks(t: Theme) {
  */
 function demo(t: Theme, captured: string) {
   const raw = captured.replace(/\r/g, "").trimEnd().split("\n");
-  const lines: { at: number; stamp: string; text: string }[] = [{ at: 0, stamp: "", text: "$ npx boxd-ci run" }];
+  const lines: { at: number; stamp: string; text: string }[] = [
+    { at: 0, stamp: "", text: "$ npx github:azin-tech/boxd-ci run" },
+  ];
   let last = 0.4;
   for (const l of raw) {
     const m = /^\s*([\d.]+s) {2}(.*)$/.exec(l);
@@ -405,7 +418,7 @@ for (const t of THEMES) {
       subtitle: "Median of 3 pushes each, from git push to the result on GitHub. Same commit, same tasks.",
       value: (lane, s) => (lane === "boxd" ? (boxd[s]?.median ?? 0) : (vercel[s]?.median_s ?? 0)),
       fmt: secs,
-      note: "type-check and test of 84 packages (249 tasks), tagged ci the Vercel CI way. Raw runs in bench/results.",
+      note: "Every package's type-check and test, with their builds (249 tasks), tagged ci the Vercel CI way. Raw runs in bench/results.",
       better: "faster",
     }),
   );
@@ -413,10 +426,10 @@ for (const t of THEMES) {
     join(assets, `cost-${t.name}.svg`),
     groupedBars(t, {
       title: "What one run costs",
-      subtitle: "Median per push, at list prices. boxd: every machine for every second it was up, plus the server.",
+      subtitle: "Median per push, at list prices. boxd: every machine while it was up, the server until it sleeps.",
       value: (lane, s) => (lane === "boxd" ? (boxd[s]?.usd ?? 0) : (vercel[s]?.usd_per_run ?? 0)),
       fmt: money,
-      note: "Vercel CI: $0.0035 per CPU-minute. boxd: $0.059 per vCPU-hour and $0.018 per GiB-hour.",
+      note: "Vercel CI: $0.0035 per CPU-minute. boxd: $0.047 per vCPU-hour and $0.014 per GiB-hour, all RAM in use.",
       better: "cheaper",
     }),
   );
