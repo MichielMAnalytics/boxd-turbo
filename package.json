@@ -2,7 +2,7 @@
   "name": "boxd-ci",
   "version": "0.1.0",
   "private": true,
-  "description": "Open-source CI for Turborepo monorepos: every task on its own boxd machine, restored from a snapshot with everything installed.",
+  "description": "CI for Turborepo monorepos on boxd: every task on its own machine, restored from a snapshot. Reads Vercel CI's turbo.json tags.",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -10,7 +10,7 @@
   },
   "files": [
     "dist",
-    "automation",
+    "skills",
     "README.md",
     "LICENSE"
   ],
@@ -24,7 +24,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "check": "npm run lint && npm run typecheck && npm test"
+    "check": "npm run lint && npm run typecheck && npm test",
+    "prepare": "tsup",
+    "charts": "tsx scripts/charts.ts"
   },
   "dependencies": {
     "@boxd-sh/sdk": "^0.2.22",
@@ -34,8 +36,21 @@
     "@biomejs/biome": "^2.6.4",
     "@types/node": "^24.0.0",
     "tsup": "^8.5.1",
+    "tsx": "^4.23.15",
     "turbo": "2.11.10",
     "typescript": "^6.0.0",
     "vitest": "^5.0.5"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/azin-tech/boxd-ci.git"
+  },
+  "keywords": [
+    "ci",
+    "turborepo",
+    "monorepo",
+    "boxd",
+    "vercel-ci",
+    "remote-cache"
+  ]
 }

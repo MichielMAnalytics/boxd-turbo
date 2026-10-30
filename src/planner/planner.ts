@@ -49,7 +49,7 @@ const rootTurboJson = (cwd: string) => readJsonc(join(cwd, "turbo.json")) ?? rea
 
 export async function plan(o: PlanOptions): Promise<Plan> {
   const turbo = o.turbo ?? join(o.cwd, "node_modules", ".bin", "turbo");
-  if (!existsSync(turbo)) throw new Error("turbo is not installed in this repository: add it as a devDependency");
+  if (!existsSync(turbo)) throw new Error("turbo is not installed in this repository. Add it as a devDependency.");
 
   const ls = jsonAfterBanner(await run(turbo, ["ls", "--output=json"], o.cwd, o.env)) as {
     packages?: { items?: { name: string; path: string }[] };

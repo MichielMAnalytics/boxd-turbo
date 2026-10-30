@@ -67,5 +67,5 @@ export async function openServer(
 export function bundled(name: string): Buffer {
   const here = dirname(fileURLToPath(import.meta.url));
   for (const p of [join(here, name), join(here, "..", "..", "dist", name)]) if (existsSync(p)) return readFileSync(p);
-  throw new Error(`${name} is missing: run npm run build`);
+  throw new Error(`${name} is missing. Run npm run build.`);
 }

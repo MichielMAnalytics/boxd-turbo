@@ -69,7 +69,7 @@ export function ensureCommit(root: string, sha: string): void {
   tryGit(root, ["fetch", "-q", "origin", sha]);
   if (tryGit(root, ["cat-file", "-e", `${sha}^{commit}`]) === undefined) {
     throw new Error(
-      `your clone does not have ${sha.slice(0, 7)}, the snapshot's commit, and fetching it failed: run git fetch`,
+      `your clone does not have ${sha.slice(0, 7)}, the snapshot's commit, and fetching it failed. Run git fetch.`,
     );
   }
 }

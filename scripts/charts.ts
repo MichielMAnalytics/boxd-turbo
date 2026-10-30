@@ -303,6 +303,64 @@ function howItWorks(t: Theme) {
   );
 }
 
+// ── the demo: a real `boxd-ci run`, replayed at its own pace ───────────────────────────────────────
+
+/**
+ * An animated terminal from a captured run (bench/results/demo-run.txt, the CLI's plain output).
+ * Each line appears at the time it printed; lines without a time appear with the summary.
+ */
+function demo(t: Theme, captured: string) {
+  const raw = captured.replace(/\r/g, "").trimEnd().split("\n");
+  const lines: { at: number; stamp: string; text: string }[] = [{ at: 0, stamp: "", text: "$ npx boxd-ci run" }];
+  let last = 0.4;
+  for (const l of raw) {
+    const m = /^\s*([\d.]+s) {2}(.*)$/.exec(l);
+    if (m) {
+      last = Math.max(last, Number.parseFloat(m[1] as string));
+      lines.push({ at: last, stamp: (m[1] as string).padStart(7), text: (m[2] as string).trimEnd() });
+    } else lines.push({ at: last + 0.3, stamp: "", text: l.trimEnd() });
+  }
+  const end = (lines.at(-1)?.at ?? 1) + 0.2;
+  const loop = end + 6; // hold the result before starting over
+  const W = 880;
+  const lh = 21;
+  const top = 58;
+  const H = top + lines.length * lh + 24;
+  const term = {
+    bg: t.name === "dark" ? "#0d0d0d" : "#1a1a19",
+    ink: "#f0efec",
+    dim: "#9a9890",
+    ok: "#3cc43c",
+    bad: "#e66767",
+  };
+  const pct = (sec: number) => (sec / loop) * 100;
+  let css = "";
+  let body = `<rect width="${W}" height="${H}" rx="12" fill="${term.bg}"/>`;
+  body += ["#ec6a5e", "#f4bf4f", "#61c554"]
+    .map((c, i) => `<circle cx="${24 + i * 18}" cy="24" r="6" fill="${c}"/>`)
+    .join("");
+  body += `<text x="${W / 2}" y="29" font-size="12" fill="${term.dim}" text-anchor="middle">boxd-ci run, a real run on vercel/ai at its real speed</text>`;
+  lines.forEach((l, i) => {
+    const color = /^(✓|green)/.test(l.text)
+      ? term.ok
+      : /^(✗|failed)/.test(l.text)
+        ? term.bad
+        : /^(\$|▸|run )/.test(l.text)
+          ? term.dim
+          : term.ink;
+    const p = pct(l.at);
+    css += `.l${i}{opacity:0;animation:a${i} ${loop.toFixed(1)}s linear infinite}@keyframes a${i}{0%,${p.toFixed(2)}%{opacity:0}${(p + 0.01).toFixed(2)}%,100%{opacity:1}}`;
+    const stamp = l.stamp ? `<tspan fill="${term.dim}">${esc(l.stamp)}  </tspan>` : "";
+    body += `<text class="l${i}" x="24" y="${top + i * lh + 14}" font-size="13.5" fill="${color}" xml:space="preserve">${stamp}${esc(l.text)}</text>`;
+  });
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" role="img" aria-label="An animated terminal: boxd-ci run on vercel/ai">
+<title>boxd-ci run on vercel/ai</title>
+<style>${css}@media (prefers-reduced-motion: reduce){text{animation:none!important;opacity:1!important}}</style>
+${body}
+</svg>
+`;
+}
+
 // ── write ─────────────────────────────────────────────────────────────────────────────────────────
 
 const boxd = boxdMedians();
@@ -340,6 +398,24 @@ for (const t of THEMES) {
     }),
   );
   writeFileSync(join(assets, `how-${t.name}.svg`), howItWorks(t));
+  writeFileSync(join(assets, `demo-${t.name}.svg`), demo(t, readFileSync(join(results, "demo-run.txt"), "utf8")));
 }
+// The README's table, from the same numbers as the charts.
+const cents = (v: number) => (v < 1 ? `${(v * 100).toFixed(1)}¢` : `$${v.toFixed(2)}`);
+const rows = SCENARIOS.map((s) => {
+  const b = boxd[s.key] as { median: number; usd: number };
+  const v = vercel[s.key] as { median_s: number; usd_per_run: number };
+  const r = v.median_s / b.median;
+  return `| ${s.label} | **${secs(b.median)}** | ${secs(v.median_s)} | ${r >= 1 ? `${r >= 10 ? Math.round(r) : r.toFixed(1)}× faster` : `${(1 / r).toFixed(1)}× slower`} | ${cents(b.usd)} | ${cents(v.usd_per_run)} |`;
+});
+writeFileSync(
+  join(results, "summary.md"),
+  [
+    "| Push to green on vercel/ai | boxd CI | Vercel CI | | Cost, boxd CI | Cost, Vercel CI |",
+    "|---|---|---|---|---|---|",
+    ...rows,
+    "",
+  ].join("\n"),
+);
 console.log("boxd medians", JSON.stringify(boxd));
 console.log("wrote assets/{race,cost,timeline,how}-{light,dark}.svg");

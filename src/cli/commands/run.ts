@@ -28,7 +28,7 @@ export async function runCommand(ctx: Ctx, flags: Record<string, string | boolea
   const patch = makePatch(ctx.root, repo.commit);
   if (patch.length > MAX_PATCH_BYTES) {
     throw new Error(
-      `your working copy differs from the snapshot's commit by ${Math.round(patch.length / 1048576)} MB: ignore or commit large files first`,
+      `your working copy differs from the snapshot's commit by ${Math.round(patch.length / 1048576)} MB. Ignore or commit large files first.`,
     );
   }
   const ref = currentBranch(ctx.root);
@@ -40,7 +40,7 @@ export async function runCommand(ctx: Ctx, flags: Record<string, string | boolea
   const stop = new AbortController();
   const onInt = () => {
     if (stop.signal.aborted) process.exit(130);
-    say(yellow("stopping: deleting the run's machines (Ctrl-C again to leave now)"));
+    say(yellow("stopping, and deleting the run's machines (Ctrl-C again to leave now)"));
     stop.abort();
   };
   process.on("SIGINT", onInt);

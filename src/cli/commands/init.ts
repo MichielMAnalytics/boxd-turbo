@@ -40,7 +40,7 @@ const turboFile = (root: string) => ["turbo.json", "turbo.jsonc"].map((f) => joi
 
 export async function initCommand(ctx: Ctx, flags: Record<string, string | boolean>, out: Out): Promise<number> {
   const turbo = turboFile(ctx.root);
-  if (!turbo) throw new Error(`no turbo.json in ${ctx.root}: boxd-ci runs the tasks of a Turborepo monorepo`);
+  if (!turbo) throw new Error(`no turbo.json in ${ctx.root}. boxd-ci runs the tasks of a Turborepo monorepo.`);
   const tagged = ciTaggedTasks(turboFiles(ctx.root).map((f) => readFileSync(join(ctx.root, f), "utf8")));
   const proposal = tagged.length ? { text: "", tagged: [] } : proposeCiTags(readFileSync(turbo, "utf8"));
   const configPath = join(ctx.root, CONFIG_FILE);
@@ -70,7 +70,7 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
   const say = ctx.json ? () => {} : clock(out);
   if (proposal.tagged.length) {
     writeFileSync(turbo, proposal.text);
-    say(`tagged ${proposal.tagged.join(", ")} with ci in turbo.json: commit and push it`);
+    say(`tagged ${proposal.tagged.join(", ")} with ci in turbo.json. Commit and push it.`);
   }
   if (writeConfig) {
     const text = existsSync(configPath) ? readFileSync(configPath, "utf8") : "{}\n";
@@ -78,12 +78,12 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
       configPath,
       applyEdits(text, modify(text, ["org"], ctx.org, { formattingOptions: { insertSpaces: true, tabSize: 2 } })),
     );
-    say(`wrote ${CONFIG_FILE}: commit it, so everyone's boxd-ci uses org ${ctx.org}`);
+    say(`wrote ${CONFIG_FILE}. Commit it, so everyone's boxd-ci uses org ${ctx.org}.`);
   }
 
   const boxd = connect();
   const { server, store } = await openServer(ctx, boxd, say);
-  say(`server ${server.name}: cache at ${server.cacheUrl}`);
+  say(`server ${server.name}, cache at ${server.cacheUrl}`);
   const had = await readJson(store, paths.repo(ctx.repo));
   const record = await ensureRepoRecord(ctx, boxd, server, store, say, { rebuild: flags.rebuild === true });
 
@@ -91,7 +91,7 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
   if (github) {
     await installAutomation(boxd, server, say);
     access = await githubAccess(boxd, server, ctx.repo);
-    if (access === "ok") say(green(`the boxd GitHub App can read ${ctx.repo}: every push gets a boxd-ci check`));
+    if (access === "ok") say(green(`the boxd GitHub App can read ${ctx.repo}, so every push gets a boxd-ci check`));
     else say(yellow(GITHUB_HELP[access as keyof typeof GITHUB_HELP](ctx.repo)));
   }
 

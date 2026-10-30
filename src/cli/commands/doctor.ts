@@ -57,9 +57,9 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
     cacheOk && info
       ? {
           ok: true,
-          what: `server ${server.name} (${server.status === "running" ? "awake" : "asleep"}): the cache answers at ${info.cacheUrl}`,
+          what: `server ${server.name} is ${server.status === "running" ? "awake" : "asleep"} and its cache answers at ${info.cacheUrl}`,
         }
-      : { ok: false, what: `server ${server.name}: the cache does not answer`, fix: "boxd-ci init sets it up again" },
+      : { ok: false, what: `the cache on ${server.name} does not answer`, fix: "boxd-ci init sets it up again" },
   );
 
   const repo = await readJson<RepoRecord>(store, paths.repo(ctx.repo));
@@ -81,7 +81,7 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
   add(
     automation
       ? { ok: true, what: `the push automation is installed on ${server.name}` }
-      : { ok: "warn", what: "no push automation: pushes get no check", fix: "boxd-ci init installs it" },
+      : { ok: "warn", what: "no push automation, so pushes get no check", fix: "boxd-ci init installs it" },
   );
   if (automation) {
     const access = await githubAccess(

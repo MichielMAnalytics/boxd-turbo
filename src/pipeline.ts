@@ -135,12 +135,12 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     if (/^[0-9a-f]{16}$/.test(hash) && hash !== repo.depsHash) {
       const name = depsSnapshotName(repo.repo, hash);
       if (await snapshotReady(deps.boxd, name, deps.org)) {
-        phase(`the dependency files changed: restoring ${name}, which has them installed`);
+        phase(`the dependency files changed, and ${name} has them installed`);
         pool.setSnapshot(name);
         await planner.release({ failed: false });
         planner = await pool.acquire();
       } else {
-        phase("the dependency files changed: installing them once, for every machine of this run");
+        phase("the dependency files changed, installing them once for every machine of this run");
         await saveDepsSnapshot(deps.boxd, planner, {
           record: repo,
           depsHash: hash,

@@ -289,12 +289,12 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
         `cd ${q(r.workdir)} && if git merge-base --is-ancestor ${r.commit} ${o.sha}; then echo yes; else echo no; fi`,
       ).catch(() => null);
       if (!newer || newer.stdout.trim() === "no") {
-        say(`${o.sha.slice(0, 7)} is not newer than the snapshot's ${r.commit.slice(0, 7)}: keeping it`);
+        say(`${o.sha.slice(0, 7)} is older than the snapshot's ${r.commit.slice(0, 7)}, so the snapshot stays`);
         return null;
       }
       const depsHash = (await sh("hashing the dependency files", depsHashScript(r.workdir))).stdout.trim();
       if (depsHash !== r.depsHash) {
-        say("the dependency files changed: installing");
+        say("the dependency files changed, installing them");
         await sh("installing dependencies", installScript(r.workdir));
       }
       await sh("the warm-up run", warmScript(r.workdir, o.selectors), o.env);

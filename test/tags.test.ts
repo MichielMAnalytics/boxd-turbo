@@ -103,13 +103,13 @@ describe("resolveCiTasks", () => {
       { selector: "web#build", cpus: 8 },
       { selector: "web#test", cpus: 4 },
     ]);
-    expect(r.warnings).toEqual(["web#build asks for 16 CPUs; boxd's largest machine has 8, so it runs on 8"]);
+    expect(r.warnings).toEqual(["web#build asks for 16 CPUs and boxd's largest machine has 8, so it runs on 8"]);
   });
 
   test("an unreadable ci:cpus value runs on the default size with a warning", () => {
     const r = resolveCiTasks({ tasks: { test: { tags: ["ci", "ci:cpus:lots"] } } }, [pkg("web", ["test"])]);
     expect(r.tasks).toEqual([{ selector: "web#test" }]);
-    expect(r.warnings).toEqual(["web#test has an unreadable tag ci:cpus:lots; it runs on the default size"]);
+    expect(r.warnings).toEqual(["web#test has an unreadable tag ci:cpus:lots, so it runs on the default size"]);
   });
 
   test("ci:os tags are accepted and ignored", () => {

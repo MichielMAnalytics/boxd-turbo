@@ -71,10 +71,10 @@ export function resolveCiTasks(
         if (Number.isFinite(n) && n > 0) {
           const size = SIZES.find((s) => s >= n);
           if (size === undefined)
-            warnings.push(`${selector} asks for ${n} CPUs; boxd's largest machine has 8, so it runs on 8`);
+            warnings.push(`${selector} asks for ${n} CPUs and boxd's largest machine has 8, so it runs on 8`);
           task.cpus = size ?? 8;
         } else {
-          warnings.push(`${selector} has an unreadable tag ${asked}; it runs on the default size`);
+          warnings.push(`${selector} has an unreadable tag ${asked}, so it runs on the default size`);
         }
       }
       tasks.push(task);

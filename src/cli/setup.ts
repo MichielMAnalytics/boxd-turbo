@@ -25,7 +25,7 @@ export async function ensureRepoRecord(
   if (existing && !o.rebuild) return existing;
   const branch = defaultBranch(ctx.root);
   const sha = remoteHead(ctx.root, branch);
-  say(`building the snapshot of ${ctx.repo} from ${branch} (${sha.slice(0, 7)}): a clone and an install, once`);
+  say(`building the snapshot of ${ctx.repo} from ${branch} (${sha.slice(0, 7)}), a clone and an install, once`);
   const token = githubToken();
   const record = await buildSnapshot(boxd, {
     ...(ctx.org ? { org: ctx.org } : {}),
@@ -70,7 +70,7 @@ export async function installAutomation(boxd: BoxdLike, server: ServerInfo, say:
       `cd ${q(SERVER_ROOT)} && find runs -name '*.json' -mmin -90 -exec grep -l '"status": "running"' {} + 2>/dev/null | head -1`,
     );
     if (busy.stdout.trim()) {
-      say(`a run is in progress on ${server.name}: run init again when it is done to update the automation`);
+      say(`a run is in progress on ${server.name}. Run init again when it is done to update the automation.`);
       return;
     }
   }
@@ -114,8 +114,8 @@ echo "repo:$code"`;
 
 export const GITHUB_HELP: Record<Exclude<GithubAccess, "ok">, (repo: string) => string> = {
   "no-app": () =>
-    "the boxd GitHub App is not installed for this boxd org: an org admin installs it from Integrations in the boxd console",
+    "the boxd GitHub App is not installed for this boxd org. An org admin installs it from Integrations in the boxd console.",
   "no-repo": (repo) =>
-    `the boxd GitHub App cannot read ${repo}: add the repository to its installation (Manage, on its row under Integrations in the boxd console)`,
+    `the boxd GitHub App cannot read ${repo}. Add the repository to its installation (Manage, on its row under Integrations in the boxd console).`,
   unknown: () => "could not ask GitHub whether the boxd GitHub App can read the repository",
 };
