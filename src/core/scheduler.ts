@@ -67,6 +67,8 @@ export function schedule(g: TaskGraph, pool: WorkerPool, o: ScheduleOptions): Pr
   const busy = new Set<Worker>();
   const sizeOf = new Map<Worker, number>();
   const acquiring = new Set<Promise<unknown>>();
+  const prestarting = new Map<number, number>(); // size → machines being started ahead of their tasks
+  const groupsRunning = new Map<number, number>(); // size → groups started and not finished
   const releasing: Promise<void>[] = [];
   let held = 0; // machines acquired or being acquired, not yet released
   let finished = false;
@@ -118,6 +120,8 @@ export function schedule(g: TaskGraph, pool: WorkerPool, o: ScheduleOptions): Pr
 
     const launch = async (group: TaskNode[], reuse: Worker | undefined) => {
       const size = group[0]?.cpus ?? 0;
+      groupsRunning.set(size, (groupsRunning.get(size) ?? 0) + 1);
+      const done = () => groupsRunning.set(size, (groupsRunning.get(size) ?? 1) - 1);
       let worker = reuse;
       if (!worker) {
         const p = pool.acquire(group[0]?.cpus);
@@ -127,6 +131,7 @@ export function schedule(g: TaskGraph, pool: WorkerPool, o: ScheduleOptions): Pr
           sizeOf.set(worker, size);
         } catch (e) {
           held--;
+          done();
           const why = `could not start a machine: ${e instanceof Error ? e.message : String(e)}`;
           for (const n of group) record({ id: n.id, status: "failed", seconds: 0, logTail: why });
           return step();
@@ -153,6 +158,7 @@ export function schedule(g: TaskGraph, pool: WorkerPool, o: ScheduleOptions): Pr
           machine: worker?.id ?? "",
         }));
       }
+      done();
       if (finished) return;
       busy.delete(worker);
       const byId = new Map(out.map((r) => [r.id, r]));
@@ -169,6 +175,53 @@ export function schedule(g: TaskGraph, pool: WorkerPool, o: ScheduleOptions): Pr
       if (group.some((n) => results.get(n.id)?.status === "failed")) release(worker, true);
       else idle.push(worker);
       step();
+    };
+
+    /** A machine started before its task is ready; it waits idle for the wave it was started for. */
+    const prestart = (size: number, cpus: number | undefined) => {
+      prestarting.set(size, (prestarting.get(size) ?? 0) + 1);
+      const p = pool.acquire(cpus).then(
+        (w) => {
+          sizeOf.set(w, size);
+          if (finished) release(w, false);
+          else {
+            idle.push(w);
+            step();
+          }
+        },
+        () => {
+          held--; // its tasks will ask for a machine of their own
+        },
+      );
+      acquiring.add(p);
+      void p.finally(() => {
+        acquiring.delete(p);
+        prestarting.set(size, (prestarting.get(size) ?? 1) - 1);
+      });
+    };
+
+    /**
+     * Machines for the tasks that become ready when the running ones finish, started now so the next
+     * wave does not wait for restores. The machines finishing that wave count as available.
+     */
+    const prestartNextWave = () => {
+      const running = new Set([...started].filter((id) => pending.has(id)));
+      const soon = new Map<number, { count: number; cpus: number | undefined }>();
+      for (const id of pending) {
+        if (started.has(id)) continue;
+        const n = g.nodes.get(id) as TaskNode;
+        if (!n.deps.some((d) => running.has(d)) || !n.deps.every((d) => ok.has(d) || running.has(d))) continue;
+        const size = n.cpus ?? 0;
+        soon.set(size, { count: (soon.get(size)?.count ?? 0) + 1, cpus: n.cpus });
+      }
+      for (const [size, { count, cpus }] of soon) {
+        const freeing = groupsRunning.get(size) ?? 0; // their machines take the wave's first tasks
+        const have = idle.filter((w) => sizeOf.get(w) === size).length + (prestarting.get(size) ?? 0) + freeing;
+        for (let need = count - have; need > 0 && held < o.maxWorkers; need--) {
+          held++;
+          prestart(size, cpus);
+        }
+      }
     };
 
     const step = () => {
@@ -192,6 +245,7 @@ export function schedule(g: TaskGraph, pool: WorkerPool, o: ScheduleOptions): Pr
         for (const n of group) started.add(n.id);
         void launch(group, reuse);
       }
+      prestartNextWave();
       // Machines nobody will need again: fewer tasks are waiting than machines are idle.
       const waiting = [...pending].filter((id) => !started.has(id)).length;
       while (idle.length > waiting) release(idle.pop() as Worker, false);

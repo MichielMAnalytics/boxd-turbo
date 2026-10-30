@@ -167,6 +167,41 @@ describe("schedule", () => {
     expect(pool.maxLive).toBe(1);
   });
 
+  test("machines for the next wave start while the task they wait on still runs", async () => {
+    let atBuildEnd = -1;
+    const pool = new FakePool();
+    const acquire = pool.acquire.bind(pool);
+    pool.acquire = async (cpus) => {
+      const w = await acquire(cpus);
+      const run = w.run.bind(w);
+      w.run = async (tasks) => {
+        if (tasks[0]?.id === "a#build") {
+          await new Promise((r) => setTimeout(r, 20));
+          atBuildEnd = pool.acquired;
+        }
+        return run(tasks);
+      };
+      return w;
+    };
+    const g = graph(
+      [t("a#build"), t("a#test", ["a#build"]), t("a#lint", ["a#build"]), t("a#types", ["a#build"])],
+      ["a#test", "a#lint", "a#types"],
+    );
+    const results = await schedule(g, pool, opts);
+    expect(atBuildEnd).toBe(3);
+    expect(pool.acquired).toBe(3);
+    expect(Object.values(byId(results))).toEqual(["ran", "ran", "ran", "ran"]);
+  });
+
+  test("a machine started for a wave that never comes is released", async () => {
+    const pool = new FakePool(["a#build"]);
+    const g = graph([t("a#build"), t("a#test", ["a#build"]), t("a#lint", ["a#build"])], ["a#test", "a#lint"]);
+    const results = await schedule(g, pool, opts);
+    expect(byId(results)).toEqual({ "a#build": "failed", "a#lint": "skipped", "a#test": "skipped" });
+    expect(pool.live).toBe(0);
+    expect(pool.released.filter((r) => !r.failed)).toHaveLength(pool.acquired - 1);
+  });
+
   test("ready tasks start in priority order", async () => {
     const pool = new FakePool();
     await schedule(
