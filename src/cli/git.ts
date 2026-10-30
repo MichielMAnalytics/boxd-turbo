@@ -21,14 +21,20 @@ const tryGit = (cwd: string, args: string[]): string | undefined => {
   }
 };
 
-/** owner/name and an HTTPS clone URL, from an HTTPS or SSH remote. */
+/**
+ * owner/name and an HTTPS clone URL, from an HTTPS or SSH remote on github.com. Another host is
+ * refused here, before your GitHub token could be sent to it.
+ */
 export function parseRemote(url: string): { repo: string; cloneUrl: string } {
   const m = /^(?:[a-z+]+:\/\/)?(?:[^@/]+@)?([^/:]+)[/:]([^/]+)\/([^/]+?)(?:\.git)?\/?$/.exec(url.trim());
   if (!m || !url.includes(m[1] as string) || !(m[1] as string).includes(".")) {
     throw new Error(`cannot read owner/name from the remote ${url}`);
   }
   const [, host, owner, name] = m as unknown as [string, string, string, string];
-  return { repo: `${owner}/${name}`, cloneUrl: `https://${host}/${owner}/${name}.git` };
+  if (host.toLowerCase() !== "github.com") {
+    throw new Error(`boxd CI runs repositories on github.com, and origin is on ${host}`);
+  }
+  return { repo: `${owner}/${name}`, cloneUrl: `https://github.com/${owner}/${name}.git` };
 }
 
 export function repoRoot(cwd: string): string {

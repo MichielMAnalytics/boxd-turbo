@@ -3,9 +3,9 @@
 
 import { connect } from "../../boxd/sdk.js";
 import { createPool } from "../../boxd/worker.js";
-import { formatSeconds, terminalSummary } from "../../core/report.js";
+import { formatSeconds, keptMachines, terminalSummary } from "../../core/report.js";
 import { runPipeline } from "../../pipeline.js";
-import { bundled, type Ctx, openServer } from "../context.js";
+import { bundled, type Ctx, openServer, requireTurboJson } from "../context.js";
 import { currentBranch, ensureCommit, makePatch } from "../git.js";
 import { ensureRepoRecord } from "../setup.js";
 import { bold, clock, dim, green, type Out, red, runPrinter, yellow } from "../ui.js";
@@ -17,6 +17,7 @@ export async function runCommand(ctx: Ctx, flags: Record<string, string | boolea
   if (maxMachines !== undefined && !(Number.isInteger(maxMachines) && maxMachines >= 1)) {
     throw new Error("--max-machines takes a whole number of at least 1");
   }
+  requireTurboJson(ctx.root);
   const say = ctx.json ? () => {} : clock(out);
   for (const w of ctx.warnings) say(yellow(w));
 
@@ -57,7 +58,14 @@ export async function runCommand(ctx: Ctx, flags: Record<string, string | boolea
         signal: stop.signal,
         onEvent: runPrinter(say),
       },
-      { repo, trigger: "local", sha: repo.commit, ref, prepare: { kind: "patch", base: repo.commit, patch } },
+      {
+        repo,
+        trigger: "local",
+        sha: repo.commit,
+        ref,
+        prepare: { kind: "patch", base: repo.commit, patch },
+        ...(ctx.config.secrets?.length ? { secrets: ctx.config.secrets } : {}),
+      },
     );
     if (ctx.json) {
       out.json(record);
@@ -71,7 +79,7 @@ export async function runCommand(ctx: Ctx, flags: Record<string, string | boolea
     );
     if (record.error) out.line(red(record.error));
     for (const w of record.warnings) out.line(yellow(`! ${w}`));
-    const kept = [...new Set(record.results.filter((r) => r.status === "failed" && r.machine).map((r) => r.machine))];
+    const kept = keptMachines(record);
     if (kept.length) {
       out.line();
       out.line(

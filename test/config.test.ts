@@ -30,4 +30,17 @@ describe("parseConfig", () => {
       warnings: [".boxd-ci.json is not valid JSON, so the defaults apply"],
     });
   });
+
+  test("secrets are names of boxd secrets; a name that is not an environment variable is a warning", () => {
+    const { config, warnings } = parseConfig('{ "secrets": ["DATABASE_URL", "NPM_TOKEN", "not ok", "BOXD_X", 3] }');
+    expect(config.secrets).toEqual(["DATABASE_URL", "NPM_TOKEN"]);
+    expect(warnings).toEqual([
+      ".boxd-ci.json: secrets must be environment variable names, and not BOXD_*, so not ok is left out",
+      ".boxd-ci.json: secrets must be environment variable names, and not BOXD_*, so BOXD_X is left out",
+      ".boxd-ci.json: secrets must be environment variable names, and not BOXD_*, so 3 is left out",
+    ]);
+    expect(parseConfig('{ "secrets": "DATABASE_URL" }').warnings).toEqual([
+      ".boxd-ci.json: secrets must be a list of names",
+    ]);
+  });
 });

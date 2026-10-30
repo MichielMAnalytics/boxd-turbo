@@ -122,9 +122,13 @@ type SummaryTask = {
   execution?: { startTime?: number; endTime?: number; exitCode?: number | null };
 };
 
-/** Terminal color and cursor codes: noise in a GitHub check and in `boxd-ci grep`. */
-// biome-ignore lint/suspicious/noControlCharactersInRegex: matching the escape character is the point
-const ANSI = /\x1b\[[0-9;?]*[ -/]*[@-~]/g;
+/**
+ * Terminal control: colors and cursor codes (CSI), links, titles and clipboard writes (OSC, ended by
+ * BEL or ESC \\), other escapes, and every control character but newline and tab. Noise in a GitHub
+ * check, and in `boxd-ci logs`, a way for a task's output to reach your terminal.
+ */
+// biome-ignore lint/suspicious/noControlCharactersInRegex: matching control characters is the point
+const ANSI = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)?|\x1b[@-_]?|[\x00-\x08\x0b-\x1f\x7f]/g;
 
 /** Turns a worker's output into one result per task it was asked to run. */
 export function parseRunOutput(raw: string, tasks: TaskNode[], machine: string): TaskResult[] {

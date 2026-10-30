@@ -13,6 +13,7 @@ const OPTIONS = {
   logs: { ...account, task: str, failed: bool },
   grep: { ...account, runs: str },
   doctor: { ...account, sweep: bool },
+  secret: { ...account },
 } as const;
 
 export type Command = keyof typeof OPTIONS | "help" | "version";
@@ -27,7 +28,7 @@ export function parseCli(argv: string[]): Parsed {
   if (first === "--version" || first === "-v" || first === "version")
     return { command: "version", args: [], flags: {} };
   if (!(first in OPTIONS)) {
-    throw new Error(`unknown command ${first}: try ${COMMANDS.slice(0, -1).join(", ")} or ${COMMANDS.at(-1)}`);
+    throw new Error(`unknown command ${first}. Try ${COMMANDS.slice(0, -1).join(", ")} or ${COMMANDS.at(-1)}.`);
   }
   const command = first as keyof typeof OPTIONS;
   if (rest.includes("--help") || rest.includes("-h")) return { command: "help", args: [command], flags: {} };
@@ -48,17 +49,27 @@ export function parseCli(argv: string[]): Parsed {
 
 export const HELP = `boxd-ci: CI for Turborepo monorepos on boxd machines
 
-  boxd-ci run                 CI on your working copy, now: every ci task on its own machine
-  boxd-ci init                set up CI for this repository: snapshot, cache, GitHub check on every push
+  boxd-ci run                 CI on your working copy, now
+  boxd-ci init                set up CI for this repository (snapshot, cache, a GitHub check on every push)
   boxd-ci ls                  the latest runs
-  boxd-ci logs [run]          the logs of a run (default: the latest); --task <id>, --failed
+  boxd-ci logs [run]          a run's logs, the latest by default (--task <id>, --failed)
   boxd-ci grep <text>         search the logs of recent runs
-  boxd-ci doctor              check the setup; --sweep deletes machines a finished run left behind
+  boxd-ci doctor              check the setup (--sweep deletes machines a finished run left behind)
+  boxd-ci secret set NAME     a secret for tasks and installs, typed hidden or piped in (also rm, ls)
 
   --json                      machine-readable output, for scripts and agents
   --org <org>                 the boxd org (default: .boxd-ci.json, then your boxd CLI's active org)
   --server <name>             the boxd-ci server machine (default: boxd-ci-server)
 
-Tasks come from turbo.json: every task tagged "ci", the way Vercel CI reads it.
+CI runs the tasks turbo.json tags "ci", the way Vercel CI reads them, or the usual checks (lint,
+type checks, tests) when nothing is tagged.
 Sign in once with \`boxd auth login\` (or set BOXD_API_KEY).
 https://github.com/azin-tech/boxd-ci`;
+
+/** An error as a person should read it: the SDK's sign-in errors become how to sign in. */
+export function explain(message: string): string {
+  if (/no credentials|unauthenticated/i.test(message)) {
+    return "you are not signed in to boxd. Run boxd auth login, or set BOXD_API_KEY.";
+  }
+  return message;
+}

@@ -27,13 +27,13 @@ export function runPrinter(say: (m: string) => void) {
   return (e: PipelineEvent) => {
     if (e.type === "phase") say(e.message);
     else if (e.type === "plan")
-      say(`${e.tasks} tasks in the graph, ${bold(String(e.toRun))} to run, the rest restored from the cache`);
+      say(`${e.tasks} tasks, ${bold(String(e.toRun))} to run, ${e.restored} restored from the cache`);
     else if (e.type === "start") say(dim(`▸ ${e.tasks.join(", ")} on ${e.worker}`));
     else if (e.type === "done") {
       const r = e.result;
       const mark = r.status === "failed" ? red("✗") : r.status === "restored" ? dim("↺") : green("✓");
       say(`${mark} ${r.id} ${dim(formatSeconds(r.seconds))}`);
-    } else if (e.type === "skip") say(dim(`– ${e.id} skipped: ${e.because}`));
+    } else if (e.type === "skip") say(dim(`○ ${e.id} skipped, ${e.because}`));
   };
 }
 

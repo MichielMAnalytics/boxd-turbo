@@ -42,7 +42,7 @@ export type RunInput = {
 export type PipelineEvent =
   | SchedulerEvent
   | { type: "phase"; message: string }
-  | { type: "plan"; tasks: number; toRun: number };
+  | { type: "plan"; tasks: number; toRun: number; restored: number };
 
 export type PipelineDeps = {
   boxd: { snapshots: Pick<BoxdLike["snapshots"], "create" | "get" | "list" | "delete"> };
@@ -192,7 +192,14 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     if (plan.selectors.length === 0) throw new Error(plan.nothingToRun ?? "nothing to run");
     selectors = plan.selectors.map((s) => s.selector);
     graph = buildGraph(plan.dry, plan.selectors);
-    deps.onEvent?.({ type: "plan", tasks: graph.nodes.size, toRun: toRun(graph).length });
+    // Tasks without a script are in the graph only to connect others: they are not counted.
+    const real = [...graph.nodes.values()].filter((n) => !n.noop);
+    deps.onEvent?.({
+      type: "plan",
+      tasks: real.length,
+      toRun: toRun(graph).length,
+      restored: real.filter((n) => n.cached).length,
+    });
     pool.park(planner); // the first task group of its size runs where the planner did
 
     const durations = (await readJson<Record<string, number>>(deps.store, paths.durations(repo.repo))) ?? {};
@@ -225,8 +232,7 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     await pool.drain();
     record.machines = pool.machines();
     record.machineSeconds = pool.machineSeconds();
-    const kept = pool.kept();
-    if (kept.length) record.kept = kept;
+    record.kept = pool.kept();
     record.finishedAt = now().toISOString();
     if (runSnapshot)
       await deps.boxd.snapshots.delete(runSnapshot, deps.org ? { org: deps.org } : undefined).catch(() => {});

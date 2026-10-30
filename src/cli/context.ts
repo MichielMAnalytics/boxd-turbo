@@ -69,3 +69,10 @@ export function bundled(name: string): Buffer {
   for (const p of [join(here, name), join(here, "..", "..", "dist", name)]) if (existsSync(p)) return readFileSync(p);
   throw new Error(`${name} is missing. Run npm run build.`);
 }
+
+/** The repository's turbo.json (or turbo.jsonc). A folder without one is not a Turborepo monorepo. */
+export function requireTurboJson(root: string): string {
+  const file = ["turbo.json", "turbo.jsonc"].map((f) => join(root, f)).find((f) => existsSync(f));
+  if (!file) throw new Error(`no turbo.json in ${root}. boxd-ci runs the tasks of a Turborepo monorepo.`);
+  return file;
+}

@@ -40,7 +40,7 @@ export async function lsCommand(ctx: Ctx, flags: Record<string, string | boolean
     return 0;
   }
   if (!records.length) {
-    out.line(`no runs of ${ctx.repo} yet: ${bold("boxd-ci run")} starts one`);
+    out.line(`no runs of ${ctx.repo} yet. ${bold("boxd-ci run")} starts one.`);
     return 0;
   }
   for (const r of records) {
@@ -65,9 +65,11 @@ const count = (results: RunRecord["results"]) => ({
 export async function logsCommand(ctx: Ctx, args: string[], flags: Record<string, string | boolean>, out: Out) {
   const { store, ids } = await runIds(ctx);
   const want = args[0];
-  const id = want ? ids.filter((i) => i.startsWith(want) || i.endsWith(want)).at(-1) : ids.at(-1);
+  const id = want ? matchRun(ids, want) : ids.at(-1);
   if (!id)
-    throw new Error(want ? `no run of ${ctx.repo} matches ${want}: see boxd-ci ls` : `no runs of ${ctx.repo} yet`);
+    throw new Error(
+      want ? `no run of ${ctx.repo} matches ${want}. boxd-ci ls lists them.` : `no runs of ${ctx.repo} yet`,
+    );
   const record = await readJson<RunRecord>(store, paths.run(ctx.repo, id));
   if (!record) throw new Error(`run ${id} has no record`);
   const logs = (await readJson<Record<string, string>>(store, paths.logs(ctx.repo, id))) ?? {};
@@ -116,4 +118,10 @@ process.stdout.write(JSON.stringify(hits))`;
   for (const h of hits) out.line(`${dim(h.run)} ${bold(h.task)}  ${h.line.replaceAll(needle, red(needle))}`);
   if (!hits.length) out.line(dim(`no line of the last ${runs} runs' logs contains ${q(needle)}`));
   return hits.length ? 0 : 1;
+}
+
+/** The latest run whose id starts with `want`, or whose commit `want` is (a hash of 7 to 40 characters). */
+export function matchRun(ids: string[], want: string): string | undefined {
+  const sha = /^[0-9a-f]{7,40}$/.test(want) ? want.slice(0, 7) : undefined;
+  return ids.filter((i) => i.startsWith(want) || (sha !== undefined && i.endsWith(`-${sha}`))).at(-1);
 }

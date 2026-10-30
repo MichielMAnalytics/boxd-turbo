@@ -39,6 +39,8 @@ export type MachineInfo = {
   access: { domain: string };
   labels?: Record<string, string>;
   createdAt?: Date | null;
+  /** When boxd deletes it (its delete-after timer), if ever. */
+  deleteAt?: Date | null;
 };
 export type SnapshotInfo = {
   name: string;

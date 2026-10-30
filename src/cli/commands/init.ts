@@ -1,13 +1,13 @@
-// boxd-ci init: tag the ci tasks, start the server, build the snapshot, install the push automation.
+// boxd-ci init: start the server, build the snapshot, install the push automation, and say what CI runs.
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { applyEdits, modify } from "jsonc-parser";
 import { connect } from "../../boxd/sdk.js";
+import { ciTaggedTasks, usualChecks } from "../../core/ci-tasks.js";
 import { CONFIG_FILE } from "../../core/config.js";
-import { ciTaggedTasks, proposeCiTags } from "../../core/propose.js";
 import { paths, readJson } from "../../state.js";
-import { type Ctx, openServer } from "../context.js";
+import { type Ctx, openServer, requireTurboJson } from "../context.js";
 import { turboFiles } from "../git.js";
 import { ensureRepoRecord, GITHUB_HELP, githubAccess, installAutomation } from "../setup.js";
 import { bold, clock, dim, green, type Out, yellow } from "../ui.js";
@@ -18,7 +18,6 @@ export type InitFacts = {
   server: string;
   hasServer: boolean;
   hasSnapshot: boolean;
-  tagged: string[];
   github: boolean;
   writeConfig?: boolean;
 };
@@ -26,7 +25,6 @@ export type InitFacts = {
 /** What init will do, in order: the --dry-run output, and the outline of a real run. */
 export function initPlan(f: InitFacts): string[] {
   const steps: string[] = [];
-  if (f.tagged.length) steps.push(`tag ${f.tagged.join(", ")} with ci in turbo.json`);
   if (f.org && f.writeConfig !== false) steps.push(`write ${CONFIG_FILE} (org ${f.org})`);
   if (!f.hasServer) steps.push(`start ${f.server}${f.org ? ` in ${f.org}` : ""}: the Turborepo cache and run history`);
   if (!f.hasSnapshot) steps.push(`build the first snapshot of ${f.repo} from its default branch`);
@@ -36,13 +34,16 @@ export function initPlan(f: InitFacts): string[] {
   return steps;
 }
 
-const turboFile = (root: string) => ["turbo.json", "turbo.jsonc"].map((f) => join(root, f)).find((f) => existsSync(f));
-
 export async function initCommand(ctx: Ctx, flags: Record<string, string | boolean>, out: Out): Promise<number> {
-  const turbo = turboFile(ctx.root);
-  if (!turbo) throw new Error(`no turbo.json in ${ctx.root}. boxd-ci runs the tasks of a Turborepo monorepo.`);
-  const tagged = ciTaggedTasks(turboFiles(ctx.root).map((f) => readFileSync(join(ctx.root, f), "utf8")));
-  const proposal = tagged.length ? { text: "", tagged: [] } : proposeCiTags(readFileSync(turbo, "utf8"));
+  requireTurboJson(ctx.root);
+  const texts = turboFiles(ctx.root).map((f) => readFileSync(join(ctx.root, f), "utf8"));
+  const tagged = ciTaggedTasks(texts);
+  const usual = tagged.length ? [] : usualChecks(texts);
+  const runs = tagged.length
+    ? `turbo.json tags ${tagged.join(", ")} with ci, so CI runs ${tagged.length === 1 ? "it" : "them"} in every package that has the script`
+    : usual.length
+      ? `no task in turbo.json is tagged ci, so CI runs the usual checks: ${usual.join(", ")}. Tag tasks with ci (turbo 2.11 or newer) to choose others.`
+      : "no task in turbo.json is tagged ci, and it defines none of the usual checks (lint, type checks, tests), so CI has nothing to run. Tag tasks with ci (turbo 2.11 or newer).";
   const configPath = join(ctx.root, CONFIG_FILE);
   const writeConfig = !!ctx.org && ctx.config.org !== ctx.org;
   const github = flags["no-github"] !== true;
@@ -54,24 +55,21 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
       server: ctx.serverName,
       hasServer: false,
       hasSnapshot: false,
-      tagged: proposal.tagged,
       github,
       writeConfig,
     });
-    if (ctx.json) out.json({ steps });
+    if (ctx.json) out.json({ steps, runs });
     else {
       out.line(`boxd-ci init would, for ${bold(ctx.repo)}:`);
       for (const s of steps) out.line(`  · ${s}`);
       out.line(dim("Steps that are already done are skipped."));
+      out.line(runs);
     }
     return 0;
   }
 
   const say = ctx.json ? () => {} : clock(out);
-  if (proposal.tagged.length) {
-    writeFileSync(turbo, proposal.text);
-    say(`tagged ${proposal.tagged.join(", ")} with ci in turbo.json. Commit and push it.`);
-  }
+  say(tagged.length || usual.length ? runs : yellow(runs));
   if (writeConfig) {
     const text = existsSync(configPath) ? readFileSync(configPath, "utf8") : "{}\n";
     writeFileSync(
@@ -89,7 +87,7 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
 
   let access: string = "skipped";
   if (github) {
-    await installAutomation(boxd, server, say);
+    await installAutomation(boxd, server, store, say);
     access = await githubAccess(boxd, server, ctx.repo);
     if (access === "ok") say(green(`the boxd GitHub App can read ${ctx.repo}, so every push gets a boxd-ci check`));
     else say(yellow(GITHUB_HELP[access as keyof typeof GITHUB_HELP](ctx.repo)));

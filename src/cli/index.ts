@@ -1,11 +1,12 @@
 // boxd-ci: CI for Turborepo monorepos on boxd machines.
 
 import { readFileSync } from "node:fs";
-import { HELP, parseCli } from "./args.js";
+import { explain, HELP, parseCli } from "./args.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { grepCommand, logsCommand, lsCommand } from "./commands/history.js";
 import { initCommand } from "./commands/init.js";
 import { runCommand } from "./commands/run.js";
+import { secretCommand } from "./commands/secret.js";
 import { loadContext } from "./context.js";
 import { red, stdout } from "./ui.js";
 
@@ -44,14 +45,17 @@ async function main(argv: string[]): Promise<number> {
       return grepCommand(ctx, args, flags, stdout);
     case "doctor":
       return doctorCommand(ctx, flags, stdout);
+    case "secret":
+      return secretCommand(ctx, args, flags, stdout);
   }
 }
 
 main(process.argv.slice(2)).then(
   (code) => process.exit(code),
   (e: Error) => {
-    if (process.argv.includes("--json")) stdout.json({ error: e.message });
-    else process.stderr.write(`${red("boxd-ci:")} ${e.message}\n`);
+    const message = explain(e.message);
+    if (process.argv.includes("--json")) stdout.json({ error: message });
+    else process.stderr.write(`${red("boxd-ci:")} ${message}\n`);
     process.exit(1);
   },
 );

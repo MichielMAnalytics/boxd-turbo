@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import * as fs from "node:fs";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -123,7 +124,8 @@ describe("applyPatchScript", () => {
 });
 
 describe("cleanOutputsScript", () => {
-  test("deletes the declared outputs, keeps negated globs and node_modules", () => {
+  // The script runs on task machines, which have Node 22 or newer (fs.globSync).
+  test.skipIf(!("globSync" in fs))("deletes the declared outputs, keeps negated globs and node_modules", () => {
     const repo = mkdtempSync(join(tmpdir(), "boxd-ci-clean-"));
     const make = (p: string) => {
       mkdirSync(join(repo, p, ".."), { recursive: true });
@@ -188,6 +190,12 @@ describe("parseRunOutput", () => {
   test("log tails come without terminal color codes", () => {
     const out = `${summary([{ taskId: "a#test", cache: { status: "MISS" }, execution: exec(1) }])}${LOG_MARK}a#test\n\x1b[2m Test Files \x1b[22m \x1b[1m\x1b[31m1 failed\x1b[39m\x1b[22m\n`;
     expect(parseRunOutput(out, [node("a#test")], "m")[0]?.logTail).toBe("Test Files  1 failed");
+  });
+
+  test("log tails lose every terminal control sequence, links and clipboard writes included", () => {
+    const raw = `${SUMMARY_MARK}\n{"tasks":[{"taskId":"a#test","cache":{"status":"MISS"},"execution":{"exitCode":1}}]}\n${LOG_MARK}a#test\nbefore\u001b]52;c;ZXZpbA==\u0007 \u001b]8;;https://x.example\u001b\\link\u001b]8;;\u001b\\ bell\u0007 done\ttab\n`;
+    const [r] = parseRunOutput(raw, [node("a#test")], "m");
+    expect(r?.logTail).toBe("before link bell done\ttab");
   });
 
   test("a task Turborepo restored from the cache meanwhile is restored", () => {

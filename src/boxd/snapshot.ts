@@ -7,8 +7,9 @@
 // by those files, so only that change pays an install.
 
 import { createHash } from "node:crypto";
+import { parseConfig } from "../core/config.js";
 import { commit, fetchScript, GITHUB_AUTH, q, SUBMODULES } from "./scripts.js";
-import type { BoxdLike, ExecOutput } from "./sdk.js";
+import { type BoxdLike, type ExecOutput, isolatedShape } from "./sdk.js";
 import type { BoxWorker } from "./worker.js";
 
 export type RepoRecord = {
@@ -30,6 +31,8 @@ export type RepoRecord = {
   /** Its machine size: task machines asking for another one are resized. */
   cpus: number;
   builtAt: string;
+  /** The boxd secrets every machine of a push's run gets: .boxd-ci.json's list at the snapshot's commit. */
+  secrets?: string[];
 };
 
 export type SnapshotBoxd = {
@@ -246,6 +249,8 @@ export type BuildOptions = {
   selectors?: string[];
   plannerBundle?: Uint8Array;
   cpus?: number;
+  /** Names of boxd secrets the builder gets (an install from a private registry needs its token). */
+  secrets?: string[];
   pollMs?: number;
   onProgress?: (line: string) => void;
 };
@@ -263,9 +268,8 @@ export async function buildSnapshot(boxd: SnapshotBoxd, o: BuildOptions): Promis
       name,
       ...(o.org ? { org: o.org } : {}),
       config: { vcpu: cpus, memory: MEMORY[cpus] ?? "8G", autoSuspendTimeout: 0 },
-      isolated: true,
       deleteAfter: BUILDER_SECONDS,
-      labels: { "boxd-ci": "builder" },
+      ...isolatedShape({ "boxd-ci": "builder" }, o.secrets),
     },
     async (id, sh) => {
       say(`cloning ${o.repo.repo} at ${o.sha.slice(0, 7)}`);
@@ -312,6 +316,7 @@ export async function buildSnapshot(boxd: SnapshotBoxd, o: BuildOptions): Promis
         depsHash,
         cpus,
         builtAt: new Date().toISOString(),
+        ...(o.secrets?.length ? { secrets: [...o.secrets] } : {}),
       } satisfies RepoRecord;
     },
   );
@@ -330,8 +335,10 @@ export type PromoteOptions = {
 
 /**
  * The next snapshot, from a green commit on the default branch: restore the current one, check out
- * the commit, install if the dependency files changed, warm, save under the other name. Returns the
- * new record, or null when the commit is older than the snapshot's (pushes can finish out of order).
+ * the commit, install if the dependency files changed, warm, save under its own name. Returns the new
+ * record, or null when the commit is older than the snapshot's (pushes can finish out of order). A
+ * commit that does not descend from the snapshot's is still promoted when it is the branch's head on
+ * GitHub: someone force-pushed, and the snapshot would otherwise stay behind for good.
  */
 export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<RepoRecord | null> {
   const r = o.record;
@@ -345,9 +352,8 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
       name: `bci-${repoSlug(r.repo).slice(0, 30)}-next-${Math.random().toString(36).slice(2, 6)}`,
       ...(o.org ? { org: o.org } : {}),
       fromSnapshot: r.snapshot,
-      isolated: true,
       deleteAfter: BUILDER_SECONDS,
-      labels: { "boxd-ci": "builder" },
+      ...isolatedShape({ "boxd-ci": "builder" }, r.secrets),
     },
     async (id, sh) => {
       await sh(
@@ -355,14 +361,23 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
         fetchScript(r.workdir, o.sha),
         o.fetchToken ? { BOXD_CI_FETCH_TOKEN: o.fetchToken } : undefined,
       );
-      const newer = await sh(
+      const order = await sh(
         "comparing commits",
-        `cd ${q(r.workdir)} && if git merge-base --is-ancestor ${commit(r.commit)} ${commit(o.sha)}; then echo yes; else echo no; fi`,
+        [
+          `cd ${q(r.workdir)}`,
+          GITHUB_AUTH,
+          `if git merge-base --is-ancestor ${commit(r.commit)} ${commit(o.sha)}; then echo newer; else case "$(git ls-remote origin ${q(`refs/heads/${r.defaultBranch}`)} | cut -c1-40)" in ${o.sha}*) echo head ;; *) echo older ;; esac; fi`,
+        ].join(" && "),
+        o.fetchToken ? { BOXD_CI_FETCH_TOKEN: o.fetchToken } : undefined,
       ).catch(() => null);
-      if (!newer || newer.stdout.trim() === "no") {
+      const answer = order?.stdout.trim();
+      if (answer !== "newer" && answer !== "head") {
         say(`${o.sha.slice(0, 7)} is older than the snapshot's ${r.commit.slice(0, 7)}, so the snapshot stays`);
         return null;
       }
+      const config = (await sh("reading .boxd-ci.json", `cat ${q(`${r.workdir}/.boxd-ci.json`)} 2>/dev/null || true`))
+        .stdout;
+      const secrets = parseConfig(config.trim() ? config : undefined).config.secrets;
       const depsHash = (await sh("hashing the dependency files", depsHashScript(r.workdir))).stdout.trim();
       if (depsHash !== r.depsHash) {
         say("the dependency files changed, installing them");
@@ -373,7 +388,16 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
       await saveSnapshot(boxd, id, target, runtime);
       const now = new Date().toISOString();
       const retired = [...(r.retired ?? []), { name: r.snapshot, at: now }];
-      return { ...r, snapshot: target, commit: o.sha, depsHash, builtAt: now, retired };
+      const { secrets: _, ...rest } = r;
+      return {
+        ...rest,
+        snapshot: target,
+        commit: o.sha,
+        depsHash,
+        builtAt: now,
+        retired,
+        ...(secrets?.length ? { secrets } : {}),
+      };
     },
   );
 }

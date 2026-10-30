@@ -5,12 +5,31 @@ import { createHash } from "node:crypto";
 import { q } from "../boxd/scripts.js";
 import type { BoxdLike } from "../boxd/sdk.js";
 import { SERVER_ROOT, type ServerInfo } from "../boxd/server.js";
-import { buildSnapshot, type RepoRecord } from "../boxd/snapshot.js";
+import { buildSnapshot, type RepoRecord, repoSlug } from "../boxd/snapshot.js";
 import type { Store } from "../boxd/store.js";
 import { cacheEnv } from "../pipeline.js";
-import { paths, readJson, writeJson } from "../state.js";
+import { paths, readJson, runningPushRuns, writeJson } from "../state.js";
 import { bundled, type Ctx } from "./context.js";
 import { anonymousRead, defaultBranch, githubToken, remoteHead } from "./git.js";
+
+/**
+ * Two repositories whose names map to one short name would share a record, snapshots and cache:
+ * the one that came first keeps it.
+ */
+export function sameRepo(record: RepoRecord, repo: string): void {
+  if (record.repo.toLowerCase() === repo.toLowerCase()) return;
+  throw new Error(
+    `${repo} and ${record.repo} have the same short name in boxd (${repoSlug(repo)}), and boxd-ci already runs ${record.repo}. One account runs one of them.`,
+  );
+}
+
+/** A rebuilt record keeps the snapshots still waiting to be deleted, and retires the one it replaces. */
+export function carryRetired(old: RepoRecord | null | undefined, fresh: RepoRecord, now: string): RepoRecord {
+  if (!old) return fresh;
+  const retired = [...(old.retired ?? [])];
+  if (old.snapshot !== fresh.snapshot) retired.push({ name: old.snapshot, at: now });
+  return retired.length ? { ...fresh, retired } : fresh;
+}
 
 /** The repository's snapshot record, building the first snapshot when there is none (or on --rebuild). */
 export async function ensureRepoRecord(
@@ -22,6 +41,7 @@ export async function ensureRepoRecord(
   o: { rebuild?: boolean } = {},
 ): Promise<RepoRecord> {
   const existing = await readJson<RepoRecord>(store, paths.repo(ctx.repo));
+  if (existing) sameRepo(existing, ctx.repo);
   if (existing && !o.rebuild) return existing;
   const branch = defaultBranch(ctx.root);
   const sha = remoteHead(ctx.root, branch);
@@ -37,9 +57,10 @@ export async function ensureRepoRecord(
     // No warm-up here: the first run builds every task across its machines, far sooner than one
     // machine could, and fills the cache; promotions keep the snapshot warm after that.
     selectors: [],
+    ...(ctx.config.secrets?.length ? { secrets: ctx.config.secrets } : {}),
     onProgress: say,
   });
-  await writeJson(store, paths.repo(ctx.repo), record);
+  await writeJson(store, paths.repo(ctx.repo), carryRetired(existing, record, new Date().toISOString()));
   say(`snapshot ${record.snapshot} is ready`);
   return record;
 }
@@ -52,7 +73,7 @@ type Job = { id?: string; file?: string; path?: string; state?: string; status?:
  * Puts the automation and the planner on the server and makes sure the job runs the current
  * version. A restart would stop runs in progress, so with one in progress it waits for the next init.
  */
-export async function installAutomation(boxd: BoxdLike, server: ServerInfo, say: (m: string) => void) {
+export async function installAutomation(boxd: BoxdLike, server: ServerInfo, store: Store, say: (m: string) => void) {
   const m = boxd.machines;
   const code = bundled("boxd-ci.run.mjs");
   const planner = bundled("planner.mjs");
@@ -67,10 +88,10 @@ export async function installAutomation(boxd: BoxdLike, server: ServerInfo, say:
     return;
   }
   if (job) {
-    const busy = await sh(
-      `cd ${q(SERVER_ROOT)} && find runs -name '*.json' -mmin -90 -exec grep -l '"status": "running"' {} + 2>/dev/null | head -1`,
-    );
-    if (busy.stdout.trim()) {
+    // A restart stops the runs in progress. One older than six hours is no longer running: the
+    // restarted automation closes it.
+    const busy = (await runningPushRuns(store)).some((r) => Date.now() - Date.parse(r.record.startedAt) < 6 * 3600_000);
+    if (busy) {
       say(`a run is in progress on ${server.name}. Run init again when it is done to update the automation.`);
       return;
     }
@@ -100,16 +121,39 @@ function parseJobs(text: string): Job[] {
 
 export type GithubAccess = "ok" | "no-app" | "no-repo" | "unknown";
 
-/** Whether the org's boxd GitHub App can read the repository, asked from the server. */
-export async function githubAccess(boxd: BoxdLike, server: ServerInfo, repo: string): Promise<GithubAccess> {
+/**
+ * Whether the org's boxd GitHub App can read the repository, asked from the server. GitHub answers a
+ * request for any public repository, installed or not, so the check looks for it among the
+ * repositories the installation lists. The token goes to node on stdin, on no command line.
+ */
+export async function githubAccess(
+  boxd: Pick<BoxdLike, "machines">,
+  server: ServerInfo,
+  repo: string,
+): Promise<GithubAccess> {
+  const js = `
+let token = "";
+process.stdin.on("data", (d) => (token += d));
+process.stdin.on("end", async () => {
+  const want = process.argv[1].toLowerCase();
+  for (let page = 1; page <= 50; page++) {
+    const r = await fetch("https://api.github.com/installation/repositories?per_page=100&page=" + page, {
+      headers: { authorization: "Bearer " + token.trim(), accept: "application/vnd.github+json" },
+    }).catch(() => null);
+    if (!r || !r.ok) return console.log("repo:error " + (r ? r.status : "network"));
+    const body = await r.json();
+    if (body.repositories.some((x) => x.full_name.toLowerCase() === want)) return console.log("repo:ok");
+    if (body.repositories.length < 100) return console.log("repo:missing");
+  }
+  console.log("repo:missing");
+});`;
   const script = `t=$(run github-app get-token 2>/dev/null) || { echo no-app; exit 0; }
-code=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $t" -H 'Accept: application/vnd.github+json' ${q(`https://api.github.com/repos/${repo}`)})
-echo "repo:$code"`;
+printf '%s' "$t" | node -e ${q(js)} ${q(repo)}`;
   const out = await boxd.machines.exec(server.machineId, { command: ["bash", "-c", script], timeout: 60_000 });
   const s = out.stdout.trim();
   if (s === "no-app") return "no-app";
-  if (s === "repo:200") return "ok";
-  if (s.startsWith("repo:404") || s.startsWith("repo:403")) return "no-repo";
+  if (s === "repo:ok") return "ok";
+  if (s === "repo:missing") return "no-repo";
   return "unknown";
 }
 

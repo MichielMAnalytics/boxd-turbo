@@ -20,7 +20,7 @@ const count = (results: TaskResult[], status: TaskResult["status"]) =>
 const ORDER: Record<TaskResult["status"], number> = { failed: 0, ran: 1, skipped: 2, restored: 3 };
 const ordered = (results: TaskResult[]) =>
   [...results].sort((a, b) => ORDER[a.status] - ORDER[b.status] || b.seconds - a.seconds || (a.id < b.id ? -1 : 1));
-const MARK: Record<TaskResult["status"], string> = { failed: "✗", ran: "✓", skipped: "–", restored: "↺" };
+const MARK: Record<TaskResult["status"], string> = { failed: "✗", ran: "✓", skipped: "○", restored: "↺" };
 
 function title(r: RunRecord): string {
   const failed = r.results.filter((t) => t.status === "failed").map((t) => t.id);
@@ -63,9 +63,7 @@ export function checkSummary(r: RunRecord): { title: string; summary: string; te
       lines.push(`| ${MARK[t.status]} | \`${t.id}\` | ${formatSeconds(t.seconds)} | ${t.machine ?? ""} |`);
     lines.push("");
   }
-  const kept = [
-    ...new Set(r.results.filter((t) => t.status === "failed" && t.machine).map((t) => t.machine as string)),
-  ];
+  const kept = keptMachines(r);
   const connect = (m: string) => `\`boxd connect ${m}\``;
   if (kept.length === 1) {
     lines.push(
@@ -116,4 +114,10 @@ export function terminalSummary(r: RunRecord): string {
   if (failedCount || r.status === "failure") parts.push(`${failedCount} failed`);
   parts.push(`${r.machines} machine${r.machines === 1 ? "" : "s"}`);
   return [...lines, "", parts.join(" · ")].join("\n");
+}
+
+/** The machines a run kept for debugging (older records: every failed task's machine). */
+export function keptMachines(r: RunRecord): string[] {
+  if (r.kept) return [...r.kept];
+  return [...new Set(r.results.filter((t) => t.status === "failed" && t.machine).map((t) => t.machine as string))];
 }

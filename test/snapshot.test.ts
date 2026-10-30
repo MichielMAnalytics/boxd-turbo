@@ -175,6 +175,9 @@ class FakeBoxd implements SnapshotBoxd {
   failOn?: string;
   depsHash = "aaaaaaaaaaaaaaaa";
   notAncestor = false;
+  /** With notAncestor: the commit is the default branch's head on GitHub (a force-push). */
+  isHead = false;
+  config = "";
   private n = 0;
   private polls = 0;
 
@@ -197,19 +200,25 @@ class FakeBoxd implements SnapshotBoxd {
         ? "clone"
         : script.includes("merge-base --is-ancestor")
           ? "ancestor"
-          : script.includes("fetch -q origin")
-            ? "fetch"
-            : script.includes(DEPS_HASH_MARK)
-              ? "hash"
-              : script.includes("--frozen-lockfile")
-                ? "install"
-                : script.includes("turbo run")
-                  ? "warm"
-                  : "other";
+          : script.includes(".boxd-ci.json")
+            ? "config"
+            : script.includes("fetch -q origin")
+              ? "fetch"
+              : script.includes(DEPS_HASH_MARK)
+                ? "hash"
+                : script.includes("--frozen-lockfile")
+                  ? "install"
+                  : script.includes("turbo run")
+                    ? "warm"
+                    : "other";
       this.log.push(step);
       if (step === this.failOn) return { stdout: "", stderr: `${step} broke`, exitCode: 1 };
       if (step === "hash") return { stdout: `${this.depsHash}\n`, stderr: "", exitCode: 0 };
-      if (step === "ancestor") return { stdout: "", stderr: "", exitCode: this.notAncestor ? 1 : 0 };
+      if (step === "ancestor") {
+        const answer = !this.notAncestor ? "newer" : this.isHead ? "head" : "older";
+        return { stdout: `${answer}\n`, stderr: "", exitCode: 0 };
+      }
+      if (step === "config") return { stdout: this.config, stderr: "", exitCode: 0 };
       return { stdout: "", stderr: "", exitCode: 0 };
     },
     delete: async (id: string) => {
@@ -339,6 +348,15 @@ describe("buildSnapshot", () => {
     expect(boxd.log).toContain("save b1 bci-acme-web-c0ffee1");
   });
 
+  test("the builder gets the repository's secrets, and the record keeps the list", async () => {
+    const boxd = new FakeBoxd();
+    const r = await buildSnapshot(boxd, { ...opts, secrets: ["NPM_TOKEN"] });
+    expect(boxd.creates[0]).toMatchObject({
+      spec: { isolated: true, labels: { "boxd-ci": "builder" }, secrets: ["NPM_TOKEN"] },
+    });
+    expect(r.secrets).toEqual(["NPM_TOKEN"]);
+  });
+
   test("a failed install deletes the builder and says what broke", async () => {
     const boxd = new FakeBoxd();
     boxd.failOn = "install";
@@ -365,6 +383,7 @@ describe("promote", () => {
       "create bci-acme-web-c0ffee1",
       "fetch",
       "ancestor",
+      "config",
       "hash",
       "warm",
       "save b1 bci-acme-web-d00d2fe",
@@ -397,6 +416,25 @@ describe("promote", () => {
     expect(await promote(boxd, opts(record()))).toBeNull();
     expect(boxd.log.some((l) => l.startsWith("save"))).toBe(false);
     expect(boxd.log.at(-1)).toBe("delete b1");
+  });
+
+  test("after a force-push, the default branch's head on GitHub is promoted although it does not descend from the snapshot", async () => {
+    const boxd = new FakeBoxd();
+    boxd.notAncestor = true;
+    boxd.isHead = true;
+    const next = await promote(boxd, opts(record()));
+    expect(next?.snapshot).toBe("bci-acme-web-d00d2fe");
+    const ancestor = boxd.execs.find((e) => e.script.includes("merge-base --is-ancestor"));
+    expect(ancestor?.script).toContain("ls-remote origin 'refs/heads/main'");
+    expect(ancestor?.env).toEqual({ BOXD_CI_FETCH_TOKEN: "ghs_x" });
+  });
+
+  test("the builder gets the snapshot's secrets, and the new record takes the commit's list", async () => {
+    const boxd = new FakeBoxd();
+    boxd.config = '{ "secrets": ["NPM_TOKEN", "DATABASE_URL"] }';
+    const next = await promote(boxd, opts(record({ secrets: ["NPM_TOKEN"] })));
+    expect(boxd.creates[0]).toMatchObject({ spec: { secrets: ["NPM_TOKEN"] } });
+    expect(next?.secrets).toEqual(["NPM_TOKEN", "DATABASE_URL"]);
   });
 });
 

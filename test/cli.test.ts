@@ -3,10 +3,14 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { parseCli } from "../src/cli/args.js";
+import type { RepoRecord } from "../src/boxd/snapshot.js";
+import { explain, parseCli } from "../src/cli/args.js";
+import { matchRun } from "../src/cli/commands/history.js";
 import { initPlan } from "../src/cli/commands/init.js";
+import { requireTurboJson } from "../src/cli/context.js";
 import { anonymousRead, makePatch, parseRemote } from "../src/cli/git.js";
-import { ciTaggedTasks, proposeCiTags } from "../src/core/propose.js";
+import { carryRetired, githubAccess, sameRepo } from "../src/cli/setup.js";
+import { ciTaggedTasks, usualChecks } from "../src/core/ci-tasks.js";
 
 describe("parseCli", () => {
   test("a command, its flags and its arguments", () => {
@@ -24,7 +28,9 @@ describe("parseCli", () => {
   });
 
   test("an unknown command or flag is an error that says what exists", () => {
-    expect(() => parseCli(["deploy"])).toThrow("unknown command deploy: try init, run, ls, logs, grep or doctor");
+    expect(() => parseCli(["deploy"])).toThrow(
+      "unknown command deploy. Try init, run, ls, logs, grep, doctor or secret.",
+    );
     expect(() => parseCli(["run", "--fast"])).toThrow("unknown option --fast for run");
   });
 });
@@ -43,6 +49,13 @@ describe("parseRemote", () => {
 
   test("a remote that is not a repository URL is an error", () => {
     expect(() => parseRemote("/srv/git/thing")).toThrow("cannot read owner/name from the remote /srv/git/thing");
+  });
+
+  test("a remote on another host is refused before any token could be sent there", () => {
+    expect(() => parseRemote("https://gitlab.com/acme/web.git")).toThrow(
+      "boxd CI runs repositories on github.com, and origin is on gitlab.com",
+    );
+    expect(() => parseRemote("git@github.example.com:acme/web.git")).toThrow("origin is on github.example.com");
   });
 });
 
@@ -111,34 +124,16 @@ describe("anonymousRead", () => {
   });
 });
 
-describe("proposeCiTags", () => {
-  test("a turbo.json with ci tags is left as it is", () => {
-    const text = '{ "tasks": { "test": { "tags": ["ci"] } } }';
-    expect(proposeCiTags(text)).toEqual({ text, tagged: [] });
-  });
-
-  test("tags the usual check tasks that exist, keeping comments and other settings", () => {
-    const text = `{
-  // build first
-  "tasks": {
-    "build": { "outputs": ["dist/**"] },
-    "lint": {},
-    "type-check": { "dependsOn": ["^build"] },
-    "test": { "dependsOn": ["build"], "tags": ["slow"] }
-  }
-}`;
-    const r = proposeCiTags(text);
-    expect(r.tagged).toEqual(["lint", "type-check", "test"]);
-    expect(r.text).toContain("// build first");
-    const parsed = JSON.parse(r.text.replace(/\/\/.*$/m, ""));
-    expect(parsed.tasks.lint.tags).toEqual(["ci"]);
-    expect(parsed.tasks["type-check"]).toEqual({ dependsOn: ["^build"], tags: ["ci"] });
-    expect(parsed.tasks.test.tags).toEqual(["slow", "ci"]);
-    expect(parsed.tasks.build.tags).toBeUndefined();
-  });
-
-  test("nothing to tag says so", () => {
-    expect(proposeCiTags('{ "tasks": { "build": {} } }').tagged).toEqual([]);
+describe("usualChecks", () => {
+  test("the usual check tasks any turbo.json defines, plain or for one package", () => {
+    expect(
+      usualChecks([
+        '{ "tasks": { "build": {}, "lint": {}, "web#typecheck": {} } }',
+        '{ "extends": ["//"], "tasks": { "test": {} } }',
+        "not json",
+      ]),
+    ).toEqual(["lint", "typecheck", "test"]);
+    expect(usualChecks(['{ "tasks": { "build": {} } }'])).toEqual([]);
   });
 });
 
@@ -163,15 +158,104 @@ describe("init --dry-run", () => {
       server: "boxd-ci-server",
       hasServer: false,
       hasSnapshot: false,
-      tagged: ["lint", "test"],
       github: true,
     });
     expect(steps).toEqual([
-      "tag lint, test with ci in turbo.json",
       "write .boxd-ci.json (org acme)",
       "start boxd-ci-server in acme: the Turborepo cache and run history",
       "build the first snapshot of acme/web from its default branch",
       "install the push automation on boxd-ci-server and check the boxd GitHub App can read acme/web",
     ]);
+  });
+});
+
+describe("repository records", () => {
+  const rec = (o: Partial<RepoRecord> = {}): RepoRecord => ({
+    version: 1,
+    repo: "acme/web",
+    cloneUrl: "https://github.com/acme/web.git",
+    defaultBranch: "main",
+    workdir: "/home/boxd/work/web",
+    snapshot: "bci-acme-web-aaaaaaa",
+    commit: "aaaaaaa",
+    depsHash: "0".repeat(16),
+    cpus: 2,
+    builtAt: "2026-10-30T00:00:00.000Z",
+    ...o,
+  });
+
+  test("a rebuild keeps the snapshots waiting to be deleted, and retires the one it replaces", () => {
+    const waiting = { name: "bci-acme-web-0000000", at: "2026-10-30T00:00:00.000Z" };
+    const fresh = rec({ snapshot: "bci-acme-web-bbbbbbb", commit: "bbbbbbb" });
+    const next = carryRetired(rec({ retired: [waiting] }), fresh, "2026-10-30T12:00:00.000Z");
+    expect(next.retired).toEqual([waiting, { name: "bci-acme-web-aaaaaaa", at: "2026-10-30T12:00:00.000Z" }]);
+    expect(carryRetired(undefined, fresh, "2026-10-30T12:00:00.000Z").retired).toBeUndefined();
+  });
+
+  test("another repository whose name maps to the same record is refused", () => {
+    expect(() => sameRepo(rec({ repo: "acme/my.app" }), "acme/my_app")).toThrow(
+      "acme/my_app and acme/my.app have the same short name in boxd (acme-my-app), and boxd-ci already runs acme/my.app. One account runs one of them.",
+    );
+    expect(() => sameRepo(rec({ repo: "Acme/Web" }), "acme/web")).not.toThrow();
+  });
+});
+
+describe("first-run errors", () => {
+  test("an error about missing or expired boxd credentials says how to sign in", () => {
+    const how = "you are not signed in to boxd. Run boxd auth login, or set BOXD_API_KEY.";
+    expect(explain("no credentials: pass { apiKey } or { token }, or set BOXD_API_KEY / BOXD_TOKEN")).toBe(how);
+    expect(explain("UNAUTHENTICATED: token expired")).toBe(how);
+    expect(explain("the server did not answer")).toBe("the server did not answer");
+  });
+
+  test("a folder without turbo.json is refused before anything starts in the cloud", () => {
+    const dir = mkdtempSync(join(tmpdir(), "boxd-ci-noturbo-"));
+    expect(() => requireTurboJson(dir)).toThrow(
+      `no turbo.json in ${dir}. boxd-ci runs the tasks of a Turborepo monorepo.`,
+    );
+    writeFileSync(join(dir, "turbo.jsonc"), "{}");
+    expect(requireTurboJson(dir)).toBe(join(dir, "turbo.jsonc"));
+  });
+});
+
+describe("githubAccess", () => {
+  const server = { machineId: "srv", name: "boxd-ci-server", cacheUrl: "", token: "" };
+  const ask = async (stdout: string) => {
+    const scripts: string[] = [];
+    const boxd = {
+      machines: {
+        exec: async (_id: string, p: { command: string[] }) => {
+          scripts.push(p.command[2] ?? "");
+          return { stdout, stderr: "", exitCode: 0 };
+        },
+      },
+    } as never;
+    return { access: await githubAccess(boxd, server, "acme/web"), script: scripts[0] ?? "" };
+  };
+
+  test("looks for the repository among the ones the installation lists, with the token on no command line", async () => {
+    const { access, script } = await ask("repo:ok\n");
+    expect(access).toBe("ok");
+    expect(script).toContain("/installation/repositories");
+    expect(script).toContain("'acme/web'");
+    expect(script).not.toMatch(/curl[^\n]*Bearer/);
+  });
+
+  test("a repository the installation does not list cannot be read by it, even when it is public", async () => {
+    expect((await ask("repo:missing\n")).access).toBe("no-repo");
+    expect((await ask("no-app\n")).access).toBe("no-app");
+    expect((await ask("repo:error 502\n")).access).toBe("unknown");
+  });
+});
+
+describe("matchRun", () => {
+  const ids = ["20261030-101503-a1b2c3d", "20261030-111503-d00d2fe", "20261031-090000-d00d2fe"];
+  test("a run is found by its id, the start of its id, or its commit's hash, short or full", () => {
+    expect(matchRun(ids, "20261030-101503-a1b2c3d")).toBe("20261030-101503-a1b2c3d");
+    expect(matchRun(ids, "20261030-1015")).toBe("20261030-101503-a1b2c3d");
+    expect(matchRun(ids, "a1b2c3d")).toBe("20261030-101503-a1b2c3d");
+    expect(matchRun(ids, "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678")).toBe("20261030-101503-a1b2c3d");
+    expect(matchRun(ids, "d00d2fe")).toBe("20261031-090000-d00d2fe");
+    expect(matchRun(ids, "ffffff0")).toBeUndefined();
   });
 });

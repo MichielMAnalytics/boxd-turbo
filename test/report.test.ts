@@ -45,6 +45,18 @@ describe("checkSummary", () => {
     expect(checkSummary(run([r("b#test", "ran")])).summary).not.toContain("kept for 24 hours");
   });
 
+  test("only the machines the run kept are offered, when it kept fewer than failed", () => {
+    const failed = ["1", "2", "3", "4", "5"].map((n) => ({ ...r(`p${n}#test`, "failed"), machine: `bci-r1-${n}` }));
+    const out = checkSummary({ ...run(failed, "failure"), kept: ["bci-r1-1", "bci-r1-2", "bci-r1-3"] });
+    expect(out.summary).toContain("`boxd connect bci-r1-3`");
+    expect(out.summary).not.toContain("`boxd connect bci-r1-4`");
+  });
+
+  test("a skipped task is marked with a circle", () => {
+    const out = checkSummary(run([r("a#test", "failed"), r("b#test", "skipped")], "failure"));
+    expect(out.summary).toContain("| ○ | `b#test` |");
+  });
+
   test("a green run's title gives the time and what ran and what was restored", () => {
     const s = checkSummary(run([r("a#build", "restored", 0), r("a#test", "ran", 12), r("b#test", "ran", 4)]));
     expect(s.title).toBe("green in 25s: 2 ran, 1 restored");

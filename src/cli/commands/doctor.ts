@@ -6,7 +6,7 @@ import { connect } from "../../boxd/sdk.js";
 import { cacheAnswers, SERVER_ROOT } from "../../boxd/server.js";
 import { type RepoRecord, snapshotReady } from "../../boxd/snapshot.js";
 import { machineStore } from "../../boxd/store.js";
-import { ciTaggedTasks } from "../../core/propose.js";
+import { ciTaggedTasks } from "../../core/ci-tasks.js";
 import type { RunRecord } from "../../core/record.js";
 import { leftovers } from "../../core/sweep.js";
 import { paths, readJson } from "../../state.js";

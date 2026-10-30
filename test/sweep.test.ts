@@ -31,6 +31,11 @@ describe("leftovers", () => {
     expect(leftovers(kept, status, now)).toEqual([]);
   });
 
+  test("a kept machine someone woke by connecting is never left over: its timer runs for a day", () => {
+    const woken = { ...worker("w", "running", "r3", 5), deleteAt: new Date(now + 20 * 3600_000) };
+    expect(leftovers([woken], status, now)).toEqual([]);
+  });
+
   test("a running machine older than three hours is left over even without a record, and old builders too", () => {
     const found = leftovers(
       [
