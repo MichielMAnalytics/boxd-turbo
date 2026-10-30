@@ -3,73 +3,271 @@
 //   npx tsx scripts/charts.ts
 //
 // Reads bench/results/ and writes assets/*-light.svg and assets/*-dark.svg (GitHub shows the one that
-// matches the reader's theme through <picture>). Colors: two categorical slots, validated for both
-// modes with the dataviz palette checks (boxd CI blue, Vercel CI orange).
+// matches the reader's theme through <picture>).
+//
+// The look is boxd's, from the website's brand guide and its benchmark board: a monochrome UI, Inter
+// for prose and JetBrains Mono for labels and numbers, tiles on a grout frame, the notch from the
+// logo on every panel. Colour is data only, by emphasis: boxd CI's bars in emerald, everyone else's
+// in grey, checked for colour-vision deficiency in both modes. Every bar carries its name and value,
+// so colour is never the only cue. The fonts are subset per picture and embedded, since GitHub shows
+// an SVG as an image, which loads no fonts of its own.
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import subsetFont from "subset-font";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const assets = join(root, "assets");
 const results = join(root, "bench", "results");
+const fonts = join(root, "scripts", "fonts");
 
 type Theme = {
   name: "light" | "dark";
-  surface: string;
+  /** The panel's ground and its hairline. */
+  page: string;
+  edge: string;
+  /** The frame showing through the seams between tiles, and the seam's width. */
+  grout: string;
+  pad: number;
+  tile: string;
+  /** A bar's empty track. */
+  track: string;
+  /** Text, from headings down to footnotes. */
   ink: string;
-  ink2: string;
+  body: string;
+  quiet: string;
   muted: string;
-  grid: string;
-  axis: string;
+  deep: string;
+  /** A rule inside a tile, and a gridline. */
+  rule: string;
+  /** Data: boxd CI by emphasis, everyone else in grey. */
   boxd: string;
-  vercel: string;
-  wash: string;
+  other: string;
+  /** The logo's fill. */
+  mark: string;
+  /** The rose light in the panel's corner, dark mode only. */
+  bloom: boolean;
 };
+
+// Zinc, as the site uses it. Dark: the site's page and tile grounds. Light: the site's light section.
 const THEMES: Theme[] = [
   {
     name: "light",
-    surface: "#fcfcfb",
-    ink: "#0b0b0b",
-    ink2: "#52514e",
-    muted: "#898781",
-    grid: "#e1e0d9",
-    axis: "#c3c2b7",
-    boxd: "#2a78d6",
-    vercel: "#eb6834",
-    wash: "#f0efec",
+    page: "#e8e8ec",
+    edge: "#d4d4d8",
+    grout: "#a1a1aa",
+    pad: 1,
+    tile: "#ffffff",
+    track: "rgba(0,0,0,0.05)",
+    ink: "#18181b",
+    body: "#52525b",
+    quiet: "#52525b",
+    muted: "#71717a",
+    deep: "#71717a",
+    rule: "#e4e4e7",
+    // Emerald 800 against grey: ΔE 18.4 under protanopia, both over 3:1 on white.
+    boxd: "#065f46",
+    other: "#8a8a93",
+    mark: "#18181b",
+    bloom: false,
   },
   {
     name: "dark",
-    surface: "#1a1a19",
-    ink: "#f0efec",
-    ink2: "#c3c2b7",
-    muted: "#898781",
-    grid: "#2c2c2a",
-    axis: "#383835",
-    boxd: "#3987e5",
-    vercel: "#d95926",
-    wash: "#2c2c2a",
+    page: "#0a0c12",
+    edge: "rgba(255,255,255,0.08)",
+    grout: "#3f3f46",
+    pad: 2,
+    tile: "#100c0e",
+    track: "rgba(255,255,255,0.035)",
+    ink: "#f4f4f5",
+    body: "#d4d4d8",
+    quiet: "#a1a1aa",
+    muted: "#71717a",
+    deep: "#52525b",
+    rule: "rgba(39,39,42,0.8)",
+    // The benchmark board's pair: ΔE 22.7 under deuteranopia, both over 3:1 on the tile.
+    boxd: "#34d399",
+    other: "#71717a",
+    mark: "#e4e4e7",
+    bloom: true,
   },
 ];
-const FONT = `font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"`;
+
+/** The terminal is the product's screenshot: dark in both modes, as on the site. */
+const TERM = {
+  ground: "#0e1118",
+  edge: "rgba(255,255,255,0.08)",
+  chrome: "rgba(255,255,255,0.02)",
+  chromeEdge: "rgba(255,255,255,0.06)",
+  light: "rgba(255,255,255,0.08)",
+  prompt: "#f4f4f5",
+  command: "#f4f4f5",
+  text: "#d4d4d8",
+  result: "#a1a1aa",
+  dim: "#71717a",
+  comment: "#52525b",
+  /** Success green: terminal status only. */
+  ok: "#7DB89E",
+};
+
+const SANS = "'boxd-sans', Inter, system-ui, -apple-system, sans-serif";
+const MONO = "'boxd-mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+/** JetBrains Mono's advance is 600 units per 1000: every glyph is 0.6 em wide. */
+const monoWidth = (s: string, size: number) => [...s].length * size * 0.6;
 
 const esc = (s: string) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-const svg = (w: number, h: number, t: Theme, body: string, title: string) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" ${FONT} role="img" aria-label="${esc(title)}">
-<title>${esc(title)}</title>
-<rect width="${w}" height="${h}" rx="12" fill="${t.surface}"/>
-${body}
+
+/** One picture: its body, and the characters each font face has to carry. */
+class Doc {
+  body = "";
+  defs = "";
+  css = "";
+  readonly used = { sans400: new Set<string>(), sans500: new Set<string>(), mono: new Set<string>() };
+  constructor(
+    readonly w: number,
+    readonly h: number,
+    readonly label: string,
+  ) {}
+
+  text(
+    x: number,
+    y: number,
+    s: string,
+    o: {
+      font?: "sans" | "mono";
+      size?: number;
+      fill: string;
+      weight?: 400 | 500;
+      anchor?: "start" | "middle" | "end";
+      tracking?: string;
+      cls?: string;
+    },
+  ) {
+    const font = o.font ?? "sans";
+    const face = font === "mono" ? this.used.mono : o.weight === 500 ? this.used.sans500 : this.used.sans400;
+    for (const c of s) face.add(c);
+    const attrs = [
+      `x="${x.toFixed(1)}"`,
+      `y="${y.toFixed(1)}"`,
+      `font-family="${font === "mono" ? MONO : SANS}"`,
+      `font-size="${o.size ?? 13}"`,
+      `fill="${o.fill}"`,
+      o.weight === 500 ? `font-weight="500"` : "",
+      o.anchor && o.anchor !== "start" ? `text-anchor="${o.anchor}"` : "",
+      o.tracking ? `letter-spacing="${o.tracking}"` : "",
+      o.cls ? `class="${o.cls}"` : "",
+    ].filter(Boolean);
+    return `<text ${attrs.join(" ")} xml:space="preserve">${esc(s)}</text>`;
+  }
+
+  /** Spans of one line, each with its own colour, drawn as one text element. */
+  spans(x: number, y: number, parts: [string, string][], o: { size: number; cls?: string }) {
+    for (const [s] of parts) for (const c of s) this.used.mono.add(c);
+    const body = parts.map(([s, fill]) => `<tspan fill="${fill}">${esc(s)}</tspan>`).join("");
+    return `<text x="${x}" y="${y}" font-family="${MONO}" font-size="${o.size}"${o.cls ? ` class="${o.cls}"` : ""} xml:space="preserve">${body}</text>`;
+  }
+
+  /** Kicker: uppercase mono, wide tracking, muted. */
+  kicker(x: number, y: number, s: string, t: Theme) {
+    return this.text(x, y, s.toUpperCase(), { font: "mono", size: 10.5, fill: t.muted, tracking: "0.15em" });
+  }
+
+  async render(): Promise<string> {
+    const faces: [keyof Doc["used"], string, string, number][] = [
+      ["sans400", "Inter-Regular.ttf", "boxd-sans", 400],
+      ["sans500", "Inter-Medium.ttf", "boxd-sans", 500],
+      ["mono", "JetBrainsMono-Regular.ttf", "boxd-mono", 400],
+    ];
+    let fontCss = "";
+    for (const [key, file, family, weight] of faces) {
+      const chars = [...this.used[key]].join("");
+      if (!chars) continue;
+      const woff2 = await subsetFont(readFileSync(join(fonts, file)), `${chars} `, { targetFormat: "woff2" });
+      fontCss += `@font-face{font-family:'${family}';font-weight:${weight};src:url(data:font/woff2;base64,${woff2.toString("base64")}) format('woff2')}`;
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${this.w}" height="${this.h}" viewBox="0 0 ${this.w} ${this.h}" role="img" aria-label="${esc(this.label)}">
+<title>${esc(this.label)}</title>
+<style>${fontCss}${this.css}</style>
+<defs>${this.defs}</defs>
+${this.body}
 </svg>
 `;
-const text = (x: number, y: number, s: string, o: { size?: number; fill: string; weight?: number; anchor?: string }) =>
-  `<text x="${x}" y="${y}" font-size="${o.size ?? 13}" fill="${o.fill}"${o.weight ? ` font-weight="${o.weight}"` : ""}${o.anchor ? ` text-anchor="${o.anchor}"` : ""}>${esc(s)}</text>`;
-/** A bar growing right from x, square at the baseline, 4px round at its end. */
+  }
+}
+
+// ── boxd's shapes ─────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * A rounded rectangle with the logo's notch cut from its bottom-left corner: the website's
+ * getBoxPath, stretched to any width and height. Notch n, outer and inner radius r.
+ */
+function notched(x: number, y: number, w: number, h: number, r: number, n: number, ri = r): string {
+  const b = y + h;
+  return [
+    `M${x + r},${y}`,
+    `L${x + w - r},${y}`,
+    `A${r},${r} 0 0 1 ${x + w},${y + r}`,
+    `L${x + w},${b - r}`,
+    `A${r},${r} 0 0 1 ${x + w - r},${b}`,
+    `L${x + n + r},${b}`,
+    `A${r},${r} 0 0 1 ${x + n},${b - r}`,
+    `L${x + n},${b - n + ri}`,
+    `A${ri},${ri} 0 0 0 ${x + n - ri},${b - n}`,
+    `L${x + r},${b - n}`,
+    `A${r},${r} 0 0 1 ${x},${b - n - r}`,
+    `L${x},${y + r}`,
+    `A${r},${r} 0 0 1 ${x + r},${y}`,
+    "Z",
+  ].join(" ");
+}
+
+/** The boxd logo: a square with its bottom-left notch, at 20% of its size. */
+const logo = (x: number, y: number, size: number, fill: string) =>
+  `<path d="${notched(x, y, size, size, size / 12, size * 0.2)}" fill="${fill}"/>`;
+
+/** Vercel's mark, the triangle, in the colour of the text beside it. */
+const triangle = (x: number, y: number, size: number, fill: string) =>
+  `<path d="M${x + size / 2},${y + size * 0.07} L${x + size},${y + size * 0.93} L${x},${y + size * 0.93} Z" fill="${fill}"/>`;
+
+/** The outer panel: notched like the site's NotchedPanel (radius 12, notch 28), lit from above. */
+function panel(d: Doc, t: Theme) {
+  const shape = notched(0.75, 0.75, d.w - 1.5, d.h - 1.5, 12, 28);
+  d.defs += `<clipPath id="p"><path d="${shape}"/></clipPath>`;
+  d.defs += `<linearGradient id="lip" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.5" stop-color="#fff" stop-opacity="${t.bloom ? 0.12 : 0.6}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>`;
+  let out = `<path d="${shape}" fill="${t.page}"/>`;
+  if (t.bloom) {
+    // The brand's rose, as light in a corner: never on a mark or a word.
+    d.defs += `<radialGradient id="rose" cx="0.88" cy="0.92" r="0.55"><stop offset="0" stop-color="rgb(224,90,109)" stop-opacity="0.10"/><stop offset="1" stop-color="rgb(224,90,109)" stop-opacity="0"/></radialGradient>`;
+    out += `<rect width="${d.w}" height="${d.h}" fill="url(#rose)" clip-path="url(#p)"/>`;
+  }
+  out += `<rect x="${d.w * 0.1}" y="1" width="${d.w * 0.8}" height="1" fill="url(#lip)"/>`;
+  out += `<path d="${shape}" fill="none" stroke="${t.edge}" stroke-width="1.5"/>`;
+  return out;
+}
+
+/** Tiles on a grout frame: the frame shows through the seams, so no tile has a border. */
+function grout(t: Theme, x: number, y: number, w: number, h: number, cols: number) {
+  const R = 16;
+  const tw = (w - t.pad * (cols + 1)) / cols;
+  let out = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${R + t.pad}" fill="${t.grout}"/>`;
+  const tiles: { x: number; y: number; w: number; h: number }[] = [];
+  for (let i = 0; i < cols; i++) {
+    const tx = x + t.pad + i * (tw + t.pad);
+    tiles.push({ x: tx, y: y + t.pad, w: tw, h: h - 2 * t.pad });
+    out += `<rect x="${tx}" y="${y + t.pad}" width="${tw}" height="${h - 2 * t.pad}" rx="${R}" fill="${t.tile}"/>`;
+  }
+  return { svg: out, tiles };
+}
+
+/** A bar as on the site's benchmark board: 8 px, square-ish at the start, rounded at its end. */
 const bar = (x: number, y: number, w: number, h: number, fill: string, tip?: string) => {
   const r = Math.min(4, w / 2, h / 2);
-  const d = `M${x},${y} h${Math.max(0, w - r)} a${r},${r} 0 0 1 ${r},${r} v${h - 2 * r} a${r},${r} 0 0 1 ${-r},${r} h${-Math.max(0, w - r)} z`;
+  const l = Math.min(1, w / 2);
+  const d = `M${x + l},${y} H${x + w - r} A${r},${r} 0 0 1 ${x + w},${y + r} V${y + h - r} A${r},${r} 0 0 1 ${x + w - r},${y + h} H${x + l} A${l},${l} 0 0 1 ${x},${y + h - l} V${y + l} A${l},${l} 0 0 1 ${x + l},${y} Z`;
   return `<path d="${d}" fill="${fill}">${tip ? `<title>${esc(tip)}</title>` : ""}</path>`;
 };
+
 const secs = (s: number) =>
   s < 90
     ? `${s < 10 ? s.toFixed(1) : Math.round(s)} s`
@@ -164,70 +362,98 @@ function experiment() {
   };
 }
 
-// ── the race: push to green, per scenario ─────────────────────────────────────────────────────────
+// ── a comparison per scenario: one tile each, on its own scale ───────────────────────────────────
 
-function groupedBars(
+/** Header: kicker, title, subtitle, and the legend with each platform's mark. Returns its height. */
+function header(d: Doc, t: Theme, o: { kicker: string; title: string; subtitle: string; legend?: boolean }) {
+  d.body += d.kicker(32, 42, o.kicker, t);
+  d.body += d.text(32, 76, o.title, { size: 26, fill: t.ink, tracking: "-0.02em" });
+  d.body += d.text(32, 102, o.subtitle, { size: 14, fill: t.body });
+  if (o.legend) {
+    const size = 10.5;
+    const vercel = "Vercel CI";
+    const right = d.w - 32;
+    const vx = right - monoWidth(vercel, 11);
+    const bx = vx - 16 - 28 - monoWidth("boxd CI", 11);
+    d.body += logo(bx, 33, size, t.mark) + d.text(bx + 16, 42, "boxd CI", { font: "mono", size: 11, fill: t.quiet });
+    d.body += triangle(vx - 16, 32.5, 11, t.quiet) + d.text(vx, 42, vercel, { font: "mono", size: 11, fill: t.quiet });
+  }
+  return 124;
+}
+
+function comparison(
   t: Theme,
   o: {
+    kicker: string;
     title: string;
     subtitle: string;
     value: (lane: "boxd" | "vercel", s: string) => number;
     fmt: (v: number) => string;
-    note: string;
-    /** What a shorter bar means: "faster", "cheaper". */
+    notes: string[];
+    /** What a shorter bar means: "faster", "cheaper", "sooner". */
     better: string;
   },
 ) {
   const W = 880;
-  const left = 220;
-  const right = 110;
-  const top = 108;
-  const groupH = 84;
-  const barH = 22;
-  const H = top + SCENARIOS.length * groupH + 46;
-  const max = Math.max(...SCENARIOS.flatMap((s) => [o.value("boxd", s.key), o.value("vercel", s.key)]));
-  const x = (v: number) => (v / max) * (W - left - right);
-  let body = "";
-  body += text(32, 44, o.title, { size: 20, weight: 650, fill: t.ink });
-  body += text(32, 68, o.subtitle, { size: 13, fill: t.ink2 });
-  // legend
-  const lx = 32;
-  body += `<rect x="${lx}" y="82" width="12" height="12" rx="3" fill="${t.boxd}"/>`;
-  body += text(lx + 18, 92, "boxd CI", { size: 13, fill: t.ink });
-  body += `<rect x="${lx + 92}" y="82" width="12" height="12" rx="3" fill="${t.vercel}"/>`;
-  body += text(lx + 110, 92, "Vercel CI", { size: 13, fill: t.ink });
-  body += `<line x1="${left}" y1="${top - 6}" x2="${left}" y2="${top + SCENARIOS.length * groupH - 14}" stroke="${t.axis}" stroke-width="1"/>`;
+  const tileH = 196;
+  const top = 124;
+  const H = top + tileH + 30 + o.notes.length * 18 + 18;
+  const d = new Doc(W, H, `${o.title}. ${o.subtitle}`);
+  d.body += panel(d, t);
+  header(d, t, { ...o, legend: true });
+  const g = grout(t, 24, top, W - 48, tileH, SCENARIOS.length);
+  d.body += g.svg;
   SCENARIOS.forEach((s, i) => {
-    const y = top + i * groupH;
-    body += text(32, y + 20, s.label, { size: 14, weight: 600, fill: t.ink });
-    body += text(32, y + 39, s.sub, { size: 12, fill: t.muted });
-    (["boxd", "vercel"] as const).forEach((lane, j) => {
-      const v = o.value(lane, s.key);
-      const by = y + j * (barH + 4);
-      body += bar(
-        left,
-        by,
-        Math.max(2, x(v)),
-        barH,
-        lane === "boxd" ? t.boxd : t.vercel,
-        `${lane === "boxd" ? "boxd CI" : "Vercel CI"}, ${s.label}: ${o.fmt(v)}`,
-      );
-      body += text(left + Math.max(2, x(v)) + 8, by + 16, o.fmt(v), { size: 13, weight: 600, fill: t.ink });
-    });
+    const tile = g.tiles[i] as { x: number; y: number; w: number; h: number };
+    const x = tile.x + 20;
+    const right = tile.x + tile.w - 20;
+    const y = tile.y;
+    d.body += d.text(x, y + 34, s.label, { size: 15, weight: 500, fill: t.ink, tracking: "-0.01em" });
+    d.body += d.text(x, y + 54, s.sub, { font: "mono", size: 11, fill: t.muted });
     const b = o.value("boxd", s.key);
     const v = o.value("vercel", s.key);
+    const max = Math.max(b, v);
+    // Theirs first, ours last, as on the site's board.
+    const rows = [
+      { lane: "vercel" as const, name: "Vercel CI", value: v, y: y + 84 },
+      { lane: "boxd" as const, name: "boxd CI", value: b, y: y + 122 },
+    ];
+    for (const r of rows) {
+      const ours = r.lane === "boxd";
+      d.body += ours ? logo(x, r.y - 9.5, 10.5, t.mark) : triangle(x - 0.5, r.y - 10, 11, t.quiet);
+      d.body += d.text(x + 17, r.y, r.name, { font: "mono", size: 11, fill: ours ? t.ink : t.quiet });
+      d.body += d.text(right, r.y, o.fmt(r.value), {
+        font: "mono",
+        size: 12,
+        fill: ours ? t.ink : t.quiet,
+        anchor: "end",
+      });
+      const trackW = right - x;
+      d.body += `<rect x="${x}" y="${r.y + 9}" width="${trackW}" height="8" rx="2" fill="${t.track}"/>`;
+      d.body += bar(
+        x,
+        r.y + 9,
+        Math.max(trackW * 0.015, (r.value / max) * trackW),
+        8,
+        ours ? t.boxd : t.other,
+        `${r.name}, ${s.label}: ${o.fmt(r.value)}`,
+      );
+    }
     const ratio = v / b;
-    // The comparison sits under the scenario's name, clear of the bars and their labels.
     const say =
-      ratio >= 1.15
-        ? `boxd CI ${ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1)}× ${o.better}`
-        : ratio <= 1 / 1.15
-          ? `Vercel CI ${(1 / ratio).toFixed(1)}× ${o.better}`
-          : "about even";
-    body += text(32, y + 58, say, { size: 12, weight: 600, fill: t.ink2 });
+      ratio >= 1.05
+        ? `${ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1)}× ${o.better}`
+        : ratio > 0.95
+          ? "about even"
+          : `Vercel CI ${(1 / ratio).toFixed(1)}× ${o.better}`;
+    d.body += `<line x1="${x}" y1="${y + 156}" x2="${right}" y2="${y + 156}" stroke="${t.rule}" stroke-width="1"/>`;
+    d.body += d.text(x, y + 177, "boxd CI vs", { font: "mono", size: 11, fill: t.muted });
+    d.body += d.text(x + monoWidth("boxd CI vs ", 11), y + 177, say, { font: "mono", size: 11, fill: t.ink });
   });
-  body += text(32, H - 22, o.note, { size: 12, fill: t.muted });
-  return svg(W, H, t, body, `${o.title}. ${o.subtitle}`);
+  o.notes.forEach((n, i) => {
+    d.body += d.text(32, top + tileH + 30 + i * 18, n, { font: "mono", size: 11, fill: t.deep });
+  });
+  return d.render();
 }
 
 // ── a run, task by task ───────────────────────────────────────────────────────────────────────────
@@ -240,27 +466,40 @@ type RunFile = {
   results: { id: string; status: string; seconds: number; machine?: string; at?: number }[];
 };
 
-function timeline(t: Theme, run: RunFile, o: { title: string; subtitle: string }) {
+function timeline(t: Theme, run: RunFile, o: { kicker: string; title: string; subtitle: string; notes: string[] }) {
   const tasks = run.results.filter(
     (r) => (r.status === "ran" || r.status === "failed") && r.at !== undefined && r.machine,
   );
   const machines = [...new Set(tasks.sort((a, b) => (a.at ?? 0) - (b.at ?? 0)).map((r) => r.machine as string))];
   const total = (Date.parse(run.finishedAt) - Date.parse(run.startedAt)) / 1000;
   const W = 880;
-  const left = 32;
-  const right = 32;
-  const top = 96;
-  const lane = Math.max(5, Math.min(12, Math.floor(300 / machines.length)));
+  const top = 124;
+  const lane = Math.max(6, Math.min(10, Math.floor(300 / machines.length)));
+  const plotTop = top + 48;
   const plotH = machines.length * lane;
-  const H = top + plotH + 64;
-  const x = (s: number) => left + (s / total) * (W - left - right);
-  let body = text(32, 44, o.title, { size: 20, weight: 650, fill: t.ink });
-  body += text(32, 68, o.subtitle, { size: 13, fill: t.ink2 });
+  const tileH = plotH + 48 + 44;
+  const H = top + tileH + 30 + o.notes.length * 18 + 18;
+  const d = new Doc(W, H, `${o.title}. ${o.subtitle}`);
+  d.body += panel(d, t);
+  header(d, t, o);
+  const g = grout(t, 24, top, W - 48, tileH, 1);
+  d.body += g.svg;
+  const tile = g.tiles[0] as { x: number; w: number };
+  const left = tile.x + 20;
+  const right = tile.x + tile.w - 20;
+  const x = (s: number) => left + (s / total) * (right - left);
+  d.body += logo(left, top + 22.5, 10.5, t.mark);
+  d.body += d.text(left + 17, top + 32, `${machines.length} machines, one row each`, {
+    font: "mono",
+    size: 11,
+    fill: t.quiet,
+  });
   const step = total > 240 ? 60 : total > 90 ? 30 : 10;
   for (let s = 0; s <= total; s += step) {
-    body += `<line x1="${x(s)}" y1="${top - 4}" x2="${x(s)}" y2="${top + plotH}" stroke="${t.grid}" stroke-width="1"/>`;
-    body += text(x(s), top + plotH + 20, s === 0 ? "start" : s % 60 === 0 ? `${s / 60} min` : `${s} s`, {
-      size: 12,
+    d.body += `<line x1="${x(s)}" y1="${plotTop - 4}" x2="${x(s)}" y2="${plotTop + plotH}" stroke="${t.rule}" stroke-width="1"/>`;
+    d.body += d.text(x(s), plotTop + plotH + 22, s === 0 ? "start" : s % 60 === 0 ? `${s / 60} min` : `${s} s`, {
+      font: "mono",
+      size: 11,
       fill: t.muted,
       anchor: s === 0 ? "start" : "middle",
     });
@@ -268,135 +507,157 @@ function timeline(t: Theme, run: RunFile, o: { title: string; subtitle: string }
   for (const r of tasks) {
     const row = machines.indexOf(r.machine as string);
     const w = Math.max(2, x((r.at ?? 0) + r.seconds) - x(r.at ?? 0));
-    body += bar(
+    d.body += bar(
       x(r.at ?? 0),
-      top + row * lane,
+      plotTop + row * lane + 1,
       w,
       lane - 2,
-      r.status === "failed" ? t.vercel : t.boxd,
+      r.status === "failed" ? t.other : t.boxd,
       `${r.id}: ${secs(r.seconds)} on ${r.machine}`,
     );
   }
-  body += `<line x1="${x(total)}" y1="${top - 10}" x2="${x(total)}" y2="${top + plotH}" stroke="${t.ink2}" stroke-width="2"/>`;
-  body += text(x(total) - 6, top - 14, `green after ${secs(total)}`, {
-    size: 12,
-    weight: 600,
-    fill: t.ink,
-    anchor: "end",
+  d.body += `<line x1="${x(total)}" y1="${plotTop - 12}" x2="${x(total)}" y2="${plotTop + plotH}" stroke="${t.quiet}" stroke-width="1.5"/>`;
+  const done = `green after ${secs(total)}`;
+  const dx = x(total) - 8 - monoWidth(done, 11);
+  d.body += d.text(dx - 14, plotTop - 16, "✓", { font: "mono", size: 11, fill: TERM.ok });
+  d.body += d.text(dx, plotTop - 16, done, { font: "mono", size: 11, fill: t.ink });
+  o.notes.forEach((n, i) => {
+    d.body += d.text(32, top + tileH + 30 + i * 18, n, { font: "mono", size: 11, fill: t.deep });
   });
-  body += text(
-    32,
-    H - 18,
-    "Each row is a machine restored from the snapshot, and each bar is one Turborepo task. Times from the run's start.",
-    {
-      size: 12,
-      fill: t.muted,
-    },
-  );
-  return svg(W, H, t, body, `${o.title}. ${o.subtitle}`);
+  return d.render();
 }
 
 // ── how it works ──────────────────────────────────────────────────────────────────────────────────
 
 function howItWorks(t: Theme) {
   const W = 880;
-  const H = 300;
-  const box = (x: number, y: number, w: number, h: number, title: string, sub: string, accent = false) =>
-    `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="${accent ? t.boxd : t.wash}"/>` +
-    text(x + 14, y + 24, title, { size: 14, weight: 650, fill: accent ? "#ffffff" : t.ink }) +
-    text(x + 14, y + 44, sub, { size: 12, fill: accent ? "#ffffff" : t.ink2 });
-  const arrow = (x1: number, y1: number, x2: number, y2: number) =>
-    `<path d="M${x1},${y1} C${(x1 + x2) / 2},${y1} ${(x1 + x2) / 2},${y2} ${x2 - 6},${y2}" fill="none" stroke="${t.axis}" stroke-width="2"/>` +
-    `<path d="M${x2 - 8},${y2 - 5} L${x2},${y2} L${x2 - 8},${y2 + 5}" fill="none" stroke="${t.axis}" stroke-width="2" stroke-linejoin="round"/>`;
-  let body = text(32, 40, "How a push becomes a check", { size: 20, weight: 650, fill: t.ink });
-  body += box(32, 120, 130, 62, "git push", "or boxd-ci run");
-  body += box(196, 112, 190, 78, "Plan", "turbo run --dry against");
-  body += text(210, 176, "the cache: what changed?", { size: 12, fill: t.ink2 });
-  const machines = [
-    ["@ai-sdk/mistral#test", "a machine from the snapshot"],
-    ["@ai-sdk/mistral#type-check", "a machine from the snapshot"],
-    ["ai#test", "a machine from the snapshot"],
-  ] as const;
-  machines.forEach(([task, sub], i) => {
-    const y = 66 + i * 64;
-    body += box(430, y, 230, 52, task, sub, true);
-    body += arrow(386, 151, 430, y + 26);
-    body += arrow(660, y + 26, 704, 151);
-  });
-  body += box(704, 120, 144, 62, "GitHub check", "green, red, logs");
-  body += arrow(162, 151, 196, 151);
-  body += text(430, 268, "Each task on a machine restored from the repository's snapshot:", {
-    size: 12,
-    fill: t.muted,
-  });
-  body += text(430, 286, "dependencies installed, outputs from the Turborepo cache.", { size: 12, fill: t.muted });
-  return svg(
+  const H = 360;
+  const d = new Doc(
     W,
     H,
-    t,
-    body,
-    "How a push becomes a check: plan with Turborepo, each task on a snapshot machine, a GitHub check",
+    "How a push becomes a check: plan with Turborepo, schedule each task on a snapshot machine, a GitHub check",
   );
+  d.body += panel(d, t);
+  header(d, t, {
+    kicker: "How it works",
+    title: "How a push becomes a check",
+    subtitle: "Each task starts the moment its dependencies are done, on a machine restored from the snapshot.",
+  });
+  const node = (x: number, y: number, w: number, h: number, title: string, sub: string, mono = false) =>
+    `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${t.tile}" stroke="${t.grout}" stroke-width="${t.pad === 2 ? 1 : 1}"/>` +
+    d.text(
+      x + 16,
+      y + 26,
+      title,
+      mono ? { font: "mono", size: 12, fill: t.ink } : { size: 14, weight: 500, fill: t.ink },
+    ) +
+    d.text(x + 16, y + 46, sub, { font: "mono", size: 11, fill: t.muted });
+  const arrow = (x1: number, y1: number, x2: number, y2: number) =>
+    `<path d="M${x1},${y1} C${(x1 + x2) / 2},${y1} ${(x1 + x2) / 2},${y2} ${x2 - 5},${y2}" fill="none" stroke="${t.grout}" stroke-width="1.5"/>` +
+    `<path d="M${x2 - 7},${y2 - 4} L${x2},${y2} L${x2 - 7},${y2 + 4}" fill="none" stroke="${t.grout}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const mid = 236;
+  d.body += node(32, mid - 32, 132, 64, "git push", "or boxd-ci run", true);
+  d.body += node(196, mid - 40, 196, 80, "Plan", "turbo run --dry");
+  d.body += d.text(212, mid + 26, "against the cache", { font: "mono", size: 11, fill: t.muted });
+  const machines = ["@ai-sdk/mistral#test", "@ai-sdk/mistral#type-check", "ai#test"];
+  machines.forEach((task, i) => {
+    const y = 150 + i * 62;
+    // A machine is a box: the logo's notch, at the size of a node.
+    d.body += `<path d="${notched(432, y, 236, 50, 10, 14, 4)}" fill="${t.tile}" stroke="${t.grout}" stroke-width="1"/>`;
+    d.body += d.text(452, y + 21, task, { font: "mono", size: 12, fill: t.ink });
+    d.body += `<rect x="452" y="${y + 30}" width="${monoWidth(task, 12)}" height="6" rx="2" fill="${t.track}"/>`;
+    d.body += bar(452, y + 30, monoWidth(task, 12) * (i === 2 ? 1 : 0.35 + i * 0.25), 6, t.boxd);
+    d.body += arrow(392, mid, 432, y + 25);
+    d.body += arrow(668, y + 25, 708, mid);
+  });
+  d.body += node(708, mid - 32, 140, 64, "GitHub check", "green, red, logs");
+  d.body += arrow(164, mid, 196, mid);
+  d.body += logo(452, 120.5, 10.5, t.mark);
+  d.body += d.text(469, 130, "machines from the snapshot", { font: "mono", size: 11, fill: t.quiet });
+  return d.render();
 }
 
 // ── the demo: a real `boxd-ci run`, replayed at its own pace ───────────────────────────────────────
 
 /**
- * An animated terminal from a captured run (bench/results/demo-run.txt, the CLI's plain output).
- * Each line appears at the time it printed; lines without a time appear with the summary.
+ * An animated terminal from a captured run (bench/results/demo-run.txt, the CLI's plain output), in
+ * the site's terminal style: monochrome chrome, success green only on a status, and the notched box
+ * as the cursor. Each line appears at the time it printed; lines without a time appear with the
+ * summary.
  */
-function demo(t: Theme, captured: string) {
+function demo(captured: string) {
   const raw = captured.replace(/\r/g, "").trimEnd().split("\n");
-  const lines: { at: number; stamp: string; text: string }[] = [
-    { at: 0, stamp: "", text: "$ npx github:azin-tech/boxd-ci run" },
+  type Line = { at: number; parts: [string, string][] };
+  const lines: Line[] = [
+    {
+      at: 0,
+      parts: [
+        ["$ ", TERM.prompt],
+        ["npx github:azin-tech/boxd-ci run", TERM.command],
+      ],
+    },
   ];
+  const colour = (text: string): [string, string][] => {
+    if (/^[✓✗] /.test(text))
+      return [
+        [text.slice(0, 2), TERM.ok],
+        [text.slice(2), TERM.result],
+      ];
+    if (text.startsWith("▸ ")) return [[text, TERM.dim]];
+    if (text.startsWith("green "))
+      return [
+        ["green", TERM.ok],
+        [text.slice(5), TERM.text],
+      ];
+    if (text.startsWith("run ")) return [[text, TERM.comment]];
+    return [[text, TERM.text]];
+  };
   let last = 0.4;
   for (const l of raw) {
     const m = /^\s*([\d.]+s) {2}(.*)$/.exec(l);
     if (m) {
       last = Math.max(last, Number.parseFloat(m[1] as string));
-      lines.push({ at: last, stamp: (m[1] as string).padStart(7), text: (m[2] as string).trimEnd() });
-    } else lines.push({ at: last + 0.3, stamp: "", text: l.trimEnd() });
+      lines.push({
+        at: last,
+        parts: [[`${(m[1] as string).padStart(6)}  `, TERM.comment], ...colour((m[2] as string).trimEnd())],
+      });
+    } else lines.push({ at: last + 0.3, parts: colour(l.trimEnd()) });
   }
-  const end = (lines.at(-1)?.at ?? 1) + 0.2;
+  const end = (lines.at(-1)?.at ?? 1) + 0.4;
+  lines.push({ at: end, parts: [["$ ", TERM.prompt]] });
   const loop = end + 6; // hold the result before starting over
   const W = 880;
-  const lh = 21;
-  const top = 58;
-  const H = top + lines.length * lh + 24;
-  const term = {
-    bg: t.name === "dark" ? "#0d0d0d" : "#1a1a19",
-    ink: "#f0efec",
-    dim: "#9a9890",
-    ok: "#3cc43c",
-    bad: "#e66767",
-  };
-  const pct = (sec: number) => (sec / loop) * 100;
-  let css = "";
-  let body = `<rect width="${W}" height="${H}" rx="12" fill="${term.bg}"/>`;
-  body += ["#ec6a5e", "#f4bf4f", "#61c554"]
-    .map((c, i) => `<circle cx="${24 + i * 18}" cy="24" r="6" fill="${c}"/>`)
+  const lh = 23;
+  const chrome = 38;
+  const top = chrome + 26;
+  const H = top + lines.length * lh + 16;
+  const d = new Doc(W, H, "An animated terminal: boxd-ci run on vercel/ai");
+  d.body += `<rect x="0.5" y="0.5" width="${W - 1}" height="${H - 1}" rx="12" fill="${TERM.ground}" stroke="${TERM.edge}"/>`;
+  d.body += `<path d="M12.5,0.5 H${W - 12.5} A12,12 0 0 1 ${W - 0.5},12.5 V${chrome} H0.5 V12.5 A12,12 0 0 1 12.5,0.5 Z" fill="${TERM.chrome}"/>`;
+  d.body += `<line x1="0.5" y1="${chrome}" x2="${W - 0.5}" y2="${chrome}" stroke="${TERM.chromeEdge}"/>`;
+  // Traffic lights, monochrome as on the site.
+  d.body += [0, 1, 2]
+    .map((i) => `<circle cx="${20 + i * 16}" cy="${chrome / 2}" r="5" fill="${TERM.light}"/>`)
     .join("");
-  body += `<text x="${W / 2}" y="29" font-size="12" fill="${term.dim}" text-anchor="middle">boxd-ci run, a real run on vercel/ai at its real speed</text>`;
-  lines.forEach((l, i) => {
-    const color = /^(✓|green)/.test(l.text)
-      ? term.ok
-      : /^(✗|failed)/.test(l.text)
-        ? term.bad
-        : /^(\$|▸|run )/.test(l.text)
-          ? term.dim
-          : term.ink;
-    const p = pct(l.at);
-    css += `.l${i}{animation:a${i} ${loop.toFixed(1)}s linear infinite}@keyframes a${i}{0%,${p.toFixed(2)}%{opacity:0}${(p + 0.01).toFixed(2)}%,100%{opacity:1}}`;
-    const stamp = l.stamp ? `<tspan fill="${term.dim}">${esc(l.stamp)}  </tspan>` : "";
-    body += `<text class="l${i}" x="24" y="${top + i * lh + 14}" font-size="13.5" fill="${color}" xml:space="preserve">${stamp}${esc(l.text)}</text>`;
+  d.body += d.text(W / 2, chrome / 2 + 4, "boxd-ci run · a real run on vercel/ai, at its real speed", {
+    font: "mono",
+    size: 11,
+    fill: TERM.dim,
+    anchor: "middle",
   });
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" role="img" aria-label="An animated terminal: boxd-ci run on vercel/ai">
-<title>boxd-ci run on vercel/ai</title>
-<style>${css}@media (prefers-reduced-motion: reduce){text{animation:none!important}}</style>
-${body}
-</svg>
-`;
+  const pct = (sec: number) => (sec / loop) * 100;
+  lines.forEach((l, i) => {
+    const p = pct(l.at);
+    d.css += `.l${i}{animation:a${i} ${loop.toFixed(1)}s linear infinite}@keyframes a${i}{0%,${p.toFixed(2)}%{opacity:0}${(p + 0.01).toFixed(2)}%,100%{opacity:1}}`;
+    d.body += d.spans(24, top + i * lh, l.parts, { size: 13, cls: `l${i}` });
+  });
+  // The cursor: the notched box, 10 px, stretched upright, blinking after the last prompt.
+  const cy = top + (lines.length - 1) * lh;
+  const p = pct(end);
+  d.css += `.cur{animation:cur ${loop.toFixed(1)}s steps(1) infinite}@keyframes cur{0%,${p.toFixed(2)}%{opacity:0}${(p + 0.01).toFixed(2)}%{opacity:1}}.blink{animation:blink 1.1s steps(1) infinite}@keyframes blink{50%{opacity:0}}`;
+  d.css += "@media (prefers-reduced-motion: reduce){text,.cur,.blink{animation:none!important}}";
+  d.body += `<g class="cur"><g class="blink" transform="translate(${24 + monoWidth("$ ", 13)},${cy - 11}) scale(1,1.2)"><path d="${notched(0, 0, 9, 9, 0.75, 1.8, 0.75)}" fill="${TERM.prompt}"/></g></g>`;
+  return d.render();
 }
 
 // ── write ─────────────────────────────────────────────────────────────────────────────────────────
@@ -409,51 +670,70 @@ const bootstrap = vercelBootstrap();
 const runFile = JSON.parse(readFileSync(join(results, "core-run.json"), "utf8")) as RunFile;
 const ran = runFile.results.filter((r) => r.status === "ran").length;
 const longest = runFile.results.reduce((a, b) => (b.seconds > a.seconds ? b : a));
+const ownScale = "Each change on its own scale: the slower platform fills the track.";
 
 for (const t of THEMES) {
   writeFileSync(
     join(assets, `race-${t.name}.svg`),
-    groupedBars(t, {
+    await comparison(t, {
+      kicker: "boxd CI vs Vercel CI",
       title: "Push to green on vercel/ai",
       subtitle: "Median of 3 pushes each, from git push to the result on GitHub. Same commit, same tasks.",
       value: (lane, s) => (lane === "boxd" ? (boxd[s]?.median ?? 0) : (vercel[s]?.median_s ?? 0)),
       fmt: secs,
-      note: "Every package's type-check and test, with their builds (249 tasks), tagged ci the Vercel CI way. Raw runs in bench/results.",
+      notes: [
+        "Every package's type-check and test with their builds, 249 tasks, tagged ci the Vercel CI way.",
+        `${ownScale} Raw runs in bench/results.`,
+      ],
       better: "faster",
     }),
   );
   writeFileSync(
     join(assets, `cost-${t.name}.svg`),
-    groupedBars(t, {
+    await comparison(t, {
+      kicker: "boxd CI vs Vercel CI",
       title: "What one run costs",
       subtitle: "Median per push, at list prices. boxd: every machine while it was up, the server until it sleeps.",
       value: (lane, s) => (lane === "boxd" ? (boxd[s]?.usd ?? 0) : (vercel[s]?.usd_per_run ?? 0)),
       fmt: money,
-      note: "Vercel CI: $0.0035 per CPU-minute. boxd: $0.047 per vCPU-hour and $0.014 per GiB-hour, all RAM in use.",
+      notes: [
+        "Vercel CI: $0.0035 per CPU-minute. boxd: $0.047 per vCPU-hour and $0.014 per GiB-hour, all RAM in use.",
+        ownScale,
+      ],
       better: "cheaper",
     }),
   );
   writeFileSync(
     join(assets, `first-${t.name}.svg`),
-    groupedBars(t, {
+    await comparison(t, {
+      kicker: "boxd CI vs Vercel CI",
       title: "Before the first task runs",
       subtitle:
-        "Median seconds from the run starting to its first task starting, or to its result when the cache had everything.",
+        "Median seconds from the run's start to its first task, or to its result when the cache had everything.",
       value: (lane, s) => (lane === "boxd" ? (boxd[s]?.first ?? 0) : (bootstrap[s] ?? 0)),
       fmt: secs,
-      note: "Vercel CI: bootstrapping, from vercel ci inspect. boxd CI: restore the snapshot, check out, plan with Turborepo.",
+      notes: [
+        "Vercel CI: bootstrapping, from vercel ci inspect. boxd CI: restore the snapshot, check out, plan.",
+        ownScale,
+      ],
       better: "sooner",
     }),
   );
   writeFileSync(
     join(assets, `timeline-${t.name}.svg`),
-    timeline(t, runFile, {
+    await timeline(t, runFile, {
+      kicker: "boxd CI, one real run",
       title: "A core change, task by task",
-      subtitle: `${ran} tasks on ${runFile.machines} machines, each starting when its dependencies were done. The long bar is ${longest.id}, ${secs(longest.seconds)}.`,
+      subtitle: `${ran} tasks on ${runFile.machines} machines, each starting when its dependencies were done.`,
+      notes: [
+        "Each row is a machine restored from the snapshot, and each bar is one Turborepo task.",
+        `The long bar is ${longest.id}, ${secs(longest.seconds)}. Times from the run's start.`,
+      ],
     }),
   );
-  writeFileSync(join(assets, `how-${t.name}.svg`), howItWorks(t));
-  writeFileSync(join(assets, `demo-${t.name}.svg`), demo(t, readFileSync(join(results, "demo-run.txt"), "utf8")));
+  writeFileSync(join(assets, `how-${t.name}.svg`), await howItWorks(t));
+  // The terminal looks the same in both modes, as on the site.
+  writeFileSync(join(assets, `demo-${t.name}.svg`), await demo(readFileSync(join(results, "demo-run.txt"), "utf8")));
 }
 // The README's table, from the same numbers as the charts.
 
