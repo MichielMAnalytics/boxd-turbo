@@ -19,8 +19,11 @@ export type PoolBoxd = {
 };
 
 export type PrepareSpec =
-  /** Check out a pushed commit. The token (a GitHub App installation token) reads private repositories. */
-  | { kind: "commit"; sha: string; fetchToken?: string }
+  /**
+   * Check out a pushed commit. The token (a GitHub App installation token) reads private
+   * repositories; a function is asked again for every machine, since such tokens expire in an hour.
+   */
+  | { kind: "commit"; sha: string; fetchToken?: string | (() => Promise<string>) }
   /** Apply a working copy on top of a commit the snapshot already has (`boxd-ci run`). */
   | { kind: "patch"; base: string; patch: Uint8Array };
 
@@ -47,11 +50,14 @@ export type BoxWorker = Worker & {
   readonly cpus: number;
   /** Runs a bash script on the machine. */
   sh(script: string, o?: { env?: Record<string, string>; timeout?: number }): Promise<ExecOutput>;
+  upload(path: string, data: Uint8Array): Promise<void>;
 };
 
 /** A {@link WorkerPool} of boxd machines. */
 export type Pool = {
   acquire(cpus?: number): Promise<BoxWorker>;
+  /** Where machines started from now on restore from (a run whose dependencies changed). */
+  setSnapshot(name: string): void;
   /** Hands a ready machine to the next acquire of its size (the planner's machine, for one). */
   park(w: BoxWorker): void;
   /** Deletes every machine that is still running. Afterwards acquire fails. */
@@ -66,7 +72,7 @@ export type Pool = {
 export const SAFETY_SECONDS = 3600;
 /** How long a machine with a failed task is kept. */
 export const KEEP_FAILED_SECONDS = 86_400;
-const PATCH_PATH = "/tmp/boxd-ci.patch";
+export const PATCH_PATH = "/tmp/boxd-ci.patch";
 /** A restore from a large snapshot can take longer than the SDK's 90-second default. */
 const READY_MS = 180_000;
 const MEMORY: Record<number, string> = { 1: "4G", 2: "8G", 4: "16G", 8: "32G" };
@@ -80,6 +86,7 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
   const parked: BoxWorker[] = [];
   const keptNames: string[] = [];
   let created = 0;
+  let snapshot = o.snapshot;
   let closed = false;
   const outputsOf = o.outputsOf ?? ((tasks: TaskNode[]) => tasks.map((t) => ({ dir: t.dir, globs: t.outputs })));
 
@@ -99,11 +106,8 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
     const p = o.prepare;
     let out: ExecOutput;
     if (p.kind === "commit") {
-      out = await sh(
-        id,
-        fetchScript(o.workdir, p.sha),
-        p.fetchToken ? { env: { BOXD_CI_FETCH_TOKEN: p.fetchToken } } : {},
-      );
+      const token = typeof p.fetchToken === "function" ? await p.fetchToken() : p.fetchToken;
+      out = await sh(id, fetchScript(o.workdir, p.sha), token ? { env: { BOXD_CI_FETCH_TOKEN: token } } : {});
     } else {
       await m.files.upload(id, PATCH_PATH, p.patch);
       out = await sh(id, applyPatchScript(o.workdir, p.base, PATCH_PATH));
@@ -120,6 +124,9 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
       machineId: id,
       cpus,
       sh: (script, x) => sh(id, script, x),
+      upload: async (path, data) => {
+        await m.files.upload(id, path, data);
+      },
       async run(tasks: TaskNode[]): Promise<TaskResult[]> {
         const script = `${cleanOutputsScript(o.workdir, outputsOf(tasks))}; ${turboRunScript(o.workdir, tasks)}`;
         try {
@@ -149,7 +156,7 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
     const machine = await m.create({
       name,
       ...(o.org ? { org: o.org } : {}),
-      fromSnapshot: o.snapshot,
+      fromSnapshot: snapshot,
       isolated: true,
       deleteAfter: SAFETY_SECONDS,
       labels: { "boxd-ci": "worker", "boxd-ci/run": o.runId },
@@ -181,6 +188,9 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
       // A parked machine of another size would only idle: retire it so the run stays within its cap.
       for (const w of parked.splice(0)) void w.release({ failed: false });
       return start(size);
+    },
+    setSnapshot(name) {
+      snapshot = name;
     },
     park(w) {
       if (!closed && live.has(w.machineId)) parked.push(w);

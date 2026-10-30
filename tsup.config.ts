@@ -1,23 +1,16 @@
 import { defineConfig } from "tsup";
 
-// Three outputs: the CLI people run, the planner that runs on a snapshot machine, and the bundle
-// the automation on the controller machine imports. Each is one self-contained ESM file.
+// Three self-contained ESM files: the CLI people run, the planner that runs on a snapshot machine,
+// and the automation the server machine runs for pushes. `@boxd/run` exists only inside boxd machines.
+const shared = { format: "esm", platform: "node", target: "node20", outExtension: () => ({ js: ".mjs" }) } as const;
+
 export default defineConfig([
+  { ...shared, entry: { cli: "src/cli/index.ts" }, banner: { js: "#!/usr/bin/env node" }, clean: true },
+  { ...shared, entry: { planner: "src/planner/main.ts" }, noExternal: [/.*/] },
   {
-    entry: { cli: "src/cli/index.ts" },
-    format: "esm",
-    platform: "node",
-    target: "node20",
-    outExtension: () => ({ js: ".mjs" }),
-    banner: { js: "#!/usr/bin/env node" },
-    clean: true,
-  },
-  {
-    entry: { planner: "src/planner/main.ts", automation: "src/automation/bundle.ts" },
-    format: "esm",
-    platform: "node",
-    target: "node20",
-    outExtension: () => ({ js: ".mjs" }),
-    noExternal: [/.*/],
+    ...shared,
+    entry: { "boxd-ci.run": "src/automation/ci.run.ts" },
+    noExternal: [/^(?!@boxd\/run$).*/],
+    external: ["@boxd/run"],
   },
 ]);

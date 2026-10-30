@@ -261,6 +261,32 @@ describe("createPool", () => {
     expect(boxd.log).toContain("delete m1");
   });
 
+  test("a token function is asked for a fresh token on every machine", async () => {
+    const boxd = new FakeBoxd();
+    let n = 0;
+    const fetchToken = async () => `ghs_${++n}`;
+    const pool = createPool(boxd, options({ prepare: { kind: "commit", sha: "abc1234def", fetchToken } }));
+    await pool.acquire();
+    await pool.acquire();
+    const tokens = boxd.execs.filter((e) => e.script.includes("fetch -q origin")).map((e) => e.env.BOXD_CI_FETCH_TOKEN);
+    expect(tokens).toEqual(["ghs_1", "ghs_2"]);
+  });
+
+  test("setSnapshot changes where the next machines start", async () => {
+    const boxd = new FakeBoxd();
+    const pool = createPool(boxd, options());
+    pool.setSnapshot("bci-app-deps-1234");
+    await pool.acquire();
+    expect(boxd.lastCreate).toMatchObject({ fromSnapshot: "bci-app-deps-1234" });
+  });
+
+  test("upload writes a file on the machine", async () => {
+    const boxd = new FakeBoxd();
+    const w = await createPool(boxd, options()).acquire();
+    await w.upload("/tmp/planner.mjs", new Uint8Array([1, 2, 3]));
+    expect(boxd.uploads).toContainEqual({ id: "m1", path: "/tmp/planner.mjs", bytes: 3 });
+  });
+
   test("a parked machine goes to the next acquire of its size, and other sizes retire it", async () => {
     const boxd = new FakeBoxd();
     const pool = createPool(boxd, options());

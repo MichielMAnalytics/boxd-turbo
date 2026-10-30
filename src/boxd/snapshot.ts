@@ -293,15 +293,22 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
 export async function saveDepsSnapshot(
   boxd: Pick<SnapshotBoxd, "snapshots">,
   worker: BoxWorker,
-  o: { record: RepoRecord; depsHash: string; org?: string; pollMs?: number },
+  o: { record: RepoRecord; depsHash: string; org?: string; pollMs?: number; patchPath?: string },
 ): Promise<string> {
   const out = await worker.sh(installScript(o.record.workdir), { timeout: 60 * 60_000 });
   if (out.exitCode !== 0) throw new Error(`installing the changed dependencies failed: ${tail(out)}`);
+  // A working copy (boxd-ci run) stays out of the snapshot: only its dependencies go in.
+  const patch = o.patchPath ? `cd ${q(o.record.workdir)} && git apply --binary --whitespace=nowarn` : "";
+  if (patch) await worker.sh(`${patch} -R ${q(o.patchPath as string)}`);
   const name = depsSnapshotName(o.record.repo, o.depsHash);
-  await saveSnapshot(boxd, worker.machineId, name, {
-    ...(o.org ? { org: o.org } : {}),
-    ...(o.pollMs ? { pollMs: o.pollMs } : {}),
-  });
+  try {
+    await saveSnapshot(boxd, worker.machineId, name, {
+      ...(o.org ? { org: o.org } : {}),
+      ...(o.pollMs ? { pollMs: o.pollMs } : {}),
+    });
+  } finally {
+    if (patch) await worker.sh(`${patch} ${q(o.patchPath as string)}`);
+  }
   return name;
 }
 

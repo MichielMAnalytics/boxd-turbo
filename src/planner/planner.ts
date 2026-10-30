@@ -6,6 +6,7 @@ import { execFile } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "jsonc-parser";
+import { CONFIG_FILE, type Config, parseConfig } from "../core/config.js";
 import type { TurboDryRun } from "../core/graph.js";
 import { type CiTask, resolveCiTasks, type Workspace } from "../core/tags.js";
 
@@ -14,6 +15,8 @@ export type Plan = {
   turboVersion: string;
   selectors: CiTask[];
   warnings: string[];
+  /** The run settings from .boxd-ci.json (org and server stay with the CLI). */
+  config: Pick<Config, "maxMachines" | "packSeconds">;
   dry: TurboDryRun;
 };
 
@@ -62,7 +65,12 @@ export async function plan(o: PlanOptions): Promise<Plan> {
     });
   }
 
-  const { tasks, warnings } = resolveCiTasks((o.readTurboJson ?? rootTurboJson)(o.cwd), workspaces);
+  const configFile = join(o.cwd, CONFIG_FILE);
+  const parsed = parseConfig(existsSync(configFile) ? readFileSync(configFile, "utf8") : undefined);
+  const config = { maxMachines: parsed.config.maxMachines, packSeconds: parsed.config.packSeconds };
+  const resolved = resolveCiTasks((o.readTurboJson ?? rootTurboJson)(o.cwd), workspaces);
+  const tasks = resolved.tasks;
+  const warnings = [...parsed.warnings, ...resolved.warnings];
   if (tasks.length === 0) {
     const version = (await run(turbo, ["--version"], o.cwd, o.env)).trim();
     return {
@@ -70,6 +78,7 @@ export async function plan(o: PlanOptions): Promise<Plan> {
       turboVersion: version,
       selectors: [],
       warnings: [...warnings, "no task is tagged ci in turbo.json, so there is nothing to run"],
+      config,
       dry: { tasks: [] },
     };
   }
@@ -81,6 +90,7 @@ export async function plan(o: PlanOptions): Promise<Plan> {
     turboVersion: dry.turboVersion,
     selectors: tasks,
     warnings,
+    config,
     dry: {
       tasks: dry.tasks.map((t) => ({
         taskId: t.taskId,

@@ -124,3 +124,30 @@ export function priorities(g: TaskGraph, durations: Record<string, number>): Map
   for (const id of g.nodes.keys()) score(id);
   return memo;
 }
+
+/**
+ * The declared outputs of these tasks and of everything they depend on, one entry per package
+ * directory. A machine deletes them before a group runs, so every file in them comes from this run's
+ * build or from the cache, never from the snapshot.
+ */
+export function closureOutputs(g: TaskGraph, tasks: TaskNode[]): { dir: string; globs: string[] }[] {
+  const byDir = new Map<string, Set<string>>();
+  const seen = new Set<string>();
+  const stack = tasks.map((t) => t.id);
+  while (stack.length) {
+    const id = stack.pop() as string;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const n = g.nodes.get(id);
+    if (!n) continue;
+    if (n.outputs.length) {
+      const globs = byDir.get(n.dir) ?? new Set<string>();
+      for (const o of n.outputs) globs.add(o);
+      byDir.set(n.dir, globs);
+    }
+    stack.push(...n.deps);
+  }
+  return [...byDir.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([dir, globs]) => ({ dir, globs: [...globs] }));
+}

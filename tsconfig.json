@@ -13,7 +13,10 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@boxd/run": ["./src/automation/boxd-run.ts"]
+    }
   },
   "include": ["src", "test", "scripts", "bench", "automation", "*.ts"],
   "exclude": ["node_modules", "dist", "test/fixtures"]

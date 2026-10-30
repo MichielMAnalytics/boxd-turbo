@@ -1,3 +1,6 @@
+import { cpSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 import { plan } from "../src/planner/planner.js";
@@ -32,5 +35,18 @@ describe("plan", () => {
     await expect(plan({ cwd: fixture, turbo: "/nonexistent/turbo" })).rejects.toThrow(
       "turbo is not installed in this repository: add it as a devDependency",
     );
+  });
+
+  test("reads .boxd-ci.json at the planned commit, and passes its warnings on", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "boxd-ci-plan-"));
+    cpSync(fixture, dir, { recursive: true });
+    writeFileSync(join(dir, ".boxd-ci.json"), '{ "maxMachines": 8, "colour": "blue" }');
+    const p = await plan({ cwd: dir, turbo });
+    expect(p.config).toEqual({ maxMachines: 8, packSeconds: 10 });
+    expect(p.warnings).toContain(".boxd-ci.json: unknown setting colour");
+  });
+
+  test("without .boxd-ci.json the plan carries the defaults", async () => {
+    expect((await plan({ cwd: fixture, turbo })).config).toEqual({ maxMachines: 32, packSeconds: 10 });
   });
 });

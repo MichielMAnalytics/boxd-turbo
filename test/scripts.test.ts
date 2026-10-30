@@ -42,8 +42,13 @@ describe("applyPatchScript", () => {
   test("resets to the base commit and applies the patch", () => {
     const s = applyPatchScript("/w", "base1", "/tmp/p.patch");
     expect(s).toContain("checkout -q -f base1");
-    expect(s).toContain("git clean -q -fd");
     expect(s).toContain("git apply --binary --whitespace=nowarn '/tmp/p.patch'");
+  });
+
+  test("fetches a base commit the snapshot does not have, and keeps untracked files an install made", () => {
+    const s = applyPatchScript("/w", "base1", "/tmp/p.patch");
+    expect(s).toContain("git cat-file -e base1^{commit} 2>/dev/null || git fetch -q origin base1");
+    expect(s).not.toContain("git clean");
   });
 });
 

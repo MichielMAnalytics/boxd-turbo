@@ -23,12 +23,15 @@ export function fetchScript(workdir: string, sha: string): string {
   ].join(" && ");
 }
 
-/** Puts the snapshot's commit back and applies a working-copy patch on top (`boxd-ci run`). */
+/**
+ * Puts the base commit back and applies a working-copy patch on top (`boxd-ci run`). Untracked files
+ * stay: on a fresh snapshot they are whatever the install generated.
+ */
 export function applyPatchScript(workdir: string, base: string, patchPath: string): string {
   return [
     `cd ${q(workdir)}`,
+    `{ git cat-file -e ${base}^{commit} 2>/dev/null || git fetch -q origin ${base}; }`,
     `git checkout -q -f ${base}`,
-    "git clean -q -fd",
     `if [ -s ${q(patchPath)} ]; then git apply --binary --whitespace=nowarn ${q(patchPath)}; fi`,
   ].join(" && ");
 }

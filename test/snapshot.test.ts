@@ -13,8 +13,10 @@ import {
   type RepoRecord,
   repoSlug,
   type SnapshotBoxd,
+  saveDepsSnapshot,
   saveSnapshot,
 } from "../src/boxd/snapshot.js";
+import type { BoxWorker } from "../src/boxd/worker.js";
 
 const bash = (script: string, env: Record<string, string> = {}) =>
   execFileSync("bash", ["-c", script], { encoding: "utf8", env: { ...process.env, ...env } }).trim();
@@ -272,5 +274,33 @@ describe("promote", () => {
     expect(await promote(boxd, opts(record()))).toBeNull();
     expect(boxd.log.some((l) => l.startsWith("save"))).toBe(false);
     expect(boxd.log.at(-1)).toBe("delete b1");
+  });
+});
+
+describe("saveDepsSnapshot", () => {
+  const worker = (log: string[]): BoxWorker => ({
+    id: "w1",
+    machineId: "w1",
+    cpus: 2,
+    run: async () => [],
+    release: async () => {},
+    upload: async () => {},
+    sh: async (script: string) => {
+      log.push(script.includes("--frozen-lockfile") ? "install" : script.includes(" -R ") ? "unapply" : "apply");
+      return { stdout: "", stderr: "", exitCode: 0 };
+    },
+  });
+
+  test("installs, and keeps a working copy out of the snapshot it saves", async () => {
+    const boxd = new FakeBoxd();
+    const log: string[] = [];
+    const name = await saveDepsSnapshot(boxd, worker(log), {
+      record: record(),
+      depsHash: "bbbbbbbbbbbbbbbb",
+      patchPath: "/tmp/boxd-ci.patch",
+      pollMs: 1,
+    });
+    expect(name).toBe("bci-acme-web-deps-bbbbbbbbbb");
+    expect([...log, ...boxd.log]).toEqual(["install", "unapply", "apply", "save w1 bci-acme-web-deps-bbbbbbbbbb"]);
   });
 });

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
-import { buildGraph, priorities, type TurboDryRun, toRun } from "../src/core/graph.js";
+import { buildGraph, closureOutputs, priorities, type TaskNode, type TurboDryRun, toRun } from "../src/core/graph.js";
 
 const task = (
   taskId: string,
@@ -121,5 +121,25 @@ describe("priorities", () => {
   test("unknown durations count as one second", () => {
     const g = buildGraph(dry(task("a#build", []), task("a#test", ["a#build"])), sel("a#test"));
     expect(priorities(g, {}).get("a#build")).toBe(2);
+  });
+});
+
+describe("closureOutputs", () => {
+  test("a group cleans its own outputs and those of everything it depends on, once each", () => {
+    const g = buildGraph(
+      dry(
+        { ...task("a#build", []), outputs: ["dist/**"], directory: "packages/a" },
+        { ...task("b#build", ["a#build"]), outputs: ["dist/**"], directory: "packages/b" },
+        { ...task("b#test", ["b#build"]), outputs: [], directory: "packages/b" },
+        { ...task("c#lint", []), outputs: [".eslintcache"], directory: "packages/c" },
+      ),
+      sel("b#test", "c#lint"),
+    );
+    const nodes = ["b#test", "c#lint"].map((id) => g.nodes.get(id) as TaskNode);
+    expect(closureOutputs(g, nodes)).toEqual([
+      { dir: "packages/a", globs: ["dist/**"] },
+      { dir: "packages/b", globs: ["dist/**"] },
+      { dir: "packages/c", globs: [".eslintcache"] },
+    ]);
   });
 });
