@@ -2,6 +2,7 @@
 // does, minus the machine.
 
 import { execFileSync, spawnSync } from "node:child_process";
+import * as fs from "node:fs";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -67,14 +68,18 @@ describe("a task group on a real Turborepo", () => {
     expect(r.map((x) => [x.id, x.status])).toEqual([["b#test", "ran"]]);
   });
 
-  test("a second run cleans the outputs, restores them from the cache, and drops stale files", () => {
-    writeFileSync(join(repo, "packages/b/dist/stale.txt"), "left behind by the snapshot");
-    const r = runGroup(["b#build", "b#test"]);
-    expect(r.map((x) => [x.id, x.status])).toEqual([
-      ["b#build", "restored"],
-      ["b#test", "restored"],
-    ]);
-    expect(existsSync(join(repo, "packages/b/dist/b.txt"))).toBe(true);
-    expect(existsSync(join(repo, "packages/b/dist/stale.txt"))).toBe(false);
-  });
+  // Cleaning runs on task machines, which have Node 22 or newer (fs.globSync).
+  test.skipIf(!("globSync" in fs))(
+    "a second run cleans the outputs, restores them from the cache, and drops stale files",
+    () => {
+      writeFileSync(join(repo, "packages/b/dist/stale.txt"), "left behind by the snapshot");
+      const r = runGroup(["b#build", "b#test"]);
+      expect(r.map((x) => [x.id, x.status])).toEqual([
+        ["b#build", "restored"],
+        ["b#test", "restored"],
+      ]);
+      expect(existsSync(join(repo, "packages/b/dist/b.txt"))).toBe(true);
+      expect(existsSync(join(repo, "packages/b/dist/stale.txt"))).toBe(false);
+    },
+  );
 });
