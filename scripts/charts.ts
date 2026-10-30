@@ -341,25 +341,89 @@ export function boxdMedians() {
   return out;
 }
 
-/** Vercel CI's bootstrapping per scenario: from the run's creation to its first job starting. */
-function vercelBootstrap() {
-  const rows = readFileSync(join(results, "experiment-2026-10-29.jsonl"), "utf8")
-    .split("\n")
-    .filter(Boolean)
-    .map((l) => JSON.parse(l) as { lane: string; scenario: string; bootstrap_s?: number });
-  const out: Record<string, number> = {};
-  for (const s of SCENARIOS) {
-    out[s.key] = median(
-      rows.filter((r) => r.lane === "vercel-ci" && r.scenario === s.key).map((r) => r.bootstrap_s ?? 0),
-    );
-  }
-  return out;
-}
-
+/** The earlier lanes' medians and costs: Vercel CI and the boxd prototype. */
 function experiment() {
   return JSON.parse(readFileSync(join(results, "experiment-2026-10-29-summary.json"), "utf8")) as {
     lanes: Record<string, Record<string, { median_s: number; usd_per_run: number }>>;
   };
+}
+
+// ── where the time goes: each platform's median run, part by part ────────────────────────────────
+
+/** From the end of git push to the result on GitHub: before the first task, the tasks, after the last. */
+type Parts = { start: number; tasks: number; report: number; total: number };
+
+const experimentDir = join(root, "bench", "experiment-2026-10-29");
+const iso = (s: string) => Date.parse(s) / 1000;
+
+/** The median run of three (by its total), so the parts add up to a real run's time. */
+const middle = <T>(xs: T[], total: (x: T) => number): T => {
+  const sorted = [...xs].sort((a, b) => total(a) - total(b));
+  return sorted[Math.floor(sorted.length / 2)] as T;
+};
+
+/** Vercel CI, from `vercel ci inspect`: when its run, its Turborepo job and every task began and ended. */
+function vercelParts(): Record<string, Parts> {
+  const rows = readFileSync(join(experimentDir, "results-all.jsonl"), "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map(
+      (l) =>
+        JSON.parse(l) as {
+          platform: string;
+          role: string;
+          scenario: string;
+          sha: string;
+          run_id: string;
+          wall_s: number;
+        },
+    )
+    .filter((r) => r.platform === "vercel" && r.role === "isolated");
+  const pushes = new Map(
+    readFileSync(join(experimentDir, "pushes.jsonl"), "utf8")
+      .split("\n")
+      .filter(Boolean)
+      .map((l) => JSON.parse(l) as { sha: string; push_end: number })
+      .map((p) => [p.sha, p.push_end]),
+  );
+  type Inspect = {
+    jobs: { completedAt: string; tasks: { startedAt?: string; completedAt?: string }[] }[];
+  };
+  const out: Record<string, Parts> = {};
+  for (const s of SCENARIOS) {
+    const r = middle(
+      rows.filter((x) => x.scenario === s.key),
+      (x) => x.wall_s,
+    );
+    const pushed = pushes.get(r.sha) as number;
+    const run = JSON.parse(readFileSync(join(experimentDir, "vercel-inspect", `${r.run_id}.json`), "utf8")) as Inspect;
+    const job = run.jobs[0] as Inspect["jobs"][number];
+    const ran = job.tasks.filter((x) => x.startedAt && x.completedAt);
+    // With nothing to run, the job's end is where its tasks would have started.
+    const first = ran.length ? Math.min(...ran.map((x) => iso(x.startedAt as string))) : iso(job.completedAt);
+    const last = ran.length ? Math.max(...ran.map((x) => iso(x.completedAt as string))) : first;
+    out[s.key] = { start: first - pushed, tasks: last - first, report: pushed + r.wall_s - last, total: r.wall_s };
+  }
+  return out;
+}
+
+/** boxd CI, from its run records: the run's own start, its first task, and its end, when the check completes. */
+function boxdParts(): Record<string, Parts> {
+  const rows = readFileSync(join(results, "boxd-ci.jsonl"), "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((l) => JSON.parse(l) as BoxdRow & { run_s: number })
+    .filter((r) => r.role === "measured" && r.result === "success");
+  const out: Record<string, Parts> = {};
+  for (const s of SCENARIOS) {
+    const r = middle(
+      rows.filter((x) => x.scenario === s.key),
+      (x) => x.wall_s,
+    );
+    const before = r.wall_s - r.run_s;
+    out[s.key] = { start: before + (r.first_s ?? 0), tasks: r.run_s - (r.first_s ?? 0), report: 0, total: r.wall_s };
+  }
+  return out;
 }
 
 // ── a comparison per scenario: one tile each, on its own scale ───────────────────────────────────
@@ -451,6 +515,122 @@ function comparison(
     d.body += d.text(x + monoWidth("boxd CI vs ", 11), y + 177, say, { font: "mono", size: 11, fill: t.ink });
   });
   o.notes.forEach((n, i) => {
+    d.body += d.text(32, top + tileH + 30 + i * 18, n, { font: "mono", size: 11, fill: t.deep });
+  });
+  return d.render();
+}
+
+/** Waiting, drawn as a hatch over a neutral: it is time, but no task ran in it. */
+function hatch(d: Doc, t: Theme) {
+  if (d.defs.includes('id="wait"')) return;
+  const base = t.name === "dark" ? "#3f3f46" : "#d4d4d8";
+  const line = t.name === "dark" ? "#52525b" : "#a1a1aa";
+  d.defs += `<pattern id="wait" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="${base}"/><line x1="0" y1="0" x2="0" y2="6" stroke="${line}" stroke-width="2.5"/></pattern>`;
+}
+
+function whereTimeGoes(t: Theme, vercel: Record<string, Parts>, boxd: Record<string, Parts>) {
+  const W = 880;
+  const tileH = 214;
+  const top = 124;
+  const notes = [
+    "The median of 3 pushes each, from git push to the result on GitHub. Each change on its own scale.",
+    "Vercel CI from vercel ci inspect, boxd CI from its run records. Raw data in bench/.",
+  ];
+  const H = top + tileH + 30 + notes.length * 18 + 18;
+  const d = new Doc(
+    W,
+    H,
+    "Where the time goes: before the first task, the tasks, and after the last task, for boxd CI and Vercel CI",
+  );
+  hatch(d, t);
+  d.body += panel(d, t);
+  header(d, t, {
+    kicker: "boxd CI vs Vercel CI",
+    title: "Where the time goes",
+    subtitle: "Waiting before the first task and after the last one, against the tasks themselves.",
+  });
+  // Legend: what the two fills mean.
+  const lx = d.w - 32 - monoWidth("tasks", 11);
+  const wx = lx - 32 - 26 - monoWidth("waiting", 11);
+  d.body += `<rect x="${wx}" y="33" width="11" height="11" rx="2" fill="url(#wait)"/>`;
+  d.body += d.text(wx + 16, 42, "waiting", { font: "mono", size: 11, fill: t.quiet });
+  d.body += `<rect x="${lx - 30}" y="33" width="11" height="11" rx="2" fill="${t.other}"/>`;
+  d.body += `<rect x="${lx - 16}" y="33" width="11" height="11" rx="2" fill="${t.boxd}"/>`;
+  d.body += d.text(lx, 42, "tasks", { font: "mono", size: 11, fill: t.quiet });
+  const g = grout(t, 24, top, W - 48, tileH, SCENARIOS.length);
+  d.body += g.svg;
+  SCENARIOS.forEach((s, i) => {
+    const tile = g.tiles[i] as { x: number; y: number; w: number; h: number };
+    const x = tile.x + 20;
+    const right = tile.x + tile.w - 20;
+    const y = tile.y;
+    const v = vercel[s.key] as Parts;
+    const b = boxd[s.key] as Parts;
+    const scale = (right - x) / Math.max(v.total, b.total);
+    d.body += d.text(x, y + 34, s.label, { size: 15, weight: 500, fill: t.ink, tracking: "-0.01em" });
+    d.body += d.text(x, y + 54, s.sub, { font: "mono", size: 11, fill: t.muted });
+    const rows = [
+      { lane: "vercel" as const, name: "Vercel CI", p: v, y: y + 84 },
+      { lane: "boxd" as const, name: "boxd CI", p: b, y: y + 128 },
+    ];
+    for (const r of rows) {
+      const ours = r.lane === "boxd";
+      d.body += ours ? logo(x, r.y - 9.5, 10.5, t.mark) : triangle(x - 0.5, r.y - 10, 11, t.quiet);
+      d.body += d.text(x + 17, r.y, r.name, { font: "mono", size: 11, fill: ours ? t.ink : t.quiet });
+      d.body += d.text(right, r.y, secs(r.p.total), {
+        font: "mono",
+        size: 12,
+        fill: ours ? t.ink : t.quiet,
+        anchor: "end",
+      });
+      const by = r.y + 9;
+      const h = 16;
+      let at = x;
+      const parts = [
+        { w: r.p.start, fill: "url(#wait)", what: "before the first task", label: t.ink },
+        {
+          w: r.p.tasks,
+          fill: ours ? t.boxd : t.other,
+          what: "tasks",
+          label: t.name === "dark" ? "#09090b" : "#ffffff",
+        },
+        {
+          w: r.p.report,
+          fill: "url(#wait)",
+          what: "after the last task, until the result was on GitHub",
+          label: t.ink,
+        },
+      ].filter((p) => p.w > 0.05);
+      parts.forEach((p, j) => {
+        const w = Math.max(2, p.w * scale);
+        const isFirst = j === 0;
+        const isLast = j === parts.length - 1;
+        const rl = isFirst ? 2 : 0;
+        const rr = isLast ? 4 : 0;
+        const path = `M${at + rl},${by} H${at + w - rr} ${rr ? `A${rr},${rr} 0 0 1 ${at + w},${by + rr} V${by + h - rr} A${rr},${rr} 0 0 1 ${at + w - rr},${by + h}` : `V${by + h}`} H${at + rl} ${rl ? `A${rl},${rl} 0 0 1 ${at},${by + h - rl} V${by + rl} A${rl},${rl} 0 0 1 ${at + rl},${by}` : `V${by}`} Z`;
+        d.body += `<path d="${path}" fill="${p.fill}"><title>${esc(`${r.name}, ${s.label}: ${secs(p.w)} ${p.what}`)}</title></path>`;
+        const label = secs(p.w);
+        if (w >= monoWidth(label, 10) + 10) {
+          d.body += d.text(at + w / 2, by + 11.5, label, { font: "mono", size: 10, fill: p.label, anchor: "middle" });
+        }
+        // A seam between parts, as between tiles.
+        if (!isLast) d.body += `<rect x="${at + w - 1}" y="${by}" width="2" height="${h}" fill="${t.tile}"/>`;
+        at += w;
+      });
+    }
+    const waitV = v.start + v.report;
+    const waitB = b.start + b.report;
+    d.body += `<line x1="${x}" y1="${y + 172}" x2="${right}" y2="${y + 172}" stroke="${t.rule}" stroke-width="1"/>`;
+    d.body += d.text(x, y + 194, "waiting", { font: "mono", size: 11, fill: t.muted });
+    let wx2 = x + monoWidth("waiting  ", 11);
+    d.body += triangle(wx2, y + 184, 11, t.quiet);
+    wx2 += 15;
+    d.body += d.text(wx2, y + 194, secs(waitV), { font: "mono", size: 11, fill: t.quiet });
+    wx2 += monoWidth(`${secs(waitV)}  `, 11);
+    d.body += logo(wx2, y + 184.5, 10.5, t.mark);
+    d.body += d.text(wx2 + 15, y + 194, secs(waitB), { font: "mono", size: 11, fill: t.ink });
+  });
+  notes.forEach((n, i) => {
     d.body += d.text(32, top + tileH + 30 + i * 18, n, { font: "mono", size: 11, fill: t.deep });
   });
   return d.render();
@@ -666,11 +846,13 @@ mkdirSync(assets, { recursive: true });
 const boxd = boxdMedians();
 const exp = experiment();
 const vercel = exp.lanes["vercel-ci"] as Record<string, { median_s: number; usd_per_run: number }>;
-const bootstrap = vercelBootstrap();
 const runFile = JSON.parse(readFileSync(join(results, "core-run.json"), "utf8")) as RunFile;
 const ran = runFile.results.filter((r) => r.status === "ran").length;
 const longest = runFile.results.reduce((a, b) => (b.seconds > a.seconds ? b : a));
 const ownScale = "Each change on its own scale: the slower platform fills the track.";
+const vParts = vercelParts();
+const bParts = boxdParts();
+console.log("where the time goes", JSON.stringify({ vercel: vParts, boxd: bParts }));
 
 for (const t of THEMES) {
   writeFileSync(
@@ -704,22 +886,6 @@ for (const t of THEMES) {
     }),
   );
   writeFileSync(
-    join(assets, `first-${t.name}.svg`),
-    await comparison(t, {
-      kicker: "boxd CI vs Vercel CI",
-      title: "Before the first task runs",
-      subtitle:
-        "Median seconds from the run's start to its first task, or to its result when the cache had everything.",
-      value: (lane, s) => (lane === "boxd" ? (boxd[s]?.first ?? 0) : (bootstrap[s] ?? 0)),
-      fmt: secs,
-      notes: [
-        "Vercel CI: bootstrapping, from vercel ci inspect. boxd CI: restore the snapshot, check out, plan.",
-        ownScale,
-      ],
-      better: "sooner",
-    }),
-  );
-  writeFileSync(
     join(assets, `timeline-${t.name}.svg`),
     await timeline(t, runFile, {
       kicker: "boxd CI, one real run",
@@ -731,6 +897,7 @@ for (const t of THEMES) {
       ],
     }),
   );
+  writeFileSync(join(assets, `time-${t.name}.svg`), await whereTimeGoes(t, vParts, bParts));
   writeFileSync(join(assets, `how-${t.name}.svg`), await howItWorks(t));
   // The terminal looks the same in both modes, as on the site.
   writeFileSync(join(assets, `demo-${t.name}.svg`), await demo(readFileSync(join(results, "demo-run.txt"), "utf8")));
@@ -753,4 +920,4 @@ writeFileSync(
   ].join("\n"),
 );
 console.log("boxd medians", JSON.stringify(boxd));
-console.log("wrote assets/{race,cost,first,timeline,how,demo}-{light,dark}.svg and bench/results/summary.md");
+console.log("wrote assets/{race,cost,time,timeline,how,demo}-{light,dark}.svg and bench/results/summary.md");

@@ -1,0 +1,1759 @@
+{
+  "status": "ok",
+  "message": "The Vercel CI run succeeded.",
+  "run": {
+    "id": "aIIwDExSaNEdxLXaWKkbvzM1",
+    "attempt": 1,
+    "status": "succeeded",
+    "repository": "azin-tech/vbench-ai",
+    "branch": "v-core",
+    "commitSha": "084b534a431bd89683a086bfd6813687736f9573",
+    "createdAt": "2026-10-30T00:42:53.583Z"
+  },
+  "jobs": [
+    {
+      "name": "Turborepo",
+      "kind": "turbo",
+      "status": "succeeded",
+      "startedAt": "2026-10-30T00:43:16.503Z",
+      "completedAt": "2026-10-30T00:47:25.711Z",
+      "durationMs": 249208,
+      "tasks": [
+        {
+          "name": "@ai-sdk/test-server#test",
+          "status": "cached",
+          "completedAt": "2026-10-30T00:43:19.743Z"
+        },
+        {
+          "name": "@ai-sdk/test-server#type-check",
+          "status": "cached",
+          "completedAt": "2026-10-30T00:43:19.738Z"
+        },
+        {
+          "name": "@ai-sdk/test-server#build",
+          "status": "cached",
+          "completedAt": "2026-10-30T00:43:18.683Z"
+        },
+        {
+          "name": "@ai-sdk/tool-bash#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:37.662Z",
+          "completedAt": "2026-10-30T00:44:42.502Z",
+          "durationMs": 4840
+        },
+        {
+          "name": "@ai-sdk/tool-bash#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:42.926Z",
+          "completedAt": "2026-10-30T00:44:48.931Z",
+          "durationMs": 6005
+        },
+        {
+          "name": "@ai-sdk/tool-bash#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:42.995Z",
+          "completedAt": "2026-10-30T00:46:50.373Z",
+          "durationMs": 127378
+        },
+        {
+          "name": "@ai-sdk/tool-web-fetch#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:13.773Z",
+          "completedAt": "2026-10-30T00:44:18.762Z",
+          "durationMs": 4989
+        },
+        {
+          "name": "@ai-sdk/tool-web-fetch#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:13.795Z",
+          "completedAt": "2026-10-30T00:46:07.030Z",
+          "durationMs": 113235
+        },
+        {
+          "name": "@ai-sdk/tool-web-fetch#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.295Z",
+          "completedAt": "2026-10-30T00:44:13.303Z",
+          "durationMs": 5008
+        },
+        {
+          "name": "@ai-sdk/togetherai#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:45.362Z",
+          "completedAt": "2026-10-30T00:43:55.756Z",
+          "durationMs": 10394
+        },
+        {
+          "name": "@ai-sdk/togetherai#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:57.328Z",
+          "completedAt": "2026-10-30T00:44:08.286Z",
+          "durationMs": 10958
+        },
+        {
+          "name": "@ai-sdk/togetherai#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:56.409Z",
+          "completedAt": "2026-10-30T00:44:02.202Z",
+          "durationMs": 5793
+        },
+        {
+          "name": "@ai-sdk/topaz#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.247Z",
+          "completedAt": "2026-10-30T00:43:51.730Z",
+          "durationMs": 12483
+        },
+        {
+          "name": "@ai-sdk/topaz#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.139Z",
+          "completedAt": "2026-10-30T00:43:55.009Z",
+          "durationMs": 15870
+        },
+        {
+          "name": "@ai-sdk/topaz#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:32.892Z",
+          "completedAt": "2026-10-30T00:43:38.643Z",
+          "durationMs": 5751
+        },
+        {
+          "name": "@ai-sdk/tui#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.179Z",
+          "completedAt": "2026-10-30T00:44:15.437Z",
+          "durationMs": 7258
+        },
+        {
+          "name": "@ai-sdk/tui#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:16.000Z",
+          "completedAt": "2026-10-30T00:44:31.986Z",
+          "durationMs": 15986
+        },
+        {
+          "name": "@ai-sdk/tui#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:15.917Z",
+          "completedAt": "2026-10-30T00:46:01.348Z",
+          "durationMs": 105431
+        },
+        {
+          "name": "@ai-sdk/typesafe-ai#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:38.997Z",
+          "completedAt": "2026-10-30T00:43:45.251Z",
+          "durationMs": 6254
+        },
+        {
+          "name": "@ai-sdk/typesafe-ai#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.006Z",
+          "completedAt": "2026-10-30T00:43:49.041Z",
+          "durationMs": 10035
+        },
+        {
+          "name": "@ai-sdk/typesafe-ai#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:32.947Z",
+          "completedAt": "2026-10-30T00:43:38.558Z",
+          "durationMs": 5611
+        },
+        {
+          "name": "@ai-sdk/valibot#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.019Z",
+          "completedAt": "2026-10-30T00:43:38.671Z",
+          "durationMs": 5652
+        },
+        {
+          "name": "@ai-sdk/valibot#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.170Z",
+          "completedAt": "2026-10-30T00:43:55.595Z",
+          "durationMs": 16425
+        },
+        {
+          "name": "@ai-sdk/voyage#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:32.939Z",
+          "completedAt": "2026-10-30T00:43:43.285Z",
+          "durationMs": 10346
+        },
+        {
+          "name": "@ai-sdk/voyage#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:43.717Z",
+          "completedAt": "2026-10-30T00:43:51.779Z",
+          "durationMs": 8062
+        },
+        {
+          "name": "@ai-sdk/voyage#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:43.720Z",
+          "completedAt": "2026-10-30T00:43:56.866Z",
+          "durationMs": 13146
+        },
+        {
+          "name": "@ai-sdk/vue#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.192Z",
+          "completedAt": "2026-10-30T00:44:15.324Z",
+          "durationMs": 7132
+        },
+        {
+          "name": "@ai-sdk/vue#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:15.776Z",
+          "completedAt": "2026-10-30T00:44:28.086Z",
+          "durationMs": 12310
+        },
+        {
+          "name": "@ai-sdk/vue#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:15.896Z",
+          "completedAt": "2026-10-30T00:46:14.258Z",
+          "durationMs": 118362
+        },
+        {
+          "name": "@ai-sdk/workflow-harness#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:28.762Z",
+          "completedAt": "2026-10-30T00:44:37.780Z",
+          "durationMs": 9018
+        },
+        {
+          "name": "@ai-sdk/workflow-harness#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:38.409Z",
+          "completedAt": "2026-10-30T00:46:12.809Z",
+          "durationMs": 94400
+        },
+        {
+          "name": "@ai-sdk/workflow-harness#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:38.331Z",
+          "completedAt": "2026-10-30T00:44:43.484Z",
+          "durationMs": 5153
+        },
+        {
+          "name": "@ai-sdk/workflow#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:20.744Z",
+          "completedAt": "2026-10-30T00:44:55.331Z",
+          "durationMs": 34587
+        },
+        {
+          "name": "@ai-sdk/workflow#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:20.769Z",
+          "completedAt": "2026-10-30T00:46:28.609Z",
+          "durationMs": 127840
+        },
+        {
+          "name": "@ai-sdk/workflow#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:15.594Z",
+          "completedAt": "2026-10-30T00:44:20.304Z",
+          "durationMs": 4710
+        },
+        {
+          "name": "@ai-sdk/xai#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:32.977Z",
+          "completedAt": "2026-10-30T00:43:39.109Z",
+          "durationMs": 6132
+        },
+        {
+          "name": "@ai-sdk/xai#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.534Z",
+          "completedAt": "2026-10-30T00:44:02.757Z",
+          "durationMs": 23223
+        },
+        {
+          "name": "@ai-sdk/xai#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.585Z",
+          "completedAt": "2026-10-30T00:43:58.201Z",
+          "durationMs": 18616
+        },
+        {
+          "name": "@ai-sdk/zai#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:45.373Z",
+          "completedAt": "2026-10-30T00:43:52.223Z",
+          "durationMs": 6850
+        },
+        {
+          "name": "@ai-sdk/zai#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:54.552Z",
+          "completedAt": "2026-10-30T00:44:01.272Z",
+          "durationMs": 6720
+        },
+        {
+          "name": "@ai-sdk/zai#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:55.627Z",
+          "completedAt": "2026-10-30T00:44:05.541Z",
+          "durationMs": 9914
+        },
+        {
+          "name": "@ai-sdk/alibaba#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:32.992Z",
+          "completedAt": "2026-10-30T00:43:38.199Z",
+          "durationMs": 5207
+        },
+        {
+          "name": "@ai-sdk/alibaba#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:38.629Z",
+          "completedAt": "2026-10-30T00:43:48.974Z",
+          "durationMs": 10345
+        },
+        {
+          "name": "@ai-sdk/alibaba#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:38.638Z",
+          "completedAt": "2026-10-30T00:43:57.372Z",
+          "durationMs": 18734
+        },
+        {
+          "name": "@ai-sdk/amazon-bedrock#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:58.843Z",
+          "completedAt": "2026-10-30T00:44:23.436Z",
+          "durationMs": 24593
+        },
+        {
+          "name": "@ai-sdk/amazon-bedrock#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:58.679Z",
+          "completedAt": "2026-10-30T00:44:16.461Z",
+          "durationMs": 17782
+        },
+        {
+          "name": "@ai-sdk/amazon-bedrock#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:52.266Z",
+          "completedAt": "2026-10-30T00:43:58.224Z",
+          "durationMs": 5958
+        },
+        {
+          "name": "@ai-sdk/angular#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.239Z",
+          "completedAt": "2026-10-30T00:44:12.816Z",
+          "durationMs": 4577
+        },
+        {
+          "name": "@ai-sdk/angular#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:13.236Z",
+          "completedAt": "2026-10-30T00:45:37.490Z",
+          "durationMs": 84254
+        },
+        {
+          "name": "@ai-sdk/angular#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:13.310Z",
+          "completedAt": "2026-10-30T00:44:24.534Z",
+          "durationMs": 11224
+        },
+        {
+          "name": "@ai-sdk/anthropic#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.031Z",
+          "completedAt": "2026-10-30T00:43:41.160Z",
+          "durationMs": 8129
+        },
+        {
+          "name": "@ai-sdk/anthropic#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:41.641Z",
+          "completedAt": "2026-10-30T00:44:09.768Z",
+          "durationMs": 28127
+        },
+        {
+          "name": "@ai-sdk/anthropic#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:41.653Z",
+          "completedAt": "2026-10-30T00:43:59.231Z",
+          "durationMs": 17578
+        },
+        {
+          "name": "@ai-sdk/anthropic-aws#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:41.696Z",
+          "completedAt": "2026-10-30T00:43:48.256Z",
+          "durationMs": 6560
+        },
+        {
+          "name": "@ai-sdk/anthropic-aws#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:53.940Z",
+          "completedAt": "2026-10-30T00:44:05.433Z",
+          "durationMs": 11493
+        },
+        {
+          "name": "@ai-sdk/anthropic-aws#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:51.254Z",
+          "completedAt": "2026-10-30T00:44:02.109Z",
+          "durationMs": 10855
+        },
+        {
+          "name": "@ai-sdk/assemblyai#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.070Z",
+          "completedAt": "2026-10-30T00:43:43.052Z",
+          "durationMs": 9982
+        },
+        {
+          "name": "@ai-sdk/assemblyai#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:43.462Z",
+          "completedAt": "2026-10-30T00:43:58.392Z",
+          "durationMs": 14930
+        },
+        {
+          "name": "@ai-sdk/assemblyai#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:43.489Z",
+          "completedAt": "2026-10-30T00:43:49.281Z",
+          "durationMs": 5792
+        },
+        {
+          "name": "@ai-sdk/azure#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:18.127Z",
+          "completedAt": "2026-10-30T00:44:37.629Z",
+          "durationMs": 19502
+        },
+        {
+          "name": "@ai-sdk/azure#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:18.125Z",
+          "completedAt": "2026-10-30T00:44:37.321Z",
+          "durationMs": 19196
+        },
+        {
+          "name": "@ai-sdk/azure#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.263Z",
+          "completedAt": "2026-10-30T00:44:17.695Z",
+          "durationMs": 9432
+        },
+        {
+          "name": "@ai-sdk/baseten#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:45.414Z",
+          "completedAt": "2026-10-30T00:43:51.831Z",
+          "durationMs": 6417
+        },
+        {
+          "name": "@ai-sdk/baseten#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:53.971Z",
+          "completedAt": "2026-10-30T00:44:05.026Z",
+          "durationMs": 11055
+        },
+        {
+          "name": "@ai-sdk/baseten#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:52.255Z",
+          "completedAt": "2026-10-30T00:43:57.706Z",
+          "durationMs": 5451
+        },
+        {
+          "name": "@ai-sdk/black-forest-labs#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.427Z",
+          "completedAt": "2026-10-30T00:43:53.061Z",
+          "durationMs": 13634
+        },
+        {
+          "name": "@ai-sdk/black-forest-labs#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.446Z",
+          "completedAt": "2026-10-30T00:43:49.689Z",
+          "durationMs": 10243
+        },
+        {
+          "name": "@ai-sdk/black-forest-labs#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.093Z",
+          "completedAt": "2026-10-30T00:43:38.984Z",
+          "durationMs": 5891
+        },
+        {
+          "name": "@ai-sdk/bytedance#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.089Z",
+          "completedAt": "2026-10-30T00:43:40.864Z",
+          "durationMs": 7775
+        },
+        {
+          "name": "@ai-sdk/bytedance#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:41.382Z",
+          "completedAt": "2026-10-30T00:43:51.230Z",
+          "durationMs": 9848
+        },
+        {
+          "name": "@ai-sdk/bytedance#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:41.394Z",
+          "completedAt": "2026-10-30T00:43:50.573Z",
+          "durationMs": 9179
+        },
+        {
+          "name": "@ai-sdk/cartesia#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:46.482Z",
+          "completedAt": "2026-10-30T00:43:53.500Z",
+          "durationMs": 7018
+        },
+        {
+          "name": "@ai-sdk/cartesia#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:46.503Z",
+          "completedAt": "2026-10-30T00:43:50.923Z",
+          "durationMs": 4420
+        },
+        {
+          "name": "@ai-sdk/cartesia#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.086Z",
+          "completedAt": "2026-10-30T00:43:46.068Z",
+          "durationMs": 12982
+        },
+        {
+          "name": "@ai-sdk/cerebras#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:51.560Z",
+          "completedAt": "2026-10-30T00:43:57.581Z",
+          "durationMs": 6021
+        },
+        {
+          "name": "@ai-sdk/cerebras#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:53.740Z",
+          "completedAt": "2026-10-30T00:44:09.242Z",
+          "durationMs": 15502
+        },
+        {
+          "name": "@ai-sdk/cerebras#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:45.433Z",
+          "completedAt": "2026-10-30T00:43:51.109Z",
+          "durationMs": 5676
+        },
+        {
+          "name": "@ai-sdk/code-mode#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.260Z",
+          "completedAt": "2026-10-30T00:44:12.905Z",
+          "durationMs": 4645
+        },
+        {
+          "name": "@ai-sdk/code-mode#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:13.371Z",
+          "completedAt": "2026-10-30T00:44:32.459Z",
+          "durationMs": 19088
+        },
+        {
+          "name": "@ai-sdk/code-mode#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:13.509Z",
+          "completedAt": "2026-10-30T00:46:05.396Z",
+          "durationMs": 111887
+        },
+        {
+          "name": "@ai-sdk/codemod#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.415Z",
+          "completedAt": "2026-10-30T00:44:13.672Z",
+          "durationMs": 5257
+        },
+        {
+          "name": "@ai-sdk/codemod#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:14.088Z",
+          "completedAt": "2026-10-30T00:46:04.836Z",
+          "durationMs": 110748
+        },
+        {
+          "name": "@ai-sdk/codemod#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:14.105Z",
+          "completedAt": "2026-10-30T00:44:39.491Z",
+          "durationMs": 25386
+        },
+        {
+          "name": "@ai-sdk/cohere#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.137Z",
+          "completedAt": "2026-10-30T00:43:38.688Z",
+          "durationMs": 5551
+        },
+        {
+          "name": "@ai-sdk/cohere#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.187Z",
+          "completedAt": "2026-10-30T00:43:53.786Z",
+          "durationMs": 14599
+        },
+        {
+          "name": "@ai-sdk/cohere#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.164Z",
+          "completedAt": "2026-10-30T00:43:49.659Z",
+          "durationMs": 10495
+        },
+        {
+          "name": "@ai-sdk/deepgram#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:44.028Z",
+          "completedAt": "2026-10-30T00:43:50.445Z",
+          "durationMs": 6417
+        },
+        {
+          "name": "@ai-sdk/deepgram#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:44.062Z",
+          "completedAt": "2026-10-30T00:43:50.333Z",
+          "durationMs": 6271
+        },
+        {
+          "name": "@ai-sdk/deepgram#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.158Z",
+          "completedAt": "2026-10-30T00:43:43.603Z",
+          "durationMs": 10445
+        },
+        {
+          "name": "@ai-sdk/deepinfra#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:45.456Z",
+          "completedAt": "2026-10-30T00:43:51.932Z",
+          "durationMs": 6476
+        },
+        {
+          "name": "@ai-sdk/deepinfra#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:53.177Z",
+          "completedAt": "2026-10-30T00:43:59.165Z",
+          "durationMs": 5988
+        },
+        {
+          "name": "@ai-sdk/deepinfra#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:52.362Z",
+          "completedAt": "2026-10-30T00:44:10.069Z",
+          "durationMs": 17707
+        },
+        {
+          "name": "@ai-sdk/deepseek#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:43.299Z",
+          "completedAt": "2026-10-30T00:43:59.070Z",
+          "durationMs": 15771
+        },
+        {
+          "name": "@ai-sdk/deepseek#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:43.339Z",
+          "completedAt": "2026-10-30T00:43:53.168Z",
+          "durationMs": 9829
+        },
+        {
+          "name": "@ai-sdk/deepseek#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.195Z",
+          "completedAt": "2026-10-30T00:43:42.852Z",
+          "durationMs": 9657
+        },
+        {
+          "name": "@ai-sdk/devtools#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:16.374Z",
+          "completedAt": "2026-10-30T00:44:21.927Z",
+          "durationMs": 5553
+        },
+        {
+          "name": "@ai-sdk/devtools#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.317Z",
+          "completedAt": "2026-10-30T00:44:15.961Z",
+          "durationMs": 7644
+        },
+        {
+          "name": "@ai-sdk/elevenlabs#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.212Z",
+          "completedAt": "2026-10-30T00:43:38.480Z",
+          "durationMs": 5268
+        },
+        {
+          "name": "@ai-sdk/elevenlabs#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.120Z",
+          "completedAt": "2026-10-30T00:43:46.238Z",
+          "durationMs": 7118
+        },
+        {
+          "name": "@ai-sdk/elevenlabs#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.148Z",
+          "completedAt": "2026-10-30T00:43:51.791Z",
+          "durationMs": 12643
+        },
+        {
+          "name": "@ai-sdk/fal#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.288Z",
+          "completedAt": "2026-10-30T00:43:43.081Z",
+          "durationMs": 9793
+        },
+        {
+          "name": "@ai-sdk/fal#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:43.515Z",
+          "completedAt": "2026-10-30T00:43:57.851Z",
+          "durationMs": 14336
+        },
+        {
+          "name": "@ai-sdk/fal#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:43.521Z",
+          "completedAt": "2026-10-30T00:43:56.594Z",
+          "durationMs": 13073
+        },
+        {
+          "name": "@ai-sdk/fireworks#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:45.490Z",
+          "completedAt": "2026-10-30T00:43:50.181Z",
+          "durationMs": 4691
+        },
+        {
+          "name": "@ai-sdk/fireworks#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:50.623Z",
+          "completedAt": "2026-10-30T00:43:58.814Z",
+          "durationMs": 8191
+        },
+        {
+          "name": "@ai-sdk/fireworks#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:54.803Z",
+          "completedAt": "2026-10-30T00:44:09.170Z",
+          "durationMs": 14367
+        },
+        {
+          "name": "@ai-sdk/fish-audio#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.244Z",
+          "completedAt": "2026-10-30T00:43:38.651Z",
+          "durationMs": 5407
+        },
+        {
+          "name": "@ai-sdk/fish-audio#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.145Z",
+          "completedAt": "2026-10-30T00:43:44.171Z",
+          "durationMs": 5026
+        },
+        {
+          "name": "@ai-sdk/fish-audio#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.146Z",
+          "completedAt": "2026-10-30T00:43:51.380Z",
+          "durationMs": 12234
+        },
+        {
+          "name": "@ai-sdk/gateway#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.262Z",
+          "completedAt": "2026-10-30T00:43:38.916Z",
+          "durationMs": 5654
+        },
+        {
+          "name": "@ai-sdk/gateway#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.409Z",
+          "completedAt": "2026-10-30T00:43:51.541Z",
+          "durationMs": 12132
+        },
+        {
+          "name": "@ai-sdk/gateway#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.380Z",
+          "completedAt": "2026-10-30T00:44:10.326Z",
+          "durationMs": 30946
+        },
+        {
+          "name": "@ai-sdk/google#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.306Z",
+          "completedAt": "2026-10-30T00:43:40.792Z",
+          "durationMs": 7486
+        },
+        {
+          "name": "@ai-sdk/google#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:41.239Z",
+          "completedAt": "2026-10-30T00:44:23.421Z",
+          "durationMs": 42182
+        },
+        {
+          "name": "@ai-sdk/google#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:41.245Z",
+          "completedAt": "2026-10-30T00:43:53.653Z",
+          "durationMs": 12408
+        },
+        {
+          "name": "@ai-sdk/google-vertex#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:45.509Z",
+          "completedAt": "2026-10-30T00:43:55.534Z",
+          "durationMs": 10025
+        },
+        {
+          "name": "@ai-sdk/google-vertex#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:56.403Z",
+          "completedAt": "2026-10-30T00:44:15.429Z",
+          "durationMs": 19026
+        },
+        {
+          "name": "@ai-sdk/google-vertex#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:55.992Z",
+          "completedAt": "2026-10-30T00:44:14.786Z",
+          "durationMs": 18794
+        },
+        {
+          "name": "@ai-sdk/gladia#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.320Z",
+          "completedAt": "2026-10-30T00:43:38.883Z",
+          "durationMs": 5563
+        },
+        {
+          "name": "@ai-sdk/gladia#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.340Z",
+          "completedAt": "2026-10-30T00:43:45.886Z",
+          "durationMs": 6546
+        },
+        {
+          "name": "@ai-sdk/gladia#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.405Z",
+          "completedAt": "2026-10-30T00:43:49.103Z",
+          "durationMs": 9698
+        },
+        {
+          "name": "@ai-sdk/gmicloud#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:52.538Z",
+          "completedAt": "2026-10-30T00:43:58.098Z",
+          "durationMs": 5560
+        },
+        {
+          "name": "@ai-sdk/gmicloud#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:50.504Z",
+          "completedAt": "2026-10-30T00:44:04.972Z",
+          "durationMs": 14468
+        },
+        {
+          "name": "@ai-sdk/gmicloud#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:45.546Z",
+          "completedAt": "2026-10-30T00:43:49.743Z",
+          "durationMs": 4197
+        },
+        {
+          "name": "@ai-sdk/groq#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.361Z",
+          "completedAt": "2026-10-30T00:43:43.114Z",
+          "durationMs": 9753
+        },
+        {
+          "name": "@ai-sdk/groq#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:43.566Z",
+          "completedAt": "2026-10-30T00:43:53.225Z",
+          "durationMs": 9659
+        },
+        {
+          "name": "@ai-sdk/groq#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:43.592Z",
+          "completedAt": "2026-10-30T00:43:56.850Z",
+          "durationMs": 13258
+        },
+        {
+          "name": "@ai-sdk/harness#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:15.733Z",
+          "completedAt": "2026-10-30T00:44:27.991Z",
+          "durationMs": 12258
+        },
+        {
+          "name": "@ai-sdk/harness#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:28.740Z",
+          "completedAt": "2026-10-30T00:46:30.679Z",
+          "durationMs": 121939
+        },
+        {
+          "name": "@ai-sdk/harness#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:29.069Z",
+          "completedAt": "2026-10-30T00:45:10.034Z",
+          "durationMs": 40965
+        },
+        {
+          "name": "@ai-sdk/harness-opencode#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:28.797Z",
+          "completedAt": "2026-10-30T00:44:37.492Z",
+          "durationMs": 8695
+        },
+        {
+          "name": "@ai-sdk/harness-opencode#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:37.906Z",
+          "completedAt": "2026-10-30T00:46:37.616Z",
+          "durationMs": 119710
+        },
+        {
+          "name": "@ai-sdk/harness-opencode#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:38.087Z",
+          "completedAt": "2026-10-30T00:44:45.376Z",
+          "durationMs": 7289
+        },
+        {
+          "name": "@ai-sdk/harness-acp#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:38.607Z",
+          "completedAt": "2026-10-30T00:44:54.617Z",
+          "durationMs": 16010
+        },
+        {
+          "name": "@ai-sdk/harness-acp#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:38.639Z",
+          "completedAt": "2026-10-30T00:46:42.023Z",
+          "durationMs": 123384
+        },
+        {
+          "name": "@ai-sdk/harness-acp#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:28.981Z",
+          "completedAt": "2026-10-30T00:44:38.163Z",
+          "durationMs": 9182
+        },
+        {
+          "name": "@ai-sdk/harness-cursor#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:52.535Z",
+          "completedAt": "2026-10-30T00:44:56.500Z",
+          "durationMs": 3965
+        },
+        {
+          "name": "@ai-sdk/harness-cursor#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:52.624Z",
+          "completedAt": "2026-10-30T00:47:04.321Z",
+          "durationMs": 131697
+        },
+        {
+          "name": "@ai-sdk/harness-cursor#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:38.668Z",
+          "completedAt": "2026-10-30T00:44:52.063Z",
+          "durationMs": 13395
+        },
+        {
+          "name": "@ai-sdk/harness-claude-code#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:28.840Z",
+          "completedAt": "2026-10-30T00:44:42.948Z",
+          "durationMs": 14108
+        },
+        {
+          "name": "@ai-sdk/harness-claude-code#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:43.394Z",
+          "completedAt": "2026-10-30T00:46:44.146Z",
+          "durationMs": 120752
+        },
+        {
+          "name": "@ai-sdk/harness-claude-code#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:43.410Z",
+          "completedAt": "2026-10-30T00:44:51.736Z",
+          "durationMs": 8326
+        },
+        {
+          "name": "@ai-sdk/harness-cline#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:28.836Z",
+          "completedAt": "2026-10-30T00:44:36.619Z",
+          "durationMs": 7783
+        },
+        {
+          "name": "@ai-sdk/harness-cline#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:37.060Z",
+          "completedAt": "2026-10-30T00:46:06.168Z",
+          "durationMs": 89108
+        },
+        {
+          "name": "@ai-sdk/harness-cline#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:37.747Z",
+          "completedAt": "2026-10-30T00:44:51.989Z",
+          "durationMs": 14242
+        },
+        {
+          "name": "@ai-sdk/harness-codex#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:29.083Z",
+          "completedAt": "2026-10-30T00:44:35.926Z",
+          "durationMs": 6843
+        },
+        {
+          "name": "@ai-sdk/harness-codex#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:36.354Z",
+          "completedAt": "2026-10-30T00:46:34.653Z",
+          "durationMs": 118299
+        },
+        {
+          "name": "@ai-sdk/harness-codex#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:36.510Z",
+          "completedAt": "2026-10-30T00:44:44.597Z",
+          "durationMs": 8087
+        },
+        {
+          "name": "@ai-sdk/harness-deepagents#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:28.918Z",
+          "completedAt": "2026-10-30T00:44:34.564Z",
+          "durationMs": 5646
+        },
+        {
+          "name": "@ai-sdk/harness-deepagents#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:34.990Z",
+          "completedAt": "2026-10-30T00:44:47.217Z",
+          "durationMs": 12227
+        },
+        {
+          "name": "@ai-sdk/harness-deepagents#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:35.234Z",
+          "completedAt": "2026-10-30T00:46:42.827Z",
+          "durationMs": 127593
+        },
+        {
+          "name": "@ai-sdk/harness-fx#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:28.895Z",
+          "completedAt": "2026-10-30T00:44:34.486Z",
+          "durationMs": 5591
+        },
+        {
+          "name": "@ai-sdk/harness-fx#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:34.902Z",
+          "completedAt": "2026-10-30T00:46:37.260Z",
+          "durationMs": 122358
+        },
+        {
+          "name": "@ai-sdk/harness-fx#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:34.939Z",
+          "completedAt": "2026-10-30T00:44:44.785Z",
+          "durationMs": 9846
+        },
+        {
+          "name": "@ai-sdk/harness-github-copilot#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:38.667Z",
+          "completedAt": "2026-10-30T00:44:45.755Z",
+          "durationMs": 7088
+        },
+        {
+          "name": "@ai-sdk/harness-github-copilot#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:46.286Z",
+          "completedAt": "2026-10-30T00:46:14.098Z",
+          "durationMs": 87812
+        },
+        {
+          "name": "@ai-sdk/harness-github-copilot#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:46.428Z",
+          "completedAt": "2026-10-30T00:44:51.038Z",
+          "durationMs": 4610
+        },
+        {
+          "name": "@ai-sdk/harness-grok-build#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:38.727Z",
+          "completedAt": "2026-10-30T00:44:46.107Z",
+          "durationMs": 7380
+        },
+        {
+          "name": "@ai-sdk/harness-grok-build#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:46.537Z",
+          "completedAt": "2026-10-30T00:44:50.759Z",
+          "durationMs": 4222
+        },
+        {
+          "name": "@ai-sdk/harness-grok-build#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:46.548Z",
+          "completedAt": "2026-10-30T00:46:11.949Z",
+          "durationMs": 85401
+        },
+        {
+          "name": "@ai-sdk/harness-pi#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:37.674Z",
+          "completedAt": "2026-10-30T00:44:51.404Z",
+          "durationMs": 13730
+        },
+        {
+          "name": "@ai-sdk/harness-pi#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:51.854Z",
+          "completedAt": "2026-10-30T00:46:21.147Z",
+          "durationMs": 89293
+        },
+        {
+          "name": "@ai-sdk/harness-pi#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:51.903Z",
+          "completedAt": "2026-10-30T00:45:18.249Z",
+          "durationMs": 26346
+        },
+        {
+          "name": "@ai-sdk/heygen#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.367Z",
+          "completedAt": "2026-10-30T00:43:39.060Z",
+          "durationMs": 5693
+        },
+        {
+          "name": "@ai-sdk/heygen#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.473Z",
+          "completedAt": "2026-10-30T00:43:46.910Z",
+          "durationMs": 7437
+        },
+        {
+          "name": "@ai-sdk/heygen#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.502Z",
+          "completedAt": "2026-10-30T00:43:49.371Z",
+          "durationMs": 9869
+        },
+        {
+          "name": "@ai-sdk/hume#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.306Z",
+          "completedAt": "2026-10-30T00:43:38.631Z",
+          "durationMs": 5325
+        },
+        {
+          "name": "@ai-sdk/hume#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.074Z",
+          "completedAt": "2026-10-30T00:43:48.397Z",
+          "durationMs": 9323
+        },
+        {
+          "name": "@ai-sdk/hume#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.223Z",
+          "completedAt": "2026-10-30T00:43:44.686Z",
+          "durationMs": 5463
+        },
+        {
+          "name": "@ai-sdk/huggingface#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:53.291Z",
+          "completedAt": "2026-10-30T00:43:59.250Z",
+          "durationMs": 5959
+        },
+        {
+          "name": "@ai-sdk/huggingface#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:51.460Z",
+          "completedAt": "2026-10-30T00:44:06.854Z",
+          "durationMs": 15394
+        },
+        {
+          "name": "@ai-sdk/huggingface#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:45.559Z",
+          "completedAt": "2026-10-30T00:43:50.195Z",
+          "durationMs": 4636
+        },
+        {
+          "name": "@ai-sdk/klingai#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.300Z",
+          "completedAt": "2026-10-30T00:43:40.353Z",
+          "durationMs": 7053
+        },
+        {
+          "name": "@ai-sdk/klingai#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:40.776Z",
+          "completedAt": "2026-10-30T00:43:57.682Z",
+          "durationMs": 16906
+        },
+        {
+          "name": "@ai-sdk/klingai#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:40.778Z",
+          "completedAt": "2026-10-30T00:43:51.523Z",
+          "durationMs": 10745
+        },
+        {
+          "name": "@ai-sdk/langchain#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.361Z",
+          "completedAt": "2026-10-30T00:44:13.607Z",
+          "durationMs": 5246
+        },
+        {
+          "name": "@ai-sdk/langchain#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:14.058Z",
+          "completedAt": "2026-10-30T00:44:30.022Z",
+          "durationMs": 15964
+        },
+        {
+          "name": "@ai-sdk/langchain#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:14.073Z",
+          "completedAt": "2026-10-30T00:46:01.942Z",
+          "durationMs": 107869
+        },
+        {
+          "name": "@ai-sdk/llamaindex#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.371Z",
+          "completedAt": "2026-10-30T00:44:14.543Z",
+          "durationMs": 6172
+        },
+        {
+          "name": "@ai-sdk/llamaindex#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:14.965Z",
+          "completedAt": "2026-10-30T00:46:10.992Z",
+          "durationMs": 116027
+        },
+        {
+          "name": "@ai-sdk/llamaindex#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:15.093Z",
+          "completedAt": "2026-10-30T00:44:21.499Z",
+          "durationMs": 6406
+        },
+        {
+          "name": "@ai-sdk/luma#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.474Z",
+          "completedAt": "2026-10-30T00:43:39.146Z",
+          "durationMs": 5672
+        },
+        {
+          "name": "@ai-sdk/luma#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.590Z",
+          "completedAt": "2026-10-30T00:43:55.042Z",
+          "durationMs": 15452
+        },
+        {
+          "name": "@ai-sdk/luma#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.646Z",
+          "completedAt": "2026-10-30T00:43:49.164Z",
+          "durationMs": 9518
+        },
+        {
+          "name": "@ai-sdk/mcp#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.335Z",
+          "completedAt": "2026-10-30T00:43:48.579Z",
+          "durationMs": 15244
+        },
+        {
+          "name": "@ai-sdk/mcp#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:50.353Z",
+          "completedAt": "2026-10-30T00:44:13.378Z",
+          "durationMs": 23025
+        },
+        {
+          "name": "@ai-sdk/mcp#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:53.953Z",
+          "completedAt": "2026-10-30T00:44:04.947Z",
+          "durationMs": 10994
+        },
+        {
+          "name": "@ai-sdk/minimax#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:41.708Z",
+          "completedAt": "2026-10-30T00:43:46.485Z",
+          "durationMs": 4777
+        },
+        {
+          "name": "@ai-sdk/minimax#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:46.909Z",
+          "completedAt": "2026-10-30T00:43:58.924Z",
+          "durationMs": 12015
+        },
+        {
+          "name": "@ai-sdk/minimax#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:46.938Z",
+          "completedAt": "2026-10-30T00:43:59.888Z",
+          "durationMs": 12950
+        },
+        {
+          "name": "@ai-sdk/mistral#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.359Z",
+          "completedAt": "2026-10-30T00:43:38.892Z",
+          "durationMs": 5533
+        },
+        {
+          "name": "@ai-sdk/mistral#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.300Z",
+          "completedAt": "2026-10-30T00:43:50.366Z",
+          "durationMs": 11066
+        },
+        {
+          "name": "@ai-sdk/mistral#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.321Z",
+          "completedAt": "2026-10-30T00:43:58.004Z",
+          "durationMs": 18683
+        },
+        {
+          "name": "@ai-sdk/moonshotai#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.390Z",
+          "completedAt": "2026-10-30T00:43:38.600Z",
+          "durationMs": 5210
+        },
+        {
+          "name": "@ai-sdk/moonshotai#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.053Z",
+          "completedAt": "2026-10-30T00:43:55.989Z",
+          "durationMs": 16936
+        },
+        {
+          "name": "@ai-sdk/moonshotai#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.079Z",
+          "completedAt": "2026-10-30T00:43:53.354Z",
+          "durationMs": 14275
+        },
+        {
+          "name": "@ai-sdk/open-responses#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.528Z",
+          "completedAt": "2026-10-30T00:43:46.337Z",
+          "durationMs": 6809
+        },
+        {
+          "name": "@ai-sdk/open-responses#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.677Z",
+          "completedAt": "2026-10-30T00:43:49.555Z",
+          "durationMs": 9878
+        },
+        {
+          "name": "@ai-sdk/open-responses#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.389Z",
+          "completedAt": "2026-10-30T00:43:39.063Z",
+          "durationMs": 5674
+        },
+        {
+          "name": "@ai-sdk/openai#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.427Z",
+          "completedAt": "2026-10-30T00:43:47.629Z",
+          "durationMs": 14202
+        },
+        {
+          "name": "@ai-sdk/openai#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:52.528Z",
+          "completedAt": "2026-10-30T00:44:36.254Z",
+          "durationMs": 43726
+        },
+        {
+          "name": "@ai-sdk/openai#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:52.536Z",
+          "completedAt": "2026-10-30T00:44:06.595Z",
+          "durationMs": 14059
+        },
+        {
+          "name": "@ai-sdk/openai-compatible#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:45.583Z",
+          "completedAt": "2026-10-30T00:44:05.807Z",
+          "durationMs": 20224
+        },
+        {
+          "name": "@ai-sdk/openai-compatible#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:45.660Z",
+          "completedAt": "2026-10-30T00:44:02.543Z",
+          "durationMs": 16883
+        },
+        {
+          "name": "@ai-sdk/openai-compatible#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.555Z",
+          "completedAt": "2026-10-30T00:43:44.832Z",
+          "durationMs": 11277
+        },
+        {
+          "name": "@ai-sdk/otel#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.425Z",
+          "completedAt": "2026-10-30T00:44:15.130Z",
+          "durationMs": 6705
+        },
+        {
+          "name": "@ai-sdk/otel#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:15.822Z",
+          "completedAt": "2026-10-30T00:46:09.424Z",
+          "durationMs": 113602
+        },
+        {
+          "name": "@ai-sdk/otel#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:15.707Z",
+          "completedAt": "2026-10-30T00:44:26.220Z",
+          "durationMs": 10513
+        },
+        {
+          "name": "@ai-sdk/perplexity#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.753Z",
+          "completedAt": "2026-10-30T00:43:39.745Z",
+          "durationMs": 5992
+        },
+        {
+          "name": "@ai-sdk/perplexity#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:40.173Z",
+          "completedAt": "2026-10-30T00:43:52.300Z",
+          "durationMs": 12127
+        },
+        {
+          "name": "@ai-sdk/perplexity#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:40.316Z",
+          "completedAt": "2026-10-30T00:43:53.034Z",
+          "durationMs": 12718
+        },
+        {
+          "name": "@ai-sdk/policy-opa#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.417Z",
+          "completedAt": "2026-10-30T00:44:16.031Z",
+          "durationMs": 7614
+        },
+        {
+          "name": "@ai-sdk/policy-opa#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:16.463Z",
+          "completedAt": "2026-10-30T00:45:32.091Z",
+          "durationMs": 75628
+        },
+        {
+          "name": "@ai-sdk/policy-opa#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:16.477Z",
+          "completedAt": "2026-10-30T00:44:25.482Z",
+          "durationMs": 9005
+        },
+        {
+          "name": "@ai-sdk/provider-utils#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.744Z",
+          "completedAt": "2026-10-30T00:44:11.221Z",
+          "durationMs": 37477
+        },
+        {
+          "name": "@ai-sdk/provider-utils#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.820Z",
+          "completedAt": "2026-10-30T00:43:43.022Z",
+          "durationMs": 9202
+        },
+        {
+          "name": "@ai-sdk/provider-utils#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:19.852Z",
+          "completedAt": "2026-10-30T00:43:31.311Z",
+          "durationMs": 11459
+        },
+        {
+          "name": "@ai-sdk/provider#type-check",
+          "status": "cached",
+          "completedAt": "2026-10-30T00:43:19.748Z"
+        },
+        {
+          "name": "@ai-sdk/provider#build",
+          "status": "cached",
+          "completedAt": "2026-10-30T00:43:18.699Z"
+        },
+        {
+          "name": "@ai-sdk/prodia#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.648Z",
+          "completedAt": "2026-10-30T00:43:39.558Z",
+          "durationMs": 5910
+        },
+        {
+          "name": "@ai-sdk/prodia#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.982Z",
+          "completedAt": "2026-10-30T00:43:50.048Z",
+          "durationMs": 10066
+        },
+        {
+          "name": "@ai-sdk/prodia#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:39.998Z",
+          "completedAt": "2026-10-30T00:43:50.447Z",
+          "durationMs": 10449
+        },
+        {
+          "name": "@ai-sdk/quiverai#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:16.938Z",
+          "completedAt": "2026-10-30T00:44:31.609Z",
+          "durationMs": 14671
+        },
+        {
+          "name": "@ai-sdk/quiverai#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:16.941Z",
+          "completedAt": "2026-10-30T00:46:14.656Z",
+          "durationMs": 117715
+        },
+        {
+          "name": "@ai-sdk/quiverai#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.449Z",
+          "completedAt": "2026-10-30T00:44:16.506Z",
+          "durationMs": 8057
+        },
+        {
+          "name": "@ai-sdk/react#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:21.847Z",
+          "completedAt": "2026-10-30T00:44:38.839Z",
+          "durationMs": 16992
+        },
+        {
+          "name": "@ai-sdk/react#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:21.975Z",
+          "completedAt": "2026-10-30T00:46:29.266Z",
+          "durationMs": 127291
+        },
+        {
+          "name": "@ai-sdk/react#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.481Z",
+          "completedAt": "2026-10-30T00:44:21.422Z",
+          "durationMs": 12941
+        },
+        {
+          "name": "@ai-sdk/replicate#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.846Z",
+          "completedAt": "2026-10-30T00:43:39.712Z",
+          "durationMs": 5866
+        },
+        {
+          "name": "@ai-sdk/replicate#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:40.174Z",
+          "completedAt": "2026-10-30T00:43:47.741Z",
+          "durationMs": 7567
+        },
+        {
+          "name": "@ai-sdk/replicate#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:40.159Z",
+          "completedAt": "2026-10-30T00:43:50.323Z",
+          "durationMs": 10164
+        },
+        {
+          "name": "@ai-sdk/revai#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:38.924Z",
+          "completedAt": "2026-10-30T00:43:44.980Z",
+          "durationMs": 6056
+        },
+        {
+          "name": "@ai-sdk/revai#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:38.935Z",
+          "completedAt": "2026-10-30T00:43:43.192Z",
+          "durationMs": 4257
+        },
+        {
+          "name": "@ai-sdk/revai#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:33.581Z",
+          "completedAt": "2026-10-30T00:43:38.492Z",
+          "durationMs": 4911
+        },
+        {
+          "name": "@ai-sdk/rsc#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.527Z",
+          "completedAt": "2026-10-30T00:44:15.755Z",
+          "durationMs": 7228
+        },
+        {
+          "name": "@ai-sdk/rsc#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:16.248Z",
+          "completedAt": "2026-10-30T00:44:28.568Z",
+          "durationMs": 12320
+        },
+        {
+          "name": "@ai-sdk/rsc#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:16.264Z",
+          "completedAt": "2026-10-30T00:44:22.223Z",
+          "durationMs": 5959
+        },
+        {
+          "name": "@ai-sdk/sandbox-just-bash#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:37.716Z",
+          "completedAt": "2026-10-30T00:44:42.958Z",
+          "durationMs": 5242
+        },
+        {
+          "name": "@ai-sdk/sandbox-just-bash#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:37.952Z",
+          "completedAt": "2026-10-30T00:46:32.454Z",
+          "durationMs": 114502
+        },
+        {
+          "name": "@ai-sdk/sandbox-just-bash#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:28.920Z",
+          "completedAt": "2026-10-30T00:44:37.217Z",
+          "durationMs": 8297
+        },
+        {
+          "name": "@ai-sdk/sandbox-vercel#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:36.551Z",
+          "completedAt": "2026-10-30T00:44:45.082Z",
+          "durationMs": 8531
+        },
+        {
+          "name": "@ai-sdk/sandbox-vercel#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:36.562Z",
+          "completedAt": "2026-10-30T00:45:59.861Z",
+          "durationMs": 83299
+        },
+        {
+          "name": "@ai-sdk/sandbox-vercel#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:28.963Z",
+          "completedAt": "2026-10-30T00:44:36.122Z",
+          "durationMs": 7159
+        },
+        {
+          "name": "@ai-sdk/svelte#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.540Z",
+          "completedAt": "2026-10-30T00:44:14.620Z",
+          "durationMs": 6080
+        },
+        {
+          "name": "@ai-sdk/svelte#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:15.067Z",
+          "completedAt": "2026-10-30T00:44:24.519Z",
+          "durationMs": 9452
+        },
+        {
+          "name": "@ai-sdk/svelte#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:15.072Z",
+          "completedAt": "2026-10-30T00:44:22.408Z",
+          "durationMs": 7336
+        },
+        {
+          "name": "ai#build",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:43:58.838Z",
+          "completedAt": "2026-10-30T00:44:07.455Z",
+          "durationMs": 8617
+        },
+        {
+          "name": "ai#test",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.553Z",
+          "completedAt": "2026-10-30T00:47:25.558Z",
+          "durationMs": 197005
+        },
+        {
+          "name": "ai#type-check",
+          "status": "succeeded",
+          "startedAt": "2026-10-30T00:44:08.578Z",
+          "completedAt": "2026-10-30T00:45:57.701Z",
+          "durationMs": 109123
+        }
+      ]
+    }
+  ],
+  "next": []
+}

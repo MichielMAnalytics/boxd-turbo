@@ -29,6 +29,21 @@ Every row of both sets, warm-ups and failures included, is in
 scripts that made them. `record.py` reads each Vercel CI run with `vercel ci inspect`: its tasks, their
 durations and when its bootstrap ended.
 
+## Where the time goes
+
+Each platform's median run per scenario, split at its first task's start and its last task's end:
+
+- Vercel CI, from its run record (`vercel ci inspect`, kept in
+  [`experiment-2026-10-29/vercel-inspect/`](experiment-2026-10-29/vercel-inspect)): the end of `git
+  push` to the first task's `startedAt`, from there to the last task's `completedAt`, and from there to
+  the commit status on GitHub. A run with no task to run ends its first part when its Turborepo job
+  completes.
+- boxd CI, from its run record: the end of `git push` to the run's start (GitHub delivering the push),
+  plus the run's start to its first task (restore, check out, plan), then the tasks to the run's end,
+  which is when the check completes.
+
+`scripts/charts.ts` computes both from the committed files.
+
 ## Files
 
 | File | What it holds |
@@ -38,7 +53,7 @@ durations and when its bootstrap ended.
 | `results/experiment-2026-10-29-summary.json` | their medians and cost per run (the prototype's at the prices used then) |
 | `results/core-run.json` | the run record behind the task-by-task chart |
 | `results/demo-run.txt` | the `boxd-ci run` the animated terminal replays |
-| `experiment-2026-10-29/` | the scripts behind the earlier lanes, and every row they recorded |
+| `experiment-2026-10-29/` | the scripts behind the earlier lanes, every row they recorded, and each measured Vercel CI run's record from `vercel ci inspect` |
 | `push.ts` | the harness that made `boxd-ci.jsonl` |
 
 ## Cost

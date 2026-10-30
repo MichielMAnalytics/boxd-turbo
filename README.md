@@ -11,6 +11,11 @@ Open source CI for Turborepo monorepos. Every task starts the moment its depende
 machine restored from a snapshot of your repository with its dependencies already installed. Results
 come from a Turborepo remote cache on your own boxd account, so a push only runs what it changed.
 
+**Why it's faster.** Vercel CI clones and installs your repository on every push before its first task
+runs, and its result reaches GitHub 10 to 33 seconds after its last task ends. A boxd CI machine boots
+from a snapshot that already has the repository and its dependencies, so the first task starts within
+seconds of the push, and the check is complete the moment the last task ends.
+
 The `ci` tags in your `turbo.json` from Vercel CI work as they are, and a repository without them runs
 its usual checks: lint, type checks and tests.
 
@@ -49,23 +54,41 @@ each, from `git push` to the result on GitHub.
 | One provider package | **20 s** | 69 s | 3.5× faster | 0.6¢ | 1.1¢ |
 | A core package | **4 min 10 s** | 4 min 52 s | 1.2× faster | 29¢ | 70¢ |
 
+## Why it's faster
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/time-dark.svg">
+    <img alt="Where the time goes, per change: Vercel CI waits 78, 41 and 47 seconds outside its tasks, boxd CI 5.9, 6.3 and 4.5 seconds" src="assets/time-light.svg" width="880">
+  </picture>
+</p>
+
+On a small change, most of a Vercel CI run is waiting. The docs-only change had nothing to run, and
+Vercel CI still took 78 s: 45 s to find every result in the cache, and 33 s more before GitHub had the
+result. boxd CI took 5.9 s.
+
+1. **No bootstrap.** Vercel CI starts every push on a separate machine that clones the repository and
+   installs its dependencies, then starts the task machines: 27 to 32 s from the push to the first
+   task. A boxd machine is restored from a snapshot with the repository checked out and `node_modules`
+   in place, plans with Turborepo and starts the first task 4.5 to 6.3 s after the push, GitHub's own
+   delivery of the push included.
+2. **No wait for the result.** Vercel CI's status reached GitHub 10 to 33 s after its last task
+   finished. boxd CI completes its check as the last task ends.
+3. **Warm machines.** The one-package change ran the same three tasks on both: 28 s from the first
+   start to the last finish on Vercel CI, 14 s on boxd CI, each task on 2 CPUs. Every Vercel CI task
+   runs on its own new compute instance. A boxd machine is restored with its memory, so the files the
+   last build read are already in memory, the Turborepo cache it restores dependencies from is on its
+   own disk, and the machine that built a package runs that package's next task.
+
+The core change shows the waiting at a larger scale. Its tasks took 4 min 06 s on Vercel CI and 4 min
+05 s on boxd CI, so the 43 s between the two runs is all waiting: 47 s on Vercel CI, 4.5 s on boxd CI.
+Every number here comes from Vercel CI's own run records (`vercel ci inspect`) and boxd CI's, both in
+[`bench/`](bench/README.md).
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/cost-dark.svg">
     <img alt="What one run costs, boxd CI against Vercel CI, per scenario" src="assets/cost-light.svg" width="880">
-  </picture>
-</p>
-
-A boxd CI run started its first task 3.8 s after it began, the median of the leaf runs, for restoring
-the snapshot, checking out and planning with Turborepo. On the same leaf change Vercel CI bootstrapped
-for a median of 26 s before its first task. That explains about 22 s of the 49 s gap on the leaf
-change, and 28 s of the 72 s gap on the docs-only change. The rest of Vercel CI's time comes before its
-run starts or after its last task, and this benchmark does not break it down.
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/first-dark.svg">
-    <img alt="Seconds before the first task runs, boxd CI against Vercel CI, per scenario" src="assets/first-light.svg" width="880">
   </picture>
 </p>
 
