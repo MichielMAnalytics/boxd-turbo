@@ -1,0 +1,41 @@
+{
+  "name": "boxd-ci",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source CI for Turborepo monorepos: every task on its own boxd machine, restored from a snapshot with everything installed.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "boxd-ci": "dist/cli.mjs"
+  },
+  "files": [
+    "dist",
+    "automation",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "check": "npm run lint && npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@boxd-sh/sdk": "^0.2.22",
+    "jsonc-parser": "^3.3.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.4",
+    "@types/node": "^24.0.0",
+    "tsup": "^8.5.1",
+    "turbo": "2.11.10",
+    "typescript": "^6.0.0",
+    "vitest": "^5.0.5"
+  }
+}
