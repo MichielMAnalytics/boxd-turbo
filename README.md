@@ -1,39 +1,35 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/race-dark.svg">
-    <img alt="Push to green on vercel/ai: boxd CI against Vercel CI for a docs-only change, one provider package and a core package" src="assets/race-light.svg" width="880">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/time-dark.svg">
+    <img alt="Where the time goes on vercel/ai: Vercel CI waits 78, 41 and 47 seconds outside its tasks, boxd CI 5.9, 6.3 and 4.5 seconds" src="assets/time-light.svg" width="880">
   </picture>
 </p>
 
 # boxd CI
 
-Open source CI for Turborepo monorepos. Every task starts the moment its dependencies finish, on a
-machine restored from a snapshot of your repository with its dependencies already installed. Results
-come from a Turborepo remote cache on your own boxd account, so a push only runs what it changed.
+Open source CI for Turborepo monorepos. On [`vercel/ai`](https://github.com/vercel/ai) it gets a push to
+green **13× faster than Vercel CI** for a docs change, **3.5×** for one package and **1.2×** for a core
+change.
 
-**Why it's faster.** Vercel CI clones and installs your repository on every push before its first task
-runs, and its result reaches GitHub 10 to 33 seconds after its last task ends. A boxd CI machine boots
-from a snapshot that already has the repository and its dependencies, so the first task starts within
-seconds of the push, and the check is complete the moment the last task ends.
+### Why it's faster
 
-The `ci` tags in your `turbo.json` from Vercel CI work as they are, and a repository without them runs
-its usual checks: lint, type checks and tests.
-
-You need:
-
-- a [boxd](https://boxd.sh) account and the [boxd CLI](https://docs.boxd.sh)
-- Node.js 20 or newer
-- a Turborepo repository on github.com, with `turbo` 2.4 or newer as a dev dependency (2.11 or newer to
-  use `ci` tags)
-- for a check on every push, the boxd GitHub App installed for the repository (Integrations, in the
-  boxd console)
-- for a private repository, a `gh` login, used once to clone it for the first snapshot
+- **It starts in seconds.** Every machine boots from a snapshot with your repository and `node_modules`
+  already in place, so the first task starts seconds after the push. Vercel CI clones and installs on
+  every push first, 27 to 32 s before its first task.
+- **It's done when the last task is.** The check completes the moment the last task ends. Vercel CI's
+  result reaches GitHub 10 to 33 s later.
+- **Its machines are warm.** A machine boots with the files the last build read already in memory and
+  the Turborepo cache on its own disk, and the machine that built a package runs that package's next
+  task. On the one-package change the same tasks took half as long.
 
 ```bash
 boxd auth login                     # once, signs you in to boxd
 npx github:azin-tech/boxd-ci run    # CI on your working copy, now
 npx github:azin-tech/boxd-ci init   # a boxd-ci check on every push
 ```
+
+The `ci` tags in your `turbo.json` from Vercel CI work as they are, and a repository without them runs
+its usual checks: lint, type checks and tests. See [what you need](#what-you-need).
 
 <p align="center">
   <picture>
@@ -44,9 +40,9 @@ npx github:azin-tech/boxd-ci init   # a boxd-ci check on every push
 
 ## Results
 
-The same [`vercel/ai`](https://github.com/vercel/ai) code (commit `dfed8e8` with the `ci` tags) and
-the same 249 tasks: every package's `type-check` and `test`, with their builds. Median of three pushes
-each, from `git push` to the result on GitHub.
+The same `vercel/ai` code (commit `dfed8e8` with the `ci` tags) and the same 249 tasks: every package's
+`type-check` and `test`, with their builds. Median of three pushes each, from `git push` to the result
+on GitHub.
 
 | Push to green on vercel/ai | boxd CI | Vercel CI | | Cost, boxd CI | Cost, Vercel CI |
 |---|---|---|---|---|---|
@@ -54,36 +50,29 @@ each, from `git push` to the result on GitHub.
 | One provider package | **20 s** | 69 s | 3.5× faster | 0.6¢ | 1.1¢ |
 | A core package | **4 min 10 s** | 4 min 52 s | 1.2× faster | 29¢ | 70¢ |
 
-## Why it's faster
-
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/time-dark.svg">
-    <img alt="Where the time goes, per change: Vercel CI waits 78, 41 and 47 seconds outside its tasks, boxd CI 5.9, 6.3 and 4.5 seconds" src="assets/time-light.svg" width="880">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/race-dark.svg">
+    <img alt="Push to green on vercel/ai: boxd CI against Vercel CI for a docs-only change, one provider package and a core package" src="assets/race-light.svg" width="880">
   </picture>
 </p>
 
-On a small change, most of a Vercel CI run is waiting. The docs-only change had nothing to run, and
-Vercel CI still took 78 s: 45 s to find every result in the cache, and 33 s more before GitHub had the
-result. boxd CI took 5.9 s.
+### Where the time goes
 
-1. **No bootstrap.** Vercel CI starts every push on a separate machine that clones the repository and
-   installs its dependencies, then starts the task machines: 27 to 32 s from the push to the first
-   task. A boxd machine is restored from a snapshot with the repository checked out and `node_modules`
-   in place, plans with Turborepo and starts the first task 4.5 to 6.3 s after the push, GitHub's own
-   delivery of the push included.
-2. **No wait for the result.** Vercel CI's status reached GitHub 10 to 33 s after its last task
-   finished. boxd CI completes its check as the last task ends.
-3. **Warm machines.** The one-package change ran the same three tasks on both: 28 s from the first
-   start to the last finish on Vercel CI, 14 s on boxd CI, each task on 2 CPUs. Every Vercel CI task
-   runs on its own new compute instance. A boxd machine is restored with its memory, so the files the
-   last build read are already in memory, the Turborepo cache it restores dependencies from is on its
-   own disk, and the machine that built a package runs that package's next task.
+Each run splits at its first task and its last, from Vercel CI's own run records (`vercel ci inspect`)
+and boxd CI's, both in [`bench/`](bench/README.md).
 
-The core change shows the waiting at a larger scale. Its tasks took 4 min 06 s on Vercel CI and 4 min
-05 s on boxd CI, so the 43 s between the two runs is all waiting: 47 s on Vercel CI, 4.5 s on boxd CI.
-Every number here comes from Vercel CI's own run records (`vercel ci inspect`) and boxd CI's, both in
-[`bench/`](bench/README.md).
+- **Docs-only.** Nothing had to run, and Vercel CI still took 78 s: 45 s to find every result in the
+  cache, and 33 s more before GitHub had the result. boxd CI took 5.9 s.
+- **One package.** Vercel CI waited 32 s for its first task, ran the three tasks in 28 s, and reported
+  10 s later. boxd CI started the first task 6.3 s after the push and ran the same three tasks in 14 s,
+  each task on 2 CPUs on both platforms.
+- **Core package.** The tasks took 4 min 06 s on Vercel CI and 4 min 05 s on boxd CI, so the 43 s
+  between the two runs is all waiting: 47 s on Vercel CI, 4.5 s on boxd CI.
+
+Every Vercel CI task runs on its own new compute instance, after a bootstrap machine has cloned the
+repository and installed its dependencies. A boxd machine is restored from a snapshot with its memory,
+plans with Turborepo, and starts the first task. GitHub's own delivery of the push is in both times.
 
 <p align="center">
   <picture>
@@ -231,6 +220,16 @@ The value becomes a boxd secret that reaches boxd-ci's machines only, and `.boxd
 Commit that file. Turborepo passes a variable to a task only when `turbo.json` lists it, so add the name
 to the task's `env` (or to `globalEnv`), as on Vercel CI. Installs get the secrets too, so a private
 registry's token works in `.npmrc`. `boxd-ci secret ls` shows which names are set, and `rm` deletes one.
+
+## What you need
+
+- a [boxd](https://boxd.sh) account and the [boxd CLI](https://docs.boxd.sh)
+- Node.js 20 or newer
+- a Turborepo repository on github.com, with `turbo` 2.4 or newer as a dev dependency (2.11 or newer to
+  use `ci` tags)
+- for a check on every push, the boxd GitHub App installed for the repository (Integrations, in the
+  boxd console)
+- for a private repository, a `gh` login, used once to clone it for the first snapshot
 
 ## Commands
 

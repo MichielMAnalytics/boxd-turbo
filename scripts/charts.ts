@@ -545,7 +545,7 @@ function whereTimeGoes(t: Theme, vercel: Record<string, Parts>, boxd: Record<str
   hatch(d, t);
   d.body += panel(d, t);
   header(d, t, {
-    kicker: "boxd CI vs Vercel CI",
+    kicker: "boxd CI vs Vercel CI, on vercel/ai",
     title: "Where the time goes",
     subtitle: "Waiting before the first task and after the last one, against the tasks themselves.",
   });
