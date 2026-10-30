@@ -15,6 +15,8 @@ export type TurboDryRun = {
     dependencies: string[] | null;
     outputs: string[] | null;
     command: string;
+    /** Where Turborepo writes the task's output, relative to the repository root. */
+    logFile?: string;
   }[];
 };
 
@@ -32,6 +34,8 @@ export type TaskNode = {
   /** The package has no script for this task: nothing to run. */
   noop: boolean;
   cpus?: number;
+  /** Where Turborepo writes the task's output, relative to the repository root. */
+  logFile?: string;
 };
 
 export type TaskGraph = { nodes: Map<string, TaskNode>; selected: Set<string> };
@@ -66,6 +70,7 @@ export function buildGraph(dry: TurboDryRun, selectors: CiTask[]): TaskGraph {
     };
     const c = cpus.get(id);
     if (c !== undefined) node.cpus = c;
+    if (t.logFile) node.logFile = t.logFile;
     nodes.set(id, node);
     stack.push(...node.deps);
   }

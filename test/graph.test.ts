@@ -45,6 +45,11 @@ describe("buildGraph", () => {
     expect(g.nodes.get("a#test")).toMatchObject({ cached: false, noop: true });
   });
 
+  test("each node keeps Turborepo's log file path", () => {
+    const g = buildGraph(dry({ ...task("a#build", []), logFile: "packages/a/.turbo/turbo-build.log" }), sel("a#build"));
+    expect(g.nodes.get("a#build")?.logFile).toBe("packages/a/.turbo/turbo-build.log");
+  });
+
   test("null dependencies count as none", () => {
     const g = buildGraph(dry(task("a#build", null)), sel("a#build"));
     expect(g.nodes.get("a#build")?.deps).toEqual([]);

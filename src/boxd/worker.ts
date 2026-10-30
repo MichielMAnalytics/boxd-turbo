@@ -1,0 +1,211 @@
+// Machines for a run: each one restored from the repository's snapshot, isolated, checked out at the
+// run's commit, then handed to the scheduler to run task groups through Turborepo.
+//
+// Every machine is born with a delete-after timer, so a controller that dies mid-run leaks nothing
+// for longer than an hour. A machine whose tasks passed is deleted; one with a failed task is paused
+// and kept for a day, so its disk can be inspected.
+
+import type { TaskNode } from "../core/graph.js";
+import type { TaskResult, Worker, WorkerPool } from "../core/scheduler.js";
+import { applyPatchScript, cleanOutputsScript, fetchScript, parseRunOutput, turboRunScript } from "./scripts.js";
+
+/** The part of the boxd SDK (`new Boxd()`) a pool uses. */
+export type BoxdLike = {
+  machines: {
+    create(p: {
+      name: string;
+      org?: string;
+      fromSnapshot: string;
+      isolated: boolean;
+      deleteAfter: number;
+      labels: Record<string, string>;
+    }): Promise<{ id: string; name: string }>;
+    waitUntilReady(id: string, p?: { timeout?: number }): Promise<unknown>;
+    exec(
+      id: string,
+      p: { command: string[]; env?: Record<string, string>; timeout?: number },
+    ): Promise<{ stdout: string; stderr: string; exitCode: number }>;
+    resize(id: string, p: { vcpu: number; memory: string }): Promise<unknown>;
+    pause(id: string): Promise<unknown>;
+    delete(id: string): Promise<void>;
+    setDeleteAfter(id: string, seconds: number): Promise<unknown>;
+    files: { upload(id: string, path: string, source: Uint8Array): Promise<number> };
+  };
+};
+
+export type PrepareSpec =
+  /** Check out a pushed commit. The token (a GitHub App installation token) reads private repositories. */
+  | { kind: "commit"; sha: string; fetchToken?: string }
+  /** Apply a working copy on top of a commit the snapshot already has (`boxd-ci run`). */
+  | { kind: "patch"; base: string; patch: Uint8Array };
+
+export type PoolOptions = {
+  snapshot: string;
+  org?: string;
+  /** The snapshot's vCPUs. A task asking for another size gets its machine resized. */
+  baseCpus: number;
+  /** The repository inside the snapshot. */
+  workdir: string;
+  prepare: PrepareSpec;
+  /** For every Turborepo run: the remote cache settings and CI=1. */
+  env: Record<string, string>;
+  runId: string;
+  /** What a group deletes before it runs. Default: the group's own declared outputs. */
+  outputsOf?: (tasks: TaskNode[]) => { dir: string; globs: string[] }[];
+  /** How long one group may run. Default 45 minutes. */
+  groupTimeoutMs?: number;
+};
+
+export type BoxWorker = Worker & {
+  /** The machine's boxd id. */
+  readonly machineId: string;
+  readonly cpus: number;
+  /** Runs a bash script on the machine. */
+  sh(script: string, o?: { env?: Record<string, string>; timeout?: number }): Promise<ExecOutput>;
+};
+
+/** A {@link WorkerPool} of boxd machines. */
+export type Pool = {
+  acquire(cpus?: number): Promise<BoxWorker>;
+  /** Hands a ready machine to the next acquire of its size (the planner's machine, for one). */
+  park(w: BoxWorker): void;
+  /** Deletes every machine that is still running. Afterwards acquire fails. */
+  drain(): Promise<void>;
+  /** How many machines this run has started. */
+  machines(): number;
+  /** The machines kept for debugging, by name. */
+  kept(): string[];
+};
+
+type ExecOutput = { stdout: string; stderr: string; exitCode: number };
+
+/** A machine lives at most this long after its last group started, whatever happens to the controller. */
+export const SAFETY_SECONDS = 3600;
+/** How long a machine with a failed task is kept. */
+export const KEEP_FAILED_SECONDS = 86_400;
+const PATCH_PATH = "/tmp/boxd-ci.patch";
+const MEMORY: Record<number, string> = { 1: "4G", 2: "8G", 4: "16G", 8: "32G" };
+
+const randomTag = () => Math.random().toString(36).slice(2, 6).padEnd(4, "0");
+
+export function createPool(boxd: BoxdLike, o: PoolOptions): Pool {
+  const m = boxd.machines;
+  const prefix = `bci-${o.runId.split("-").at(-1)?.slice(0, 7) ?? "run"}-${randomTag()}`;
+  const live = new Map<string, BoxWorker>(); // by machine id
+  const parked: BoxWorker[] = [];
+  const keptNames: string[] = [];
+  let created = 0;
+  let closed = false;
+  const outputsOf = o.outputsOf ?? ((tasks: TaskNode[]) => tasks.map((t) => ({ dir: t.dir, globs: t.outputs })));
+
+  const sh = (id: string, script: string, x: { env?: Record<string, string>; timeout?: number } = {}) =>
+    m.exec(id, {
+      command: ["bash", "-c", script],
+      ...(x.env ? { env: x.env } : {}),
+      ...(x.timeout ? { timeout: x.timeout } : {}),
+    });
+
+  const remove = async (id: string) => {
+    live.delete(id);
+    await m.delete(id).catch(() => {}); // the delete-after timer is the backstop
+  };
+
+  const prepare = async (id: string): Promise<void> => {
+    const p = o.prepare;
+    let out: ExecOutput;
+    if (p.kind === "commit") {
+      out = await sh(
+        id,
+        fetchScript(o.workdir, p.sha),
+        p.fetchToken ? { env: { BOXD_CI_FETCH_TOKEN: p.fetchToken } } : {},
+      );
+    } else {
+      await m.files.upload(id, PATCH_PATH, p.patch);
+      out = await sh(id, applyPatchScript(o.workdir, p.base, PATCH_PATH));
+    }
+    if (out.exitCode !== 0) {
+      const why = `${out.stderr}\n${out.stdout}`.trim().slice(-2000) || `exit code ${out.exitCode}`;
+      throw new Error(`checking out the run's code failed: ${why}`);
+    }
+  };
+
+  const worker = (id: string, name: string, cpus: number): BoxWorker => {
+    const w: BoxWorker = {
+      id: name,
+      machineId: id,
+      cpus,
+      sh: (script, x) => sh(id, script, x),
+      async run(tasks: TaskNode[]): Promise<TaskResult[]> {
+        const script = `${cleanOutputsScript(o.workdir, outputsOf(tasks))}; ${turboRunScript(o.workdir, tasks)}`;
+        try {
+          await m.setDeleteAfter(id, SAFETY_SECONDS);
+          const out = await sh(id, script, { env: o.env, timeout: o.groupTimeoutMs ?? 45 * 60_000 });
+          return parseRunOutput(`${out.stderr}\n${out.stdout}`, tasks, name);
+        } catch (e) {
+          const why = `the machine did not finish: ${(e as Error).message}`;
+          return tasks.map((t) => ({ id: t.id, status: "failed", seconds: 0, logTail: why, machine: name }));
+        }
+      },
+      async release({ failed }) {
+        if (!live.has(id)) return;
+        if (!failed) return remove(id);
+        live.delete(id);
+        keptNames.push(name);
+        await m.pause(id).catch(() => {});
+        await m.setDeleteAfter(id, KEEP_FAILED_SECONDS).catch(() => {});
+      },
+    };
+    return w;
+  };
+
+  const start = async (cpus: number): Promise<BoxWorker> => {
+    created += 1;
+    const name = `${prefix}-${created}`;
+    const machine = await m.create({
+      name,
+      ...(o.org ? { org: o.org } : {}),
+      fromSnapshot: o.snapshot,
+      isolated: true,
+      deleteAfter: SAFETY_SECONDS,
+      labels: { "boxd-ci": "worker", "boxd-ci/run": o.runId },
+    });
+    const w = worker(machine.id, name, cpus);
+    live.set(machine.id, w);
+    try {
+      if (closed) throw new Error("the run is over");
+      await m.waitUntilReady(machine.id);
+      if (cpus !== o.baseCpus) {
+        await m.resize(machine.id, { vcpu: cpus, memory: MEMORY[cpus] ?? "8G" });
+        await m.waitUntilReady(machine.id);
+      }
+      await prepare(machine.id);
+      if (closed) throw new Error("the run is over");
+      return w;
+    } catch (e) {
+      await remove(machine.id);
+      throw e;
+    }
+  };
+
+  return {
+    async acquire(cpus?: number) {
+      if (closed) throw new Error("the run is over");
+      const size = cpus ?? o.baseCpus;
+      const i = parked.findIndex((w) => w.cpus === size);
+      if (i >= 0) return parked.splice(i, 1)[0] as BoxWorker;
+      // A parked machine of another size would only idle: retire it so the run stays within its cap.
+      for (const w of parked.splice(0)) void w.release({ failed: false });
+      return start(size);
+    },
+    park(w) {
+      if (!closed && live.has(w.machineId)) parked.push(w);
+    },
+    async drain() {
+      closed = true;
+      parked.length = 0;
+      await Promise.all([...live.keys()].map(remove));
+    },
+    machines: () => created,
+    kept: () => [...keptNames],
+  };
+}

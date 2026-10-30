@@ -92,6 +92,7 @@ export async function plan(o: PlanOptions): Promise<Plan> {
         dependencies: t.dependencies,
         outputs: t.outputs,
         command: t.command,
+        ...(t.logFile ? { logFile: t.logFile } : {}),
       })),
     },
   };
