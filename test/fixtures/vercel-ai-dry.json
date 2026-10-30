@@ -1,0 +1,6522 @@
+{
+ "turboVersion": "2.11.10",
+ "monorepo": true,
+ "tasks": [
+  {
+   "taskId": "@ai-sdk/alibaba#build",
+   "task": "build",
+   "package": "@ai-sdk/alibaba",
+   "directory": "packages/alibaba",
+   "hash": "aed712f281d2da3a",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/alibaba#test",
+   "task": "test",
+   "package": "@ai-sdk/alibaba",
+   "directory": "packages/alibaba",
+   "hash": "dacdc9a5c3da8a06",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/alibaba#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/alibaba#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/alibaba",
+   "directory": "packages/alibaba",
+   "hash": "b4e7583a8a4b2a99",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/alibaba#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/amazon-bedrock#build",
+   "task": "build",
+   "package": "@ai-sdk/amazon-bedrock",
+   "directory": "packages/amazon-bedrock",
+   "hash": "ebf8c50129fcc67c",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/openai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/amazon-bedrock#test",
+   "task": "test",
+   "package": "@ai-sdk/amazon-bedrock",
+   "directory": "packages/amazon-bedrock",
+   "hash": "d9abd68bb9773412",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/amazon-bedrock#build",
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/openai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/amazon-bedrock#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/amazon-bedrock",
+   "directory": "packages/amazon-bedrock",
+   "hash": "6ac51319147a0777",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/amazon-bedrock#build",
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/openai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/angular#build",
+   "task": "build",
+   "package": "@ai-sdk/angular",
+   "directory": "packages/angular",
+   "hash": "9615b4fee5ede04d",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/angular#test",
+   "task": "test",
+   "package": "@ai-sdk/angular",
+   "directory": "packages/angular",
+   "hash": "1115c095ac1dc142",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/angular#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "vitest --config vitest.config.ts --run"
+  },
+  {
+   "taskId": "@ai-sdk/angular#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/angular",
+   "directory": "packages/angular",
+   "hash": "fe22512fc85812cb",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/angular#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/anthropic#build",
+   "task": "build",
+   "package": "@ai-sdk/anthropic",
+   "directory": "packages/anthropic",
+   "hash": "54457d9ef2ae5adc",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/anthropic#test",
+   "task": "test",
+   "package": "@ai-sdk/anthropic",
+   "directory": "packages/anthropic",
+   "hash": "8a192388fa569144",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/anthropic#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/anthropic",
+   "directory": "packages/anthropic",
+   "hash": "7992d6d33fd8ee43",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/anthropic-aws#build",
+   "task": "build",
+   "package": "@ai-sdk/anthropic-aws",
+   "directory": "packages/anthropic-aws",
+   "hash": "0c773768925ebed9",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/anthropic-aws#test",
+   "task": "test",
+   "package": "@ai-sdk/anthropic-aws",
+   "directory": "packages/anthropic-aws",
+   "hash": "cdd63347886059ea",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/anthropic-aws#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/anthropic-aws#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/anthropic-aws",
+   "directory": "packages/anthropic-aws",
+   "hash": "7f64c0f2d9293fdc",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/anthropic-aws#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/assemblyai#build",
+   "task": "build",
+   "package": "@ai-sdk/assemblyai",
+   "directory": "packages/assemblyai",
+   "hash": "83928c906aa5c465",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/assemblyai#test",
+   "task": "test",
+   "package": "@ai-sdk/assemblyai",
+   "directory": "packages/assemblyai",
+   "hash": "c374eaa3f24fb091",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/assemblyai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/assemblyai#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/assemblyai",
+   "directory": "packages/assemblyai",
+   "hash": "7c622769009bb000",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/assemblyai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/azure#build",
+   "task": "build",
+   "package": "@ai-sdk/azure",
+   "directory": "packages/azure",
+   "hash": "815a817fc669e756",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/deepseek#build",
+    "@ai-sdk/openai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/azure#test",
+   "task": "test",
+   "package": "@ai-sdk/azure",
+   "directory": "packages/azure",
+   "hash": "8eac92d70a6d48ab",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/azure#build",
+    "@ai-sdk/deepseek#build",
+    "@ai-sdk/openai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/azure#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/azure",
+   "directory": "packages/azure",
+   "hash": "dc8c01eaa3869c57",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/azure#build",
+    "@ai-sdk/deepseek#build",
+    "@ai-sdk/openai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/baseten#build",
+   "task": "build",
+   "package": "@ai-sdk/baseten",
+   "directory": "packages/baseten",
+   "hash": "a34d243dc58d8852",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/baseten#test",
+   "task": "test",
+   "package": "@ai-sdk/baseten",
+   "directory": "packages/baseten",
+   "hash": "5e3307604f06c5cf",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/baseten#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/baseten#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/baseten",
+   "directory": "packages/baseten",
+   "hash": "207da70483109757",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/baseten#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/black-forest-labs#build",
+   "task": "build",
+   "package": "@ai-sdk/black-forest-labs",
+   "directory": "packages/black-forest-labs",
+   "hash": "41c4be76ae686351",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/black-forest-labs#test",
+   "task": "test",
+   "package": "@ai-sdk/black-forest-labs",
+   "directory": "packages/black-forest-labs",
+   "hash": "a1369b937b5868a8",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/black-forest-labs#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/black-forest-labs#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/black-forest-labs",
+   "directory": "packages/black-forest-labs",
+   "hash": "4fdd98274105ce27",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/black-forest-labs#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/bytedance#build",
+   "task": "build",
+   "package": "@ai-sdk/bytedance",
+   "directory": "packages/bytedance",
+   "hash": "c6df722e0ab38c2a",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/bytedance#test",
+   "task": "test",
+   "package": "@ai-sdk/bytedance",
+   "directory": "packages/bytedance",
+   "hash": "524c0b369bdfd8d7",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/bytedance#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/bytedance#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/bytedance",
+   "directory": "packages/bytedance",
+   "hash": "21fad3dee966547a",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/bytedance#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/cartesia#build",
+   "task": "build",
+   "package": "@ai-sdk/cartesia",
+   "directory": "packages/cartesia",
+   "hash": "163f466d616e20fb",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/cartesia#test",
+   "task": "test",
+   "package": "@ai-sdk/cartesia",
+   "directory": "packages/cartesia",
+   "hash": "03147ac561fd6b03",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/cartesia#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/cartesia#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/cartesia",
+   "directory": "packages/cartesia",
+   "hash": "e87fc56e588cbd1e",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/cartesia#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --noEmit"
+  },
+  {
+   "taskId": "@ai-sdk/cerebras#build",
+   "task": "build",
+   "package": "@ai-sdk/cerebras",
+   "directory": "packages/cerebras",
+   "hash": "2e77abe5d31beb8f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/cerebras#test",
+   "task": "test",
+   "package": "@ai-sdk/cerebras",
+   "directory": "packages/cerebras",
+   "hash": "0b55172374821daa",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/cerebras#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/cerebras#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/cerebras",
+   "directory": "packages/cerebras",
+   "hash": "6b48f89b748ecef0",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/cerebras#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/code-mode#build",
+   "task": "build",
+   "package": "@ai-sdk/code-mode",
+   "directory": "packages/code-mode",
+   "hash": "ac7b759dc44330e4",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/code-mode#test",
+   "task": "test",
+   "package": "@ai-sdk/code-mode",
+   "directory": "packages/code-mode",
+   "hash": "15812d275abbea32",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/code-mode#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/code-mode#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/code-mode",
+   "directory": "packages/code-mode",
+   "hash": "d234e613eddef894",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/code-mode#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/codemod#build",
+   "task": "build",
+   "package": "@ai-sdk/codemod",
+   "directory": "packages/codemod",
+   "hash": "0245d43ae653c8fe",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/codemod#test",
+   "task": "test",
+   "package": "@ai-sdk/codemod",
+   "directory": "packages/codemod",
+   "hash": "fc0c258def8bfcb0",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/codemod#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "vitest --config vitest.config.ts --run"
+  },
+  {
+   "taskId": "@ai-sdk/codemod#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/codemod",
+   "directory": "packages/codemod",
+   "hash": "e0463fd3caeee29f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/codemod#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/cohere#build",
+   "task": "build",
+   "package": "@ai-sdk/cohere",
+   "directory": "packages/cohere",
+   "hash": "e68effa785d8eb28",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/cohere#test",
+   "task": "test",
+   "package": "@ai-sdk/cohere",
+   "directory": "packages/cohere",
+   "hash": "d116c3ed787a84b5",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/cohere#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/cohere#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/cohere",
+   "directory": "packages/cohere",
+   "hash": "fe97710a384b6ce9",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/cohere#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/deepgram#build",
+   "task": "build",
+   "package": "@ai-sdk/deepgram",
+   "directory": "packages/deepgram",
+   "hash": "2c40dd388c1a3be5",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/deepgram#test",
+   "task": "test",
+   "package": "@ai-sdk/deepgram",
+   "directory": "packages/deepgram",
+   "hash": "5d31f137f5b5931f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/deepgram#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/deepgram#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/deepgram",
+   "directory": "packages/deepgram",
+   "hash": "326eec5c46a08b7a",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/deepgram#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --noEmit"
+  },
+  {
+   "taskId": "@ai-sdk/deepinfra#build",
+   "task": "build",
+   "package": "@ai-sdk/deepinfra",
+   "directory": "packages/deepinfra",
+   "hash": "e37471fcfcd63d6f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/deepinfra#test",
+   "task": "test",
+   "package": "@ai-sdk/deepinfra",
+   "directory": "packages/deepinfra",
+   "hash": "a121efc5b22d1d4d",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/deepinfra#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/deepinfra#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/deepinfra",
+   "directory": "packages/deepinfra",
+   "hash": "82576e03aae1b013",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/deepinfra#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/deepseek#build",
+   "task": "build",
+   "package": "@ai-sdk/deepseek",
+   "directory": "packages/deepseek",
+   "hash": "68e38d63a0ab93de",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/deepseek#test",
+   "task": "test",
+   "package": "@ai-sdk/deepseek",
+   "directory": "packages/deepseek",
+   "hash": "a78188ba9670765c",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/deepseek#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/deepseek#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/deepseek",
+   "directory": "packages/deepseek",
+   "hash": "9042bba6c1b4e3d6",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/deepseek#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/devtools#build",
+   "task": "build",
+   "package": "@ai-sdk/devtools",
+   "directory": "packages/devtools",
+   "hash": "1e57e2db6c5af7a1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "pnpm build:client && pnpm build:server"
+  },
+  {
+   "taskId": "@ai-sdk/devtools#test",
+   "task": "test",
+   "package": "@ai-sdk/devtools",
+   "directory": "packages/devtools",
+   "hash": "c3b620689717ade5",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/devtools#build",
+    "@ai-sdk/provider#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:unit"
+  },
+  {
+   "taskId": "@ai-sdk/devtools#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/devtools",
+   "directory": "packages/devtools",
+   "hash": "d2f8d91894ba85be",
+   "cache": {
+    "local": false,
+    "remote": false,
+    "status": "MISS",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/devtools#build",
+    "@ai-sdk/provider#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "<NONEXISTENT>"
+  },
+  {
+   "taskId": "@ai-sdk/elevenlabs#build",
+   "task": "build",
+   "package": "@ai-sdk/elevenlabs",
+   "directory": "packages/elevenlabs",
+   "hash": "7e7504ae0ab0483e",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/elevenlabs#test",
+   "task": "test",
+   "package": "@ai-sdk/elevenlabs",
+   "directory": "packages/elevenlabs",
+   "hash": "c79a5f7b36ab0c9b",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/elevenlabs#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/elevenlabs#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/elevenlabs",
+   "directory": "packages/elevenlabs",
+   "hash": "dffd460b9c7571b1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/elevenlabs#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --noEmit"
+  },
+  {
+   "taskId": "@ai-sdk/fal#build",
+   "task": "build",
+   "package": "@ai-sdk/fal",
+   "directory": "packages/fal",
+   "hash": "b6973f749b182421",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/fal#test",
+   "task": "test",
+   "package": "@ai-sdk/fal",
+   "directory": "packages/fal",
+   "hash": "9c3e5a33416df1d7",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/fal#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/fal#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/fal",
+   "directory": "packages/fal",
+   "hash": "519dc376c273558f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/fal#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/fireworks#build",
+   "task": "build",
+   "package": "@ai-sdk/fireworks",
+   "directory": "packages/fireworks",
+   "hash": "b4978abcc7c2b5ac",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/fireworks#test",
+   "task": "test",
+   "package": "@ai-sdk/fireworks",
+   "directory": "packages/fireworks",
+   "hash": "2b2d79964af3558f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/fireworks#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/fireworks#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/fireworks",
+   "directory": "packages/fireworks",
+   "hash": "89bb5ce84bd413d7",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/fireworks#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/fish-audio#build",
+   "task": "build",
+   "package": "@ai-sdk/fish-audio",
+   "directory": "packages/fish-audio",
+   "hash": "bde9d8e893b78474",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/fish-audio#test",
+   "task": "test",
+   "package": "@ai-sdk/fish-audio",
+   "directory": "packages/fish-audio",
+   "hash": "9625bb5636cfd1b6",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/fish-audio#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/fish-audio#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/fish-audio",
+   "directory": "packages/fish-audio",
+   "hash": "aa663f30092177d3",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/fish-audio#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --noEmit"
+  },
+  {
+   "taskId": "@ai-sdk/gateway#build",
+   "task": "build",
+   "package": "@ai-sdk/gateway",
+   "directory": "packages/gateway",
+   "hash": "f0fdbdcfdf6f9ca0",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/gateway#test",
+   "task": "test",
+   "package": "@ai-sdk/gateway",
+   "directory": "packages/gateway",
+   "hash": "9c13c0ce4c846cd4",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/gateway#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/gateway#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/gateway",
+   "directory": "packages/gateway",
+   "hash": "9c28afc43ea11744",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/gateway#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/gladia#build",
+   "task": "build",
+   "package": "@ai-sdk/gladia",
+   "directory": "packages/gladia",
+   "hash": "b344a4a94f13054d",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/gladia#test",
+   "task": "test",
+   "package": "@ai-sdk/gladia",
+   "directory": "packages/gladia",
+   "hash": "0b66669500406a62",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/gladia#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/gladia#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/gladia",
+   "directory": "packages/gladia",
+   "hash": "a84beb49d632a3fc",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/gladia#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --noEmit"
+  },
+  {
+   "taskId": "@ai-sdk/gmicloud#build",
+   "task": "build",
+   "package": "@ai-sdk/gmicloud",
+   "directory": "packages/gmicloud",
+   "hash": "cc2a443c7f7c28d6",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/gmicloud#test",
+   "task": "test",
+   "package": "@ai-sdk/gmicloud",
+   "directory": "packages/gmicloud",
+   "hash": "cc783a51a17310d1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/gmicloud#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/gmicloud#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/gmicloud",
+   "directory": "packages/gmicloud",
+   "hash": "22905dccdc480141",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/gmicloud#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/google#build",
+   "task": "build",
+   "package": "@ai-sdk/google",
+   "directory": "packages/google",
+   "hash": "25c1489dba8021b1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/google#test",
+   "task": "test",
+   "package": "@ai-sdk/google",
+   "directory": "packages/google",
+   "hash": "cd687327f2fd9f53",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/google#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/google#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/google",
+   "directory": "packages/google",
+   "hash": "1f6abe0ea7f95313",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/google#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/google-vertex#build",
+   "task": "build",
+   "package": "@ai-sdk/google-vertex",
+   "directory": "packages/google-vertex",
+   "hash": "c587e331e9d14f22",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/google#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/google-vertex#test",
+   "task": "test",
+   "package": "@ai-sdk/google-vertex",
+   "directory": "packages/google-vertex",
+   "hash": "85392d5a1c4934dc",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/google#build",
+    "@ai-sdk/google-vertex#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/google-vertex#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/google-vertex",
+   "directory": "packages/google-vertex",
+   "hash": "7680259c398a5d7f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/google#build",
+    "@ai-sdk/google-vertex#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/groq#build",
+   "task": "build",
+   "package": "@ai-sdk/groq",
+   "directory": "packages/groq",
+   "hash": "d621d55de59df322",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/groq#test",
+   "task": "test",
+   "package": "@ai-sdk/groq",
+   "directory": "packages/groq",
+   "hash": "bf00add8be84a2ce",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/groq#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/groq#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/groq",
+   "directory": "packages/groq",
+   "hash": "257eb4a92c76c1df",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/groq#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness#build",
+   "task": "build",
+   "package": "@ai-sdk/harness",
+   "directory": "packages/harness",
+   "hash": "b618448b548a52d1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/otel#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/harness#test",
+   "task": "test",
+   "package": "@ai-sdk/harness",
+   "directory": "packages/harness",
+   "hash": "f911fbcc3fd876a9",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/otel#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/harness#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness",
+   "directory": "packages/harness",
+   "hash": "13b0ab191f341d14",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/otel#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness-acp#build",
+   "task": "build",
+   "package": "@ai-sdk/harness-acp",
+   "directory": "packages/harness-acp",
+   "hash": "b2a8221133896c6a",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown && pnpm copy-bridge-assets"
+  },
+  {
+   "taskId": "@ai-sdk/harness-acp#test",
+   "task": "test",
+   "package": "@ai-sdk/harness-acp",
+   "directory": "packages/harness-acp",
+   "hash": "d884ffbeb9bd8e24",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-acp#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/harness-acp#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness-acp",
+   "directory": "packages/harness-acp",
+   "hash": "8f70be5942fb8d64",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-acp#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness-claude-code#build",
+   "task": "build",
+   "package": "@ai-sdk/harness-claude-code",
+   "directory": "packages/harness-claude-code",
+   "hash": "51c89c9fa7a79066",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown && pnpm copy-bridge-assets"
+  },
+  {
+   "taskId": "@ai-sdk/harness-claude-code#test",
+   "task": "test",
+   "package": "@ai-sdk/harness-claude-code",
+   "directory": "packages/harness-claude-code",
+   "hash": "badf8cbe92f4d2b8",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-claude-code#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/harness-claude-code#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness-claude-code",
+   "directory": "packages/harness-claude-code",
+   "hash": "018c74ab25ee55c0",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-claude-code#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness-cline#build",
+   "task": "build",
+   "package": "@ai-sdk/harness-cline",
+   "directory": "packages/harness-cline",
+   "hash": "7617872d950852c4",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/harness-cline#test",
+   "task": "test",
+   "package": "@ai-sdk/harness-cline",
+   "directory": "packages/harness-cline",
+   "hash": "481e52884f3b4e30",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-cline#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/harness-cline#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness-cline",
+   "directory": "packages/harness-cline",
+   "hash": "8b270c82be6fd624",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-cline#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness-codex#build",
+   "task": "build",
+   "package": "@ai-sdk/harness-codex",
+   "directory": "packages/harness-codex",
+   "hash": "b3b80234bd01008d",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown && pnpm copy-bridge-assets"
+  },
+  {
+   "taskId": "@ai-sdk/harness-codex#test",
+   "task": "test",
+   "package": "@ai-sdk/harness-codex",
+   "directory": "packages/harness-codex",
+   "hash": "2c91eeba4ecb0f7a",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-codex#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/harness-codex#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness-codex",
+   "directory": "packages/harness-codex",
+   "hash": "5c145372ce3436ad",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-codex#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness-cursor#build",
+   "task": "build",
+   "package": "@ai-sdk/harness-cursor",
+   "directory": "packages/harness-cursor",
+   "hash": "c144e999436a9cc1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-acp#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/harness-cursor#test",
+   "task": "test",
+   "package": "@ai-sdk/harness-cursor",
+   "directory": "packages/harness-cursor",
+   "hash": "e9abd0844da5c373",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-acp#build",
+    "@ai-sdk/harness-cursor#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/harness-cursor#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness-cursor",
+   "directory": "packages/harness-cursor",
+   "hash": "898120ec2f510b77",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-acp#build",
+    "@ai-sdk/harness-cursor#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness-deepagents#build",
+   "task": "build",
+   "package": "@ai-sdk/harness-deepagents",
+   "directory": "packages/harness-deepagents",
+   "hash": "98cc894ac11fccb0",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown && pnpm copy-bridge-assets"
+  },
+  {
+   "taskId": "@ai-sdk/harness-deepagents#test",
+   "task": "test",
+   "package": "@ai-sdk/harness-deepagents",
+   "directory": "packages/harness-deepagents",
+   "hash": "3e43f1e0c551ab0f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-deepagents#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/harness-deepagents#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness-deepagents",
+   "directory": "packages/harness-deepagents",
+   "hash": "c6d03a2f52c9f56d",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-deepagents#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness-fx#build",
+   "task": "build",
+   "package": "@ai-sdk/harness-fx",
+   "directory": "packages/harness-fx",
+   "hash": "97d17495b4c97398",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/mcp#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/harness-fx#test",
+   "task": "test",
+   "package": "@ai-sdk/harness-fx",
+   "directory": "packages/harness-fx",
+   "hash": "7e687fd26aae6ec0",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-fx#build",
+    "@ai-sdk/mcp#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/harness-fx#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness-fx",
+   "directory": "packages/harness-fx",
+   "hash": "bfd1c91e3f2aca34",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-fx#build",
+    "@ai-sdk/mcp#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness-github-copilot#build",
+   "task": "build",
+   "package": "@ai-sdk/harness-github-copilot",
+   "directory": "packages/harness-github-copilot",
+   "hash": "ed1b80bd23706c81",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-acp#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/harness-github-copilot#test",
+   "task": "test",
+   "package": "@ai-sdk/harness-github-copilot",
+   "directory": "packages/harness-github-copilot",
+   "hash": "511749849801f8ed",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-acp#build",
+    "@ai-sdk/harness-github-copilot#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/harness-github-copilot#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness-github-copilot",
+   "directory": "packages/harness-github-copilot",
+   "hash": "de9b9ea098134a01",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-acp#build",
+    "@ai-sdk/harness-github-copilot#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness-grok-build#build",
+   "task": "build",
+   "package": "@ai-sdk/harness-grok-build",
+   "directory": "packages/harness-grok-build",
+   "hash": "83b6c64a79f08fcb",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-acp#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/harness-grok-build#test",
+   "task": "test",
+   "package": "@ai-sdk/harness-grok-build",
+   "directory": "packages/harness-grok-build",
+   "hash": "3ecbf46f16feb61b",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-acp#build",
+    "@ai-sdk/harness-grok-build#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/harness-grok-build#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness-grok-build",
+   "directory": "packages/harness-grok-build",
+   "hash": "7a1c249f303636d2",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-acp#build",
+    "@ai-sdk/harness-grok-build#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness-opencode#build",
+   "task": "build",
+   "package": "@ai-sdk/harness-opencode",
+   "directory": "packages/harness-opencode",
+   "hash": "49c9c948c4450526",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown && pnpm copy-bridge-assets"
+  },
+  {
+   "taskId": "@ai-sdk/harness-opencode#test",
+   "task": "test",
+   "package": "@ai-sdk/harness-opencode",
+   "directory": "packages/harness-opencode",
+   "hash": "608d64eb386ecd7c",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness-opencode#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/harness-opencode#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness-opencode",
+   "directory": "packages/harness-opencode",
+   "hash": "422936d922fecb6f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-opencode#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/harness-pi#build",
+   "task": "build",
+   "package": "@ai-sdk/harness-pi",
+   "directory": "packages/harness-pi",
+   "hash": "4192068e724d4456",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/sandbox-just-bash#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/harness-pi#test",
+   "task": "test",
+   "package": "@ai-sdk/harness-pi",
+   "directory": "packages/harness-pi",
+   "hash": "45cb75e6ff79d407",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-pi#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/sandbox-just-bash#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/harness-pi#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/harness-pi",
+   "directory": "packages/harness-pi",
+   "hash": "fbba127fb7c2ebad",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/harness-pi#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/sandbox-just-bash#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/heygen#build",
+   "task": "build",
+   "package": "@ai-sdk/heygen",
+   "directory": "packages/heygen",
+   "hash": "bf60027dd19dab0b",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/heygen#test",
+   "task": "test",
+   "package": "@ai-sdk/heygen",
+   "directory": "packages/heygen",
+   "hash": "5a1c991cd90fd91f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/heygen#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/heygen#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/heygen",
+   "directory": "packages/heygen",
+   "hash": "8208a36f606e36f1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/heygen#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/huggingface#build",
+   "task": "build",
+   "package": "@ai-sdk/huggingface",
+   "directory": "packages/huggingface",
+   "hash": "99181b968ea572aa",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/huggingface#test",
+   "task": "test",
+   "package": "@ai-sdk/huggingface",
+   "directory": "packages/huggingface",
+   "hash": "5a719d6b16104965",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/huggingface#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/huggingface#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/huggingface",
+   "directory": "packages/huggingface",
+   "hash": "54700a754620d54b",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/huggingface#build",
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/hume#build",
+   "task": "build",
+   "package": "@ai-sdk/hume",
+   "directory": "packages/hume",
+   "hash": "580f2f0401aa1e96",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/hume#test",
+   "task": "test",
+   "package": "@ai-sdk/hume",
+   "directory": "packages/hume",
+   "hash": "ffd02831cb325eee",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/hume#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/hume#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/hume",
+   "directory": "packages/hume",
+   "hash": "7e41a6854c84008a",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/hume#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --noEmit"
+  },
+  {
+   "taskId": "@ai-sdk/klingai#build",
+   "task": "build",
+   "package": "@ai-sdk/klingai",
+   "directory": "packages/klingai",
+   "hash": "e3a6fe7a39634ffe",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/klingai#test",
+   "task": "test",
+   "package": "@ai-sdk/klingai",
+   "directory": "packages/klingai",
+   "hash": "729162f052e98b40",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/klingai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/klingai#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/klingai",
+   "directory": "packages/klingai",
+   "hash": "e9a962eba68f02c1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/klingai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/langchain#build",
+   "task": "build",
+   "package": "@ai-sdk/langchain",
+   "directory": "packages/langchain",
+   "hash": "47492657df9a7f28",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/langchain#test",
+   "task": "test",
+   "package": "@ai-sdk/langchain",
+   "directory": "packages/langchain",
+   "hash": "018b844fbd2e7456",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/langchain#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/langchain#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/langchain",
+   "directory": "packages/langchain",
+   "hash": "802ebf18973feeab",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/langchain#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/llamaindex#build",
+   "task": "build",
+   "package": "@ai-sdk/llamaindex",
+   "directory": "packages/llamaindex",
+   "hash": "5c72586ffcebe337",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/llamaindex#test",
+   "task": "test",
+   "package": "@ai-sdk/llamaindex",
+   "directory": "packages/llamaindex",
+   "hash": "4d83778ddb2cfbd0",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/llamaindex#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/llamaindex#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/llamaindex",
+   "directory": "packages/llamaindex",
+   "hash": "5c897f4b7ab2448c",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/llamaindex#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/luma#build",
+   "task": "build",
+   "package": "@ai-sdk/luma",
+   "directory": "packages/luma",
+   "hash": "29fddf99de5f721f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/luma#test",
+   "task": "test",
+   "package": "@ai-sdk/luma",
+   "directory": "packages/luma",
+   "hash": "0312496b2aa4b251",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/luma#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/luma#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/luma",
+   "directory": "packages/luma",
+   "hash": "6fcb283fd143044f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/luma#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/mcp#build",
+   "task": "build",
+   "package": "@ai-sdk/mcp",
+   "directory": "packages/mcp",
+   "hash": "c23e473d827edfbb",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/mcp#test",
+   "task": "test",
+   "package": "@ai-sdk/mcp",
+   "directory": "packages/mcp",
+   "hash": "3dba71ff4c6d33d8",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/mcp#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/mcp#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/mcp",
+   "directory": "packages/mcp",
+   "hash": "13130febed4e18a2",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/mcp#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/minimax#build",
+   "task": "build",
+   "package": "@ai-sdk/minimax",
+   "directory": "packages/minimax",
+   "hash": "28a484a43ee6a82a",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/minimax#test",
+   "task": "test",
+   "package": "@ai-sdk/minimax",
+   "directory": "packages/minimax",
+   "hash": "6638a2327c50097b",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/minimax#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/minimax#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/minimax",
+   "directory": "packages/minimax",
+   "hash": "4bb2e27ee1f2599b",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/anthropic#build",
+    "@ai-sdk/minimax#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/mistral#build",
+   "task": "build",
+   "package": "@ai-sdk/mistral",
+   "directory": "packages/mistral",
+   "hash": "59976c62c81958db",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/mistral#test",
+   "task": "test",
+   "package": "@ai-sdk/mistral",
+   "directory": "packages/mistral",
+   "hash": "35233351ab80a6f7",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/mistral#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/mistral#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/mistral",
+   "directory": "packages/mistral",
+   "hash": "944f6e6c13df90a0",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/mistral#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/moonshotai#build",
+   "task": "build",
+   "package": "@ai-sdk/moonshotai",
+   "directory": "packages/moonshotai",
+   "hash": "2c764258ebf5c4b1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/moonshotai#test",
+   "task": "test",
+   "package": "@ai-sdk/moonshotai",
+   "directory": "packages/moonshotai",
+   "hash": "39ec26f9bcb326e0",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/moonshotai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/moonshotai#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/moonshotai",
+   "directory": "packages/moonshotai",
+   "hash": "97b4be4ecd1308f7",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/moonshotai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/open-responses#build",
+   "task": "build",
+   "package": "@ai-sdk/open-responses",
+   "directory": "packages/open-responses",
+   "hash": "571836abe94a40e1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/open-responses#test",
+   "task": "test",
+   "package": "@ai-sdk/open-responses",
+   "directory": "packages/open-responses",
+   "hash": "2f1857b4575a027c",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/open-responses#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/open-responses#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/open-responses",
+   "directory": "packages/open-responses",
+   "hash": "6ccc06cf918304a0",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/open-responses#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/openai#build",
+   "task": "build",
+   "package": "@ai-sdk/openai",
+   "directory": "packages/openai",
+   "hash": "07b8d2a6ce481fd6",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/openai#test",
+   "task": "test",
+   "package": "@ai-sdk/openai",
+   "directory": "packages/openai",
+   "hash": "cd066528c6519bfd",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/openai#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/openai",
+   "directory": "packages/openai",
+   "hash": "d81a6c84df000f4b",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/openai-compatible#build",
+   "task": "build",
+   "package": "@ai-sdk/openai-compatible",
+   "directory": "packages/openai-compatible",
+   "hash": "18a71710298c364f",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/openai-compatible#test",
+   "task": "test",
+   "package": "@ai-sdk/openai-compatible",
+   "directory": "packages/openai-compatible",
+   "hash": "c40fc4b347240519",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/openai-compatible#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/openai-compatible",
+   "directory": "packages/openai-compatible",
+   "hash": "dca265915c586d50",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/otel#build",
+   "task": "build",
+   "package": "@ai-sdk/otel",
+   "directory": "packages/otel",
+   "hash": "ab0e2010ab42a4a3",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/otel#test",
+   "task": "test",
+   "package": "@ai-sdk/otel",
+   "directory": "packages/otel",
+   "hash": "3f7b073bbebe38e4",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/otel#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "vitest --config vitest.node.config.js --run"
+  },
+  {
+   "taskId": "@ai-sdk/otel#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/otel",
+   "directory": "packages/otel",
+   "hash": "fac6144b59646ea7",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/otel#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/perplexity#build",
+   "task": "build",
+   "package": "@ai-sdk/perplexity",
+   "directory": "packages/perplexity",
+   "hash": "2e8d4a0a02a66c03",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/perplexity#test",
+   "task": "test",
+   "package": "@ai-sdk/perplexity",
+   "directory": "packages/perplexity",
+   "hash": "af28742dcbdcd68a",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/perplexity#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/perplexity#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/perplexity",
+   "directory": "packages/perplexity",
+   "hash": "23dc06b498447403",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/perplexity#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/policy-opa#build",
+   "task": "build",
+   "package": "@ai-sdk/policy-opa",
+   "directory": "packages/policy-opa",
+   "hash": "9a68527273a1db3c",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/policy-opa#test",
+   "task": "test",
+   "package": "@ai-sdk/policy-opa",
+   "directory": "packages/policy-opa",
+   "hash": "d6f1803031ea4a60",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/policy-opa#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/policy-opa#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/policy-opa",
+   "directory": "packages/policy-opa",
+   "hash": "ad2451f536159efa",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/policy-opa#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/prodia#build",
+   "task": "build",
+   "package": "@ai-sdk/prodia",
+   "directory": "packages/prodia",
+   "hash": "0a369de785e95658",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/prodia#test",
+   "task": "test",
+   "package": "@ai-sdk/prodia",
+   "directory": "packages/prodia",
+   "hash": "6bc68599b4a9a34b",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/prodia#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/prodia#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/prodia",
+   "directory": "packages/prodia",
+   "hash": "3b7cb5bd27cc0ed3",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/prodia#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/provider#build",
+   "task": "build",
+   "package": "@ai-sdk/provider",
+   "directory": "packages/provider",
+   "hash": "a4ec34c3a3c86452",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/provider#test",
+   "task": "test",
+   "package": "@ai-sdk/provider",
+   "directory": "packages/provider",
+   "hash": "6a4a6059dc1600bf",
+   "cache": {
+    "local": false,
+    "remote": false,
+    "status": "MISS",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "<NONEXISTENT>"
+  },
+  {
+   "taskId": "@ai-sdk/provider#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/provider",
+   "directory": "packages/provider",
+   "hash": "44683074b8bc13cb",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/provider-utils#build",
+   "task": "build",
+   "package": "@ai-sdk/provider-utils",
+   "directory": "packages/provider-utils",
+   "hash": "a3d925aa12a63c87",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/provider-utils#test",
+   "task": "test",
+   "package": "@ai-sdk/provider-utils",
+   "directory": "packages/provider-utils",
+   "hash": "182aebb5d7b1a61e",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/provider-utils#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/provider-utils",
+   "directory": "packages/provider-utils",
+   "hash": "4a64614ef563f48d",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/quiverai#build",
+   "task": "build",
+   "package": "@ai-sdk/quiverai",
+   "directory": "packages/quiverai",
+   "hash": "ef6c698541bddb80",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/open-responses#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/quiverai#test",
+   "task": "test",
+   "package": "@ai-sdk/quiverai",
+   "directory": "packages/quiverai",
+   "hash": "5e95ad2c555c8d73",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/open-responses#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/quiverai#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/quiverai#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/quiverai",
+   "directory": "packages/quiverai",
+   "hash": "06cca91c4609f6df",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/open-responses#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/quiverai#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/react#build",
+   "task": "build",
+   "package": "@ai-sdk/react",
+   "directory": "packages/react",
+   "hash": "972862d23f13ad2c",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/mcp#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/react#test",
+   "task": "test",
+   "package": "@ai-sdk/react",
+   "directory": "packages/react",
+   "hash": "6d84dc001965ea35",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/mcp#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/react#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "vitest --config vitest.config.js --run"
+  },
+  {
+   "taskId": "@ai-sdk/react#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/react",
+   "directory": "packages/react",
+   "hash": "b9c340a647b233a5",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/mcp#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/react#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/replicate#build",
+   "task": "build",
+   "package": "@ai-sdk/replicate",
+   "directory": "packages/replicate",
+   "hash": "1a3a4b0d9dae58c7",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/replicate#test",
+   "task": "test",
+   "package": "@ai-sdk/replicate",
+   "directory": "packages/replicate",
+   "hash": "a53cc062026b4b87",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/replicate#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/replicate#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/replicate",
+   "directory": "packages/replicate",
+   "hash": "81b42f28294e0b00",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/replicate#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/revai#build",
+   "task": "build",
+   "package": "@ai-sdk/revai",
+   "directory": "packages/revai",
+   "hash": "67ad41778b0cb052",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/revai#test",
+   "task": "test",
+   "package": "@ai-sdk/revai",
+   "directory": "packages/revai",
+   "hash": "6684e1e9dfb941fa",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/revai#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/revai#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/revai",
+   "directory": "packages/revai",
+   "hash": "3bf40e3404a835aa",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/revai#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --noEmit"
+  },
+  {
+   "taskId": "@ai-sdk/rsc#build",
+   "task": "build",
+   "package": "@ai-sdk/rsc",
+   "directory": "packages/rsc",
+   "hash": "b2ab8661ee4f12c6",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/rsc#test",
+   "task": "test",
+   "package": "@ai-sdk/rsc",
+   "directory": "packages/rsc",
+   "hash": "b50b970dca449a8b",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/rsc#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:ui && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/rsc#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/rsc",
+   "directory": "packages/rsc",
+   "hash": "264dad9a24b3663d",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/rsc#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --noEmit"
+  },
+  {
+   "taskId": "@ai-sdk/sandbox-just-bash#build",
+   "task": "build",
+   "package": "@ai-sdk/sandbox-just-bash",
+   "directory": "packages/sandbox-just-bash",
+   "hash": "332b86cc8f5ec867",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/sandbox-just-bash#test",
+   "task": "test",
+   "package": "@ai-sdk/sandbox-just-bash",
+   "directory": "packages/sandbox-just-bash",
+   "hash": "7f7a3dc5fdd3f92c",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/sandbox-just-bash#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/sandbox-just-bash#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/sandbox-just-bash",
+   "directory": "packages/sandbox-just-bash",
+   "hash": "fc870baf1c1072a1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/sandbox-just-bash#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/sandbox-vercel#build",
+   "task": "build",
+   "package": "@ai-sdk/sandbox-vercel",
+   "directory": "packages/sandbox-vercel",
+   "hash": "265f209c904e4202",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/sandbox-vercel#test",
+   "task": "test",
+   "package": "@ai-sdk/sandbox-vercel",
+   "directory": "packages/sandbox-vercel",
+   "hash": "8ae5ff48ca7dbdbb",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/sandbox-vercel#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/sandbox-vercel#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/sandbox-vercel",
+   "directory": "packages/sandbox-vercel",
+   "hash": "3629274041c2fe9e",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/sandbox-vercel#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/svelte#build",
+   "task": "build",
+   "package": "@ai-sdk/svelte",
+   "directory": "packages/svelte",
+   "hash": "3bbcf5a11450b416",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "ai#build"
+   ],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "pnpm prepack"
+  },
+  {
+   "taskId": "@ai-sdk/svelte#test",
+   "task": "test",
+   "package": "@ai-sdk/svelte",
+   "directory": "packages/svelte",
+   "hash": "d913ecb345199add",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/svelte#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "vitest --run"
+  },
+  {
+   "taskId": "@ai-sdk/svelte#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/svelte",
+   "directory": "packages/svelte",
+   "hash": "55e7d1df97f152bc",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/svelte#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  {
+   "taskId": "@ai-sdk/test-server#build",
+   "task": "build",
+   "package": "@ai-sdk/test-server",
+   "directory": "packages/test-server",
+   "hash": "693fd959fd71c5da",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/test-server#test",
+   "task": "test",
+   "package": "@ai-sdk/test-server",
+   "directory": "packages/test-server",
+   "hash": "0354fc870eaba987",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/test-server#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/test-server",
+   "directory": "packages/test-server",
+   "hash": "0faf66f009e8998c",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/togetherai#build",
+   "task": "build",
+   "package": "@ai-sdk/togetherai",
+   "directory": "packages/togetherai",
+   "hash": "5a78bf8aa9012eaf",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/togetherai#test",
+   "task": "test",
+   "package": "@ai-sdk/togetherai",
+   "directory": "packages/togetherai",
+   "hash": "86145901f316d67b",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/togetherai#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/togetherai#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/togetherai",
+   "directory": "packages/togetherai",
+   "hash": "38cd42f7e1ffc347",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/togetherai#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/tool-bash#build",
+   "task": "build",
+   "package": "@ai-sdk/tool-bash",
+   "directory": "packages/tool-bash",
+   "hash": "a6f52727e0477d2d",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/sandbox-just-bash#build",
+    "@ai-sdk/sandbox-vercel#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/tool-bash#test",
+   "task": "test",
+   "package": "@ai-sdk/tool-bash",
+   "directory": "packages/tool-bash",
+   "hash": "d4e7b30ca4291cf1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/sandbox-just-bash#build",
+    "@ai-sdk/sandbox-vercel#build",
+    "@ai-sdk/tool-bash#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/tool-bash#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/tool-bash",
+   "directory": "packages/tool-bash",
+   "hash": "489ffa923053dadc",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/sandbox-just-bash#build",
+    "@ai-sdk/sandbox-vercel#build",
+    "@ai-sdk/tool-bash#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/tool-web-fetch#build",
+   "task": "build",
+   "package": "@ai-sdk/tool-web-fetch",
+   "directory": "packages/tool-web-fetch",
+   "hash": "23b727c733f6b300",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/tool-web-fetch#test",
+   "task": "test",
+   "package": "@ai-sdk/tool-web-fetch",
+   "directory": "packages/tool-web-fetch",
+   "hash": "9ca8456ec6aa13be",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/tool-web-fetch#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/tool-web-fetch#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/tool-web-fetch",
+   "directory": "packages/tool-web-fetch",
+   "hash": "2dcf6d66d9a760d8",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/tool-web-fetch#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/topaz#build",
+   "task": "build",
+   "package": "@ai-sdk/topaz",
+   "directory": "packages/topaz",
+   "hash": "9ad8594cdb5558c0",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/topaz#test",
+   "task": "test",
+   "package": "@ai-sdk/topaz",
+   "directory": "packages/topaz",
+   "hash": "7948349dfa2804cd",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/topaz#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/topaz#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/topaz",
+   "directory": "packages/topaz",
+   "hash": "25336ac994ef3bed",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/topaz#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/tui#build",
+   "task": "build",
+   "package": "@ai-sdk/tui",
+   "directory": "packages/tui",
+   "hash": "ed17caaa78398df2",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/tui#test",
+   "task": "test",
+   "package": "@ai-sdk/tui",
+   "directory": "packages/tui",
+   "hash": "5befae1bcc834c75",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/tui#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "vitest --config vitest.node.config.js --run"
+  },
+  {
+   "taskId": "@ai-sdk/tui#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/tui",
+   "directory": "packages/tui",
+   "hash": "06f7325460baa5ff",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/tui#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/typesafe-ai#build",
+   "task": "build",
+   "package": "@ai-sdk/typesafe-ai",
+   "directory": "packages/typesafe-ai",
+   "hash": "07f744fb58cc6505",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/typesafe-ai#test",
+   "task": "test",
+   "package": "@ai-sdk/typesafe-ai",
+   "directory": "packages/typesafe-ai",
+   "hash": "33f6a7e16629abc4",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/typesafe-ai#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/typesafe-ai#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/typesafe-ai",
+   "directory": "packages/typesafe-ai",
+   "hash": "98c6981b08e45094",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/typesafe-ai#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/valibot#build",
+   "task": "build",
+   "package": "@ai-sdk/valibot",
+   "directory": "packages/valibot",
+   "hash": "71a7986214ddccbd",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/valibot#test",
+   "task": "test",
+   "package": "@ai-sdk/valibot",
+   "directory": "packages/valibot",
+   "hash": "90776eed73abcd55",
+   "cache": {
+    "local": false,
+    "remote": false,
+    "status": "MISS",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/valibot#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "<NONEXISTENT>"
+  },
+  {
+   "taskId": "@ai-sdk/valibot#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/valibot",
+   "directory": "packages/valibot",
+   "hash": "4ab76899fe4bad50",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/valibot#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/voyage#build",
+   "task": "build",
+   "package": "@ai-sdk/voyage",
+   "directory": "packages/voyage",
+   "hash": "65b45af01661a99a",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/voyage#test",
+   "task": "test",
+   "package": "@ai-sdk/voyage",
+   "directory": "packages/voyage",
+   "hash": "2deb8080db5f0445",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/voyage#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/voyage#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/voyage",
+   "directory": "packages/voyage",
+   "hash": "c0abfc607d9d045b",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/voyage#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/vue#build",
+   "task": "build",
+   "package": "@ai-sdk/vue",
+   "directory": "packages/vue",
+   "hash": "d54a3264ee2e4555",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/vue#test",
+   "task": "test",
+   "package": "@ai-sdk/vue",
+   "directory": "packages/vue",
+   "hash": "7d8830caf9455e4c",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/vue#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "vitest --config vitest.config.js --run"
+  },
+  {
+   "taskId": "@ai-sdk/vue#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/vue",
+   "directory": "packages/vue",
+   "hash": "8f23e90b0a1a07e6",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/vue#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/workflow#build",
+   "task": "build",
+   "package": "@ai-sdk/workflow",
+   "directory": "packages/workflow",
+   "hash": "d676ca16fff60371",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/otel#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/workflow#test",
+   "task": "test",
+   "package": "@ai-sdk/workflow",
+   "directory": "packages/workflow",
+   "hash": "b5c1017461d31c57",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/otel#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/workflow#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/workflow#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/workflow",
+   "directory": "packages/workflow",
+   "hash": "52eda448b4c9751d",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/otel#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/workflow#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/workflow-harness#build",
+   "task": "build",
+   "package": "@ai-sdk/workflow-harness",
+   "directory": "packages/workflow-harness",
+   "hash": "8a399f96e166b0df",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/workflow-harness#test",
+   "task": "test",
+   "package": "@ai-sdk/workflow-harness",
+   "directory": "packages/workflow-harness",
+   "hash": "1ef9d40b10aba2ef",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/workflow-harness#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node"
+  },
+  {
+   "taskId": "@ai-sdk/workflow-harness#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/workflow-harness",
+   "directory": "packages/workflow-harness",
+   "hash": "91b757b648110ad2",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/harness#build",
+    "@ai-sdk/workflow-harness#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/xai#build",
+   "task": "build",
+   "package": "@ai-sdk/xai",
+   "directory": "packages/xai",
+   "hash": "dbccd2134d2b8f34",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/xai#test",
+   "task": "test",
+   "package": "@ai-sdk/xai",
+   "directory": "packages/xai",
+   "hash": "c6ccac106447ebd9",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/xai#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/xai#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/xai",
+   "directory": "packages/xai",
+   "hash": "848b936246eeedf1",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/xai#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@ai-sdk/zai#build",
+   "task": "build",
+   "package": "@ai-sdk/zai",
+   "directory": "packages/zai",
+   "hash": "e32b4128417f58e4",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "@ai-sdk/zai#test",
+   "task": "test",
+   "package": "@ai-sdk/zai",
+   "directory": "packages/zai",
+   "hash": "dff949a1796062d9",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/zai#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "@ai-sdk/zai#type-check",
+   "task": "type-check",
+   "package": "@ai-sdk/zai",
+   "directory": "packages/zai",
+   "hash": "c5174b3e0c3c87fb",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/openai-compatible#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/zai#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  },
+  {
+   "taskId": "@vercel/ai-tsconfig#build",
+   "task": "build",
+   "package": "@vercel/ai-tsconfig",
+   "directory": "tools/tsconfig",
+   "hash": "3958b019a1ef288d",
+   "cache": {
+    "local": false,
+    "remote": false,
+    "status": "MISS",
+    "timeSaved": 0
+   },
+   "dependencies": [],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "<NONEXISTENT>"
+  },
+  {
+   "taskId": "@vercel/ai-tsdown-config#build",
+   "task": "build",
+   "package": "@vercel/ai-tsdown-config",
+   "directory": "tools/tsdown-config",
+   "hash": "33af83cea2b98575",
+   "cache": {
+    "local": false,
+    "remote": false,
+    "status": "MISS",
+    "timeSaved": 0
+   },
+   "dependencies": [],
+   "outputs": [
+    ".next/**",
+    ".nuxt/**",
+    ".svelte-kit/**",
+    ".vinxi/**",
+    "dist/**"
+   ],
+   "excludedOutputs": [
+    ".next/cache/**"
+   ],
+   "command": "<NONEXISTENT>"
+  },
+  {
+   "taskId": "ai#build",
+   "task": "build",
+   "package": "ai",
+   "directory": "packages/ai",
+   "hash": "44513cc124708b6d",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/amazon-bedrock#build",
+    "@ai-sdk/deepseek#build",
+    "@ai-sdk/gateway#build",
+    "@ai-sdk/google#build",
+    "@ai-sdk/groq#build",
+    "@ai-sdk/huggingface#build",
+    "@ai-sdk/moonshotai#build",
+    "@ai-sdk/openai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/xai#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build"
+   ],
+   "outputs": [
+    "**/dist/**"
+   ],
+   "excludedOutputs": null,
+   "command": "pnpm clean && tsdown"
+  },
+  {
+   "taskId": "ai#test",
+   "task": "test",
+   "package": "ai",
+   "directory": "packages/ai",
+   "hash": "9d292f71c19a6bac",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/amazon-bedrock#build",
+    "@ai-sdk/deepseek#build",
+    "@ai-sdk/gateway#build",
+    "@ai-sdk/google#build",
+    "@ai-sdk/groq#build",
+    "@ai-sdk/huggingface#build",
+    "@ai-sdk/moonshotai#build",
+    "@ai-sdk/openai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/xai#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "pnpm test:node && pnpm test:edge"
+  },
+  {
+   "taskId": "ai#type-check",
+   "task": "type-check",
+   "package": "ai",
+   "directory": "packages/ai",
+   "hash": "270ecb79334073d5",
+   "cache": {
+    "local": false,
+    "remote": true,
+    "status": "HIT",
+    "source": "REMOTE",
+    "timeSaved": 0
+   },
+   "dependencies": [
+    "@ai-sdk/amazon-bedrock#build",
+    "@ai-sdk/deepseek#build",
+    "@ai-sdk/gateway#build",
+    "@ai-sdk/google#build",
+    "@ai-sdk/groq#build",
+    "@ai-sdk/huggingface#build",
+    "@ai-sdk/moonshotai#build",
+    "@ai-sdk/openai#build",
+    "@ai-sdk/provider#build",
+    "@ai-sdk/provider-utils#build",
+    "@ai-sdk/test-server#build",
+    "@ai-sdk/xai#build",
+    "@vercel/ai-tsconfig#build",
+    "@vercel/ai-tsdown-config#build",
+    "ai#build"
+   ],
+   "outputs": null,
+   "excludedOutputs": null,
+   "command": "tsc --build"
+  }
+ ]
+}
