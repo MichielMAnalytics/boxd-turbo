@@ -45,6 +45,7 @@ npx tsx scripts/charts.ts        # redraws assets/ from the results
 
 - One repository. `vercel/ai` is a TypeScript monorepo with many small packages and one large one,
   which suits per-task machines. A repository with a few long tasks gains less.
-- The Vercel CI lane ran on 2026-10-29 and boxd CI on 2026-10-30, against the same commit.
+- The Vercel CI lane ran on 2026-10-29 in its own copy of the repository, and boxd CI on 2026-10-30.
+  Both start from `vercel/ai` at `dfed8e8` with the same `ci` tags.
 - Both sides had a warm cache for everything the push did not touch, which is the everyday case.
 - Times include GitHub's own delay in delivering the push event, on both sides.

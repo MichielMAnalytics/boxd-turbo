@@ -1,0 +1,2000 @@
+{
+ "id": "20261030-171424-980e1c9",
+ "repo": "azin-tech/bench-ai",
+ "sha": "980e1c93d7ab02f14dd8c5167c2bb7fcda3a561a",
+ "ref": "bench-core",
+ "trigger": "push",
+ "startedAt": "2026-10-30T17:14:24.470Z",
+ "status": "success",
+ "results": [
+  {
+   "id": "@ai-sdk/provider#build",
+   "status": "restored",
+   "seconds": 0,
+   "logTail": ""
+  },
+  {
+   "id": "@ai-sdk/provider-utils#build",
+   "status": "ran",
+   "seconds": 4.93,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-1",
+   "at": 2.3
+  },
+  {
+   "id": "@ai-sdk/test-server#build",
+   "status": "restored",
+   "seconds": 0,
+   "logTail": ""
+  },
+  {
+   "id": "@ai-sdk/alibaba#build",
+   "status": "ran",
+   "seconds": 4.503,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-12",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/alibaba#test",
+   "status": "ran",
+   "seconds": 8.954,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-5",
+   "at": 28.2
+  },
+  {
+   "id": "@ai-sdk/alibaba#type-check",
+   "status": "ran",
+   "seconds": 9.174,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-16",
+   "at": 26.3
+  },
+  {
+   "id": "@ai-sdk/anthropic#build",
+   "status": "ran",
+   "seconds": 4.875,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-1",
+   "at": 7.7
+  },
+  {
+   "id": "@ai-sdk/openai#build",
+   "status": "ran",
+   "seconds": 7.213,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-24",
+   "at": 12.3
+  },
+  {
+   "id": "@ai-sdk/amazon-bedrock#build",
+   "status": "ran",
+   "seconds": 4.416,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-24",
+   "at": 20
+  },
+  {
+   "id": "@ai-sdk/amazon-bedrock#test",
+   "status": "ran",
+   "seconds": 20.337,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-25",
+   "at": 25.4
+  },
+  {
+   "id": "@ai-sdk/amazon-bedrock#type-check",
+   "status": "ran",
+   "seconds": 13.184,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-21",
+   "at": 25.6
+  },
+  {
+   "id": "@ai-sdk/deepseek#build",
+   "status": "ran",
+   "seconds": 4.483,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-4",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/gateway#build",
+   "status": "ran",
+   "seconds": 5.605,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-19",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/google#build",
+   "status": "ran",
+   "seconds": 5.51,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-23",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/groq#build",
+   "status": "ran",
+   "seconds": 4.478,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-5",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/openai-compatible#build",
+   "status": "ran",
+   "seconds": 4.09,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-3",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/huggingface#build",
+   "status": "ran",
+   "seconds": 5.795,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-3",
+   "at": 16.9
+  },
+  {
+   "id": "@ai-sdk/moonshotai#build",
+   "status": "ran",
+   "seconds": 4.638,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-5",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/xai#build",
+   "status": "ran",
+   "seconds": 5.59,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-19",
+   "at": 12.4
+  },
+  {
+   "id": "ai#build",
+   "status": "ran",
+   "seconds": 7.961,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-24",
+   "at": 24.8
+  },
+  {
+   "id": "@ai-sdk/angular#build",
+   "status": "ran",
+   "seconds": 2.19,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-9",
+   "at": 34.6
+  },
+  {
+   "id": "@ai-sdk/angular#test",
+   "status": "ran",
+   "seconds": 4.993,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 122.9
+  },
+  {
+   "id": "@ai-sdk/angular#type-check",
+   "status": "ran",
+   "seconds": 84.086,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-9",
+   "at": 37.2
+  },
+  {
+   "id": "@ai-sdk/anthropic#test",
+   "status": "ran",
+   "seconds": 19.405,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-29",
+   "at": 13
+  },
+  {
+   "id": "@ai-sdk/anthropic#type-check",
+   "status": "ran",
+   "seconds": 12.333,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-10",
+   "at": 15.9
+  },
+  {
+   "id": "@ai-sdk/anthropic-aws#build",
+   "status": "ran",
+   "seconds": 2.961,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 13
+  },
+  {
+   "id": "@ai-sdk/anthropic-aws#test",
+   "status": "ran",
+   "seconds": 5.176,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-4",
+   "at": 132.6
+  },
+  {
+   "id": "@ai-sdk/anthropic-aws#type-check",
+   "status": "ran",
+   "seconds": 12.203,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 16.4
+  },
+  {
+   "id": "@ai-sdk/assemblyai#build",
+   "status": "ran",
+   "seconds": 2.944,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-10",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/assemblyai#test",
+   "status": "ran",
+   "seconds": 4.741,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-12",
+   "at": 132.8
+  },
+  {
+   "id": "@ai-sdk/assemblyai#type-check",
+   "status": "ran",
+   "seconds": 9.239,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-30",
+   "at": 16.3
+  },
+  {
+   "id": "@ai-sdk/azure#build",
+   "status": "ran",
+   "seconds": 2.475,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 37.6
+  },
+  {
+   "id": "@ai-sdk/azure#test",
+   "status": "ran",
+   "seconds": 11.07,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-5",
+   "at": 42.2
+  },
+  {
+   "id": "@ai-sdk/azure#type-check",
+   "status": "ran",
+   "seconds": 9.216,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 40.5
+  },
+  {
+   "id": "@ai-sdk/baseten#build",
+   "status": "ran",
+   "seconds": 2.424,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-1",
+   "at": 28.9
+  },
+  {
+   "id": "@ai-sdk/baseten#test",
+   "status": "ran",
+   "seconds": 3.994,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-28",
+   "at": 135.2
+  },
+  {
+   "id": "@ai-sdk/baseten#type-check",
+   "status": "ran",
+   "seconds": 2.99,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-14",
+   "at": 134.7
+  },
+  {
+   "id": "@ai-sdk/black-forest-labs#build",
+   "status": "ran",
+   "seconds": 3.123,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-6",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/black-forest-labs#test",
+   "status": "ran",
+   "seconds": 6.766,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 29
+  },
+  {
+   "id": "@ai-sdk/black-forest-labs#type-check",
+   "status": "ran",
+   "seconds": 9.195,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-6",
+   "at": 16.5
+  },
+  {
+   "id": "@ai-sdk/bytedance#build",
+   "status": "ran",
+   "seconds": 3.143,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-26",
+   "at": 13.4
+  },
+  {
+   "id": "@ai-sdk/bytedance#test",
+   "status": "ran",
+   "seconds": 4.347,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-1",
+   "at": 131.8
+  },
+  {
+   "id": "@ai-sdk/bytedance#type-check",
+   "status": "ran",
+   "seconds": 2.33,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-14",
+   "at": 31
+  },
+  {
+   "id": "@ai-sdk/cartesia#build",
+   "status": "ran",
+   "seconds": 3.437,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-20",
+   "at": 16.4
+  },
+  {
+   "id": "@ai-sdk/cartesia#test",
+   "status": "ran",
+   "seconds": 5.005,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-2",
+   "at": 30.7
+  },
+  {
+   "id": "@ai-sdk/cartesia#type-check",
+   "status": "ran",
+   "seconds": 3.472,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-16",
+   "at": 135.1
+  },
+  {
+   "id": "@ai-sdk/cerebras#build",
+   "status": "ran",
+   "seconds": 2.276,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-18",
+   "at": 18.1
+  },
+  {
+   "id": "@ai-sdk/cerebras#test",
+   "status": "ran",
+   "seconds": 2.585,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-29",
+   "at": 32.9
+  },
+  {
+   "id": "@ai-sdk/cerebras#type-check",
+   "status": "ran",
+   "seconds": 1.883,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-9",
+   "at": 128.9
+  },
+  {
+   "id": "@ai-sdk/code-mode#build",
+   "status": "ran",
+   "seconds": 2.556,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-29",
+   "at": 35.9
+  },
+  {
+   "id": "@ai-sdk/code-mode#test",
+   "status": "ran",
+   "seconds": 8.677,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-7",
+   "at": 39.6
+  },
+  {
+   "id": "@ai-sdk/code-mode#type-check",
+   "status": "ran",
+   "seconds": 85.733,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-29",
+   "at": 39
+  },
+  {
+   "id": "@ai-sdk/codemod#build",
+   "status": "ran",
+   "seconds": 0.864,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-2",
+   "at": 36.1
+  },
+  {
+   "id": "@ai-sdk/codemod#test",
+   "status": "ran",
+   "seconds": 26.36,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-21",
+   "at": 39.3
+  },
+  {
+   "id": "@ai-sdk/codemod#type-check",
+   "status": "ran",
+   "seconds": 87.522,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-2",
+   "at": 39.1
+  },
+  {
+   "id": "@ai-sdk/cohere#build",
+   "status": "ran",
+   "seconds": 2.979,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-15",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/cohere#test",
+   "status": "ran",
+   "seconds": 5.808,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-2",
+   "at": 127.1
+  },
+  {
+   "id": "@ai-sdk/cohere#type-check",
+   "status": "ran",
+   "seconds": 2.946,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-9",
+   "at": 27.1
+  },
+  {
+   "id": "@ai-sdk/deepgram#build",
+   "status": "ran",
+   "seconds": 2.931,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-20",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/deepgram#test",
+   "status": "ran",
+   "seconds": 4.738,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-9",
+   "at": 131.2
+  },
+  {
+   "id": "@ai-sdk/deepgram#type-check",
+   "status": "ran",
+   "seconds": 2.218,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-14",
+   "at": 28.4
+  },
+  {
+   "id": "@ai-sdk/deepinfra#build",
+   "status": "ran",
+   "seconds": 5.821,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-3",
+   "at": 16.9
+  },
+  {
+   "id": "@ai-sdk/deepinfra#test",
+   "status": "ran",
+   "seconds": 5.16,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-10",
+   "at": 133.3
+  },
+  {
+   "id": "@ai-sdk/deepinfra#type-check",
+   "status": "ran",
+   "seconds": 10.349,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-26",
+   "at": 28.5
+  },
+  {
+   "id": "@ai-sdk/deepseek#test",
+   "status": "ran",
+   "seconds": 8.192,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-28",
+   "at": 27.7
+  },
+  {
+   "id": "@ai-sdk/deepseek#type-check",
+   "status": "ran",
+   "seconds": 2.537,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-10",
+   "at": 32.5
+  },
+  {
+   "id": "@ai-sdk/devtools#build",
+   "status": "ran",
+   "seconds": 5.737,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-30",
+   "at": 37.6
+  },
+  {
+   "id": "@ai-sdk/devtools#test",
+   "status": "ran",
+   "seconds": 3.425,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-11",
+   "at": 128.2
+  },
+  {
+   "id": "@ai-sdk/elevenlabs#build",
+   "status": "ran",
+   "seconds": 2.901,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-22",
+   "at": 12.8
+  },
+  {
+   "id": "@ai-sdk/elevenlabs#test",
+   "status": "ran",
+   "seconds": 10.781,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-7",
+   "at": 16.4
+  },
+  {
+   "id": "@ai-sdk/elevenlabs#type-check",
+   "status": "ran",
+   "seconds": 2.61,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-7",
+   "at": 27.5
+  },
+  {
+   "id": "@ai-sdk/fal#build",
+   "status": "ran",
+   "seconds": 3.221,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-28",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/fal#test",
+   "status": "ran",
+   "seconds": 7.636,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-17",
+   "at": 27.5
+  },
+  {
+   "id": "@ai-sdk/fal#type-check",
+   "status": "ran",
+   "seconds": 9.441,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 16.6
+  },
+  {
+   "id": "@ai-sdk/fireworks#build",
+   "status": "ran",
+   "seconds": 3.52,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-4",
+   "at": 17.4
+  },
+  {
+   "id": "@ai-sdk/fireworks#test",
+   "status": "ran",
+   "seconds": 4.405,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 32.8
+  },
+  {
+   "id": "@ai-sdk/fireworks#type-check",
+   "status": "ran",
+   "seconds": 2.275,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 128.4
+  },
+  {
+   "id": "@ai-sdk/fish-audio#build",
+   "status": "ran",
+   "seconds": 3.263,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-20",
+   "at": 16.4
+  },
+  {
+   "id": "@ai-sdk/fish-audio#test",
+   "status": "ran",
+   "seconds": 5.021,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-10",
+   "at": 127.9
+  },
+  {
+   "id": "@ai-sdk/fish-audio#type-check",
+   "status": "ran",
+   "seconds": 3.2,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-32",
+   "at": 135.1
+  },
+  {
+   "id": "@ai-sdk/gateway#test",
+   "status": "ran",
+   "seconds": 24.171,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-22",
+   "at": 19
+  },
+  {
+   "id": "@ai-sdk/gateway#type-check",
+   "status": "ran",
+   "seconds": 4.728,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-30",
+   "at": 25.9
+  },
+  {
+   "id": "@ai-sdk/gladia#build",
+   "status": "ran",
+   "seconds": 2.791,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-18",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/gladia#test",
+   "status": "ran",
+   "seconds": 5.177,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-8",
+   "at": 132.9
+  },
+  {
+   "id": "@ai-sdk/gladia#type-check",
+   "status": "ran",
+   "seconds": 2.039,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-18",
+   "at": 15.7
+  },
+  {
+   "id": "@ai-sdk/gmicloud#build",
+   "status": "ran",
+   "seconds": 5.099,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-3",
+   "at": 16.9
+  },
+  {
+   "id": "@ai-sdk/gmicloud#test",
+   "status": "ran",
+   "seconds": 3.246,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 29.2
+  },
+  {
+   "id": "@ai-sdk/gmicloud#type-check",
+   "status": "ran",
+   "seconds": 3.754,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-9",
+   "at": 30.4
+  },
+  {
+   "id": "@ai-sdk/google#test",
+   "status": "ran",
+   "seconds": 41.558,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-23",
+   "at": 18.4
+  },
+  {
+   "id": "@ai-sdk/google#type-check",
+   "status": "ran",
+   "seconds": 12.53,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-15",
+   "at": 26
+  },
+  {
+   "id": "@ai-sdk/google-vertex#build",
+   "status": "ran",
+   "seconds": 9.338,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-19",
+   "at": 18.4
+  },
+  {
+   "id": "@ai-sdk/google-vertex#test",
+   "status": "ran",
+   "seconds": 18.67,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-19",
+   "at": 28.2
+  },
+  {
+   "id": "@ai-sdk/google-vertex#type-check",
+   "status": "ran",
+   "seconds": 17.822,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-32",
+   "at": 28.2
+  },
+  {
+   "id": "@ai-sdk/groq#test",
+   "status": "ran",
+   "seconds": 7.606,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-12",
+   "at": 29
+  },
+  {
+   "id": "@ai-sdk/groq#type-check",
+   "status": "ran",
+   "seconds": 2.568,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-2",
+   "at": 27.7
+  },
+  {
+   "id": "@ai-sdk/otel#build",
+   "status": "ran",
+   "seconds": 2.877,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-3",
+   "at": 33.6
+  },
+  {
+   "id": "@ai-sdk/harness#build",
+   "status": "ran",
+   "seconds": 6.432,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-3",
+   "at": 37
+  },
+  {
+   "id": "@ai-sdk/harness#test",
+   "status": "ran",
+   "seconds": 37.458,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-8",
+   "at": 79.6
+  },
+  {
+   "id": "@ai-sdk/harness#type-check",
+   "status": "ran",
+   "seconds": 87.719,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-15",
+   "at": 54.9
+  },
+  {
+   "id": "@ai-sdk/harness-acp#build",
+   "status": "ran",
+   "seconds": 3.32,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-3",
+   "at": 43.9
+  },
+  {
+   "id": "@ai-sdk/harness-acp#test",
+   "status": "ran",
+   "seconds": 14.895,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-8",
+   "at": 117.6
+  },
+  {
+   "id": "@ai-sdk/harness-acp#type-check",
+   "status": "ran",
+   "seconds": 97.952,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-22",
+   "at": 54.3
+  },
+  {
+   "id": "@ai-sdk/harness-claude-code#build",
+   "status": "ran",
+   "seconds": 8.284,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-25",
+   "at": 46.2
+  },
+  {
+   "id": "@ai-sdk/harness-claude-code#test",
+   "status": "ran",
+   "seconds": 6.591,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-9",
+   "at": 121.7
+  },
+  {
+   "id": "@ai-sdk/harness-claude-code#type-check",
+   "status": "ran",
+   "seconds": 98.976,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-25",
+   "at": 54.9
+  },
+  {
+   "id": "@ai-sdk/harness-cline#build",
+   "status": "ran",
+   "seconds": 3.943,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-23",
+   "at": 60.3
+  },
+  {
+   "id": "@ai-sdk/harness-cline#test",
+   "status": "ran",
+   "seconds": 11.242,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-28",
+   "at": 119.1
+  },
+  {
+   "id": "@ai-sdk/harness-cline#type-check",
+   "status": "ran",
+   "seconds": 81.209,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-21",
+   "at": 66.1
+  },
+  {
+   "id": "@ai-sdk/harness-codex#build",
+   "status": "ran",
+   "seconds": 3.308,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-32",
+   "at": 46.5
+  },
+  {
+   "id": "@ai-sdk/harness-codex#test",
+   "status": "ran",
+   "seconds": 5.394,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-16",
+   "at": 129.3
+  },
+  {
+   "id": "@ai-sdk/harness-codex#type-check",
+   "status": "ran",
+   "seconds": 84.408,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-32",
+   "at": 50.3
+  },
+  {
+   "id": "@ai-sdk/harness-cursor#build",
+   "status": "ran",
+   "seconds": 7.292,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-3",
+   "at": 47.7
+  },
+  {
+   "id": "@ai-sdk/harness-cursor#test",
+   "status": "ran",
+   "seconds": 4.469,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 135.5
+  },
+  {
+   "id": "@ai-sdk/harness-cursor#type-check",
+   "status": "ran",
+   "seconds": 94.951,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-3",
+   "at": 55.4
+  },
+  {
+   "id": "@ai-sdk/harness-deepagents#build",
+   "status": "ran",
+   "seconds": 3.147,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-6",
+   "at": 46.1
+  },
+  {
+   "id": "@ai-sdk/harness-deepagents#test",
+   "status": "ran",
+   "seconds": 5.22,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-14",
+   "at": 129
+  },
+  {
+   "id": "@ai-sdk/harness-deepagents#type-check",
+   "status": "ran",
+   "seconds": 98.333,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-19",
+   "at": 53.2
+  },
+  {
+   "id": "@ai-sdk/mcp#build",
+   "status": "ran",
+   "seconds": 4.723,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-8",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/harness-fx#build",
+   "status": "ran",
+   "seconds": 4.471,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 50.2
+  },
+  {
+   "id": "@ai-sdk/harness-fx#test",
+   "status": "ran",
+   "seconds": 5.135,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-17",
+   "at": 122.6
+  },
+  {
+   "id": "@ai-sdk/harness-fx#type-check",
+   "status": "ran",
+   "seconds": 99.159,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-18",
+   "at": 57.8
+  },
+  {
+   "id": "@ai-sdk/harness-github-copilot#build",
+   "status": "ran",
+   "seconds": 5.354,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-6",
+   "at": 49.6
+  },
+  {
+   "id": "@ai-sdk/harness-github-copilot#test",
+   "status": "ran",
+   "seconds": 5.17,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 135.5
+  },
+  {
+   "id": "@ai-sdk/harness-github-copilot#type-check",
+   "status": "ran",
+   "seconds": 97.651,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-13",
+   "at": 57.3
+  },
+  {
+   "id": "@ai-sdk/harness-grok-build#build",
+   "status": "ran",
+   "seconds": 4.101,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-7",
+   "at": 48.8
+  },
+  {
+   "id": "@ai-sdk/harness-grok-build#test",
+   "status": "ran",
+   "seconds": 1.837,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-29",
+   "at": 136.2
+  },
+  {
+   "id": "@ai-sdk/harness-grok-build#type-check",
+   "status": "ran",
+   "seconds": 99.892,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-7",
+   "at": 53.4
+  },
+  {
+   "id": "@ai-sdk/harness-opencode#build",
+   "status": "ran",
+   "seconds": 3.315,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-30",
+   "at": 43.9
+  },
+  {
+   "id": "@ai-sdk/harness-opencode#test",
+   "status": "ran",
+   "seconds": 5.839,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-17",
+   "at": 128.3
+  },
+  {
+   "id": "@ai-sdk/harness-opencode#type-check",
+   "status": "ran",
+   "seconds": 91.933,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-30",
+   "at": 47.6
+  },
+  {
+   "id": "@ai-sdk/sandbox-just-bash#build",
+   "status": "ran",
+   "seconds": 3.505,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 50.2
+  },
+  {
+   "id": "@ai-sdk/harness-pi#build",
+   "status": "ran",
+   "seconds": 6.106,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 55.1
+  },
+  {
+   "id": "@ai-sdk/harness-pi#test",
+   "status": "ran",
+   "seconds": 17.18,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-4",
+   "at": 114.9
+  },
+  {
+   "id": "@ai-sdk/harness-pi#type-check",
+   "status": "ran",
+   "seconds": 102.694,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-23",
+   "at": 64.9
+  },
+  {
+   "id": "@ai-sdk/heygen#build",
+   "status": "ran",
+   "seconds": 2.941,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-7",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/heygen#test",
+   "status": "ran",
+   "seconds": 4.226,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-11",
+   "at": 132.3
+  },
+  {
+   "id": "@ai-sdk/heygen#type-check",
+   "status": "ran",
+   "seconds": 9.817,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-11",
+   "at": 26.8
+  },
+  {
+   "id": "@ai-sdk/huggingface#test",
+   "status": "ran",
+   "seconds": 3.69,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-29",
+   "at": 132.1
+  },
+  {
+   "id": "@ai-sdk/huggingface#type-check",
+   "status": "ran",
+   "seconds": 10.105,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-3",
+   "at": 23.1
+  },
+  {
+   "id": "@ai-sdk/hume#build",
+   "status": "ran",
+   "seconds": 2.595,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-2",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/hume#test",
+   "status": "ran",
+   "seconds": 3.51,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-10",
+   "at": 28.6
+  },
+  {
+   "id": "@ai-sdk/hume#type-check",
+   "status": "ran",
+   "seconds": 2.088,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-2",
+   "at": 15.6
+  },
+  {
+   "id": "@ai-sdk/klingai#build",
+   "status": "ran",
+   "seconds": 3.111,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-14",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/klingai#test",
+   "status": "ran",
+   "seconds": 5.651,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-10",
+   "at": 133.3
+  },
+  {
+   "id": "@ai-sdk/klingai#type-check",
+   "status": "ran",
+   "seconds": 9.507,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-14",
+   "at": 16.5
+  },
+  {
+   "id": "@ai-sdk/langchain#build",
+   "status": "ran",
+   "seconds": 2.856,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-1",
+   "at": 37.3
+  },
+  {
+   "id": "@ai-sdk/langchain#test",
+   "status": "ran",
+   "seconds": 15.138,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-18",
+   "at": 42.2
+  },
+  {
+   "id": "@ai-sdk/langchain#type-check",
+   "status": "ran",
+   "seconds": 85.611,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-1",
+   "at": 40.6
+  },
+  {
+   "id": "@ai-sdk/llamaindex#build",
+   "status": "ran",
+   "seconds": 2.394,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-4",
+   "at": 35.6
+  },
+  {
+   "id": "@ai-sdk/llamaindex#test",
+   "status": "ran",
+   "seconds": 4.83,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-26",
+   "at": 135.2
+  },
+  {
+   "id": "@ai-sdk/llamaindex#type-check",
+   "status": "ran",
+   "seconds": 75.936,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-4",
+   "at": 38.5
+  },
+  {
+   "id": "@ai-sdk/luma#build",
+   "status": "ran",
+   "seconds": 2.975,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-25",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/luma#test",
+   "status": "ran",
+   "seconds": 5.011,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-8",
+   "at": 132.9
+  },
+  {
+   "id": "@ai-sdk/luma#type-check",
+   "status": "ran",
+   "seconds": 9.08,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-25",
+   "at": 15.9
+  },
+  {
+   "id": "@ai-sdk/mcp#test",
+   "status": "ran",
+   "seconds": 22.417,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-8",
+   "at": 17.7
+  },
+  {
+   "id": "@ai-sdk/mcp#type-check",
+   "status": "ran",
+   "seconds": 10.726,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-12",
+   "at": 18
+  },
+  {
+   "id": "@ai-sdk/minimax#build",
+   "status": "ran",
+   "seconds": 2.299,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-1",
+   "at": 13
+  },
+  {
+   "id": "@ai-sdk/minimax#test",
+   "status": "ran",
+   "seconds": 9.216,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-15",
+   "at": 16.4
+  },
+  {
+   "id": "@ai-sdk/minimax#type-check",
+   "status": "ran",
+   "seconds": 12.894,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-1",
+   "at": 15.6
+  },
+  {
+   "id": "@ai-sdk/mistral#build",
+   "status": "ran",
+   "seconds": 3.167,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-32",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/mistral#test",
+   "status": "ran",
+   "seconds": 11.311,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-32",
+   "at": 16.6
+  },
+  {
+   "id": "@ai-sdk/mistral#type-check",
+   "status": "ran",
+   "seconds": 9.982,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-28",
+   "at": 16.6
+  },
+  {
+   "id": "@ai-sdk/moonshotai#test",
+   "status": "ran",
+   "seconds": 6.331,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-7",
+   "at": 32.9
+  },
+  {
+   "id": "@ai-sdk/moonshotai#type-check",
+   "status": "ran",
+   "seconds": 10.304,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-5",
+   "at": 17.5
+  },
+  {
+   "id": "@ai-sdk/open-responses#build",
+   "status": "ran",
+   "seconds": 3.375,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-30",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/open-responses#test",
+   "status": "ran",
+   "seconds": 6.298,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-4",
+   "at": 132.6
+  },
+  {
+   "id": "@ai-sdk/open-responses#type-check",
+   "status": "ran",
+   "seconds": 10.255,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-9",
+   "at": 16.4
+  },
+  {
+   "id": "@ai-sdk/openai#test",
+   "status": "ran",
+   "seconds": 35.72,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-20",
+   "at": 20.2
+  },
+  {
+   "id": "@ai-sdk/openai#type-check",
+   "status": "ran",
+   "seconds": 13.773,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-4",
+   "at": 21.4
+  },
+  {
+   "id": "@ai-sdk/openai-compatible#test",
+   "status": "ran",
+   "seconds": 11.066,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-26",
+   "at": 17
+  },
+  {
+   "id": "@ai-sdk/openai-compatible#type-check",
+   "status": "ran",
+   "seconds": 10.17,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-17",
+   "at": 17
+  },
+  {
+   "id": "@ai-sdk/otel#test",
+   "status": "ran",
+   "seconds": 6.542,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-26",
+   "at": 123.2
+  },
+  {
+   "id": "@ai-sdk/otel#type-check",
+   "status": "ran",
+   "seconds": 90.593,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-11",
+   "at": 37.1
+  },
+  {
+   "id": "@ai-sdk/perplexity#build",
+   "status": "ran",
+   "seconds": 3.034,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-11",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/perplexity#test",
+   "status": "ran",
+   "seconds": 6.793,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-6",
+   "at": 30.8
+  },
+  {
+   "id": "@ai-sdk/perplexity#type-check",
+   "status": "ran",
+   "seconds": 10.028,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-11",
+   "at": 16.5
+  },
+  {
+   "id": "@ai-sdk/policy-opa#build",
+   "status": "ran",
+   "seconds": 2.6,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-10",
+   "at": 35.3
+  },
+  {
+   "id": "@ai-sdk/policy-opa#test",
+   "status": "ran",
+   "seconds": 7.305,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-10",
+   "at": 120
+  },
+  {
+   "id": "@ai-sdk/policy-opa#type-check",
+   "status": "ran",
+   "seconds": 81.096,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-10",
+   "at": 38.4
+  },
+  {
+   "id": "@ai-sdk/prodia#build",
+   "status": "ran",
+   "seconds": 4.252,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-12",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/prodia#test",
+   "status": "ran",
+   "seconds": 6.185,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-30",
+   "at": 31.1
+  },
+  {
+   "id": "@ai-sdk/prodia#type-check",
+   "status": "ran",
+   "seconds": 9.224,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-2",
+   "at": 18.1
+  },
+  {
+   "id": "@ai-sdk/provider#type-check",
+   "status": "restored",
+   "seconds": 0,
+   "logTail": ""
+  },
+  {
+   "id": "@ai-sdk/provider-utils#test",
+   "status": "ran",
+   "seconds": 44.436,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-13",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/provider-utils#type-check",
+   "status": "ran",
+   "seconds": 0.325,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-28",
+   "at": 27
+  },
+  {
+   "id": "@ai-sdk/quiverai#build",
+   "status": "ran",
+   "seconds": 2.518,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-14",
+   "at": 33.7
+  },
+  {
+   "id": "@ai-sdk/quiverai#test",
+   "status": "ran",
+   "seconds": 7.61,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-6",
+   "at": 38
+  },
+  {
+   "id": "@ai-sdk/quiverai#type-check",
+   "status": "ran",
+   "seconds": 83.558,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-14",
+   "at": 36.7
+  },
+  {
+   "id": "@ai-sdk/react#build",
+   "status": "ran",
+   "seconds": 2.735,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-17",
+   "at": 35.5
+  },
+  {
+   "id": "@ai-sdk/react#test",
+   "status": "ran",
+   "seconds": 15.532,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-15",
+   "at": 38.9
+  },
+  {
+   "id": "@ai-sdk/react#type-check",
+   "status": "ran",
+   "seconds": 83.458,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-17",
+   "at": 38.8
+  },
+  {
+   "id": "@ai-sdk/replicate#build",
+   "status": "ran",
+   "seconds": 3.039,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-17",
+   "at": 13.5
+  },
+  {
+   "id": "@ai-sdk/replicate#test",
+   "status": "ran",
+   "seconds": 4.608,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-26",
+   "at": 130.3
+  },
+  {
+   "id": "@ai-sdk/replicate#type-check",
+   "status": "ran",
+   "seconds": 5.942,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 135.5
+  },
+  {
+   "id": "@ai-sdk/revai#build",
+   "status": "ran",
+   "seconds": 2.647,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 13.4
+  },
+  {
+   "id": "@ai-sdk/revai#test",
+   "status": "ran",
+   "seconds": 4.488,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-32",
+   "at": 135.1
+  },
+  {
+   "id": "@ai-sdk/revai#type-check",
+   "status": "ran",
+   "seconds": 2.026,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-7",
+   "at": 30.5
+  },
+  {
+   "id": "@ai-sdk/rsc#build",
+   "status": "ran",
+   "seconds": 4.132,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-5",
+   "at": 37.6
+  },
+  {
+   "id": "@ai-sdk/rsc#test",
+   "status": "ran",
+   "seconds": 10.302,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-22",
+   "at": 43.5
+  },
+  {
+   "id": "@ai-sdk/rsc#type-check",
+   "status": "ran",
+   "seconds": 4.234,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-17",
+   "at": 134.6
+  },
+  {
+   "id": "@ai-sdk/sandbox-just-bash#test",
+   "status": "ran",
+   "seconds": 4.86,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-26",
+   "at": 135.2
+  },
+  {
+   "id": "@ai-sdk/sandbox-just-bash#type-check",
+   "status": "ran",
+   "seconds": 94.181,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-6",
+   "at": 55.5
+  },
+  {
+   "id": "@ai-sdk/sandbox-vercel#build",
+   "status": "ran",
+   "seconds": 2.423,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-19",
+   "at": 47.2
+  },
+  {
+   "id": "@ai-sdk/sandbox-vercel#test",
+   "status": "ran",
+   "seconds": 5.262,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-16",
+   "at": 135.1
+  },
+  {
+   "id": "@ai-sdk/sandbox-vercel#type-check",
+   "status": "ran",
+   "seconds": 90.138,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-5",
+   "at": 53.7
+  },
+  {
+   "id": "@ai-sdk/svelte#build",
+   "status": "ran",
+   "seconds": 3.943,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-18",
+   "at": 37.8
+  },
+  {
+   "id": "@ai-sdk/svelte#test",
+   "status": "ran",
+   "seconds": 6.404,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-29",
+   "at": 125.2
+  },
+  {
+   "id": "@ai-sdk/svelte#type-check",
+   "status": "ran",
+   "seconds": 4.549,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-1",
+   "at": 126.7
+  },
+  {
+   "id": "@ai-sdk/test-server#test",
+   "status": "restored",
+   "seconds": 0,
+   "logTail": ""
+  },
+  {
+   "id": "@ai-sdk/test-server#type-check",
+   "status": "restored",
+   "seconds": 0,
+   "logTail": ""
+  },
+  {
+   "id": "@ai-sdk/togetherai#build",
+   "status": "ran",
+   "seconds": 2.274,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 26.5
+  },
+  {
+   "id": "@ai-sdk/togetherai#test",
+   "status": "ran",
+   "seconds": 4.012,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 131.1
+  },
+  {
+   "id": "@ai-sdk/togetherai#type-check",
+   "status": "ran",
+   "seconds": 3.035,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-28",
+   "at": 135.2
+  },
+  {
+   "id": "@ai-sdk/tool-bash#build",
+   "status": "ran",
+   "seconds": 3.309,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 55.1
+  },
+  {
+   "id": "@ai-sdk/tool-bash#test",
+   "status": "ran",
+   "seconds": 3.273,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-14",
+   "at": 134.7
+  },
+  {
+   "id": "@ai-sdk/tool-bash#type-check",
+   "status": "ran",
+   "seconds": 87.382,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-27",
+   "at": 61.7
+  },
+  {
+   "id": "@ai-sdk/tool-web-fetch#build",
+   "status": "ran",
+   "seconds": 2.483,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-16",
+   "at": 35.9
+  },
+  {
+   "id": "@ai-sdk/tool-web-fetch#test",
+   "status": "ran",
+   "seconds": 3.486,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-2",
+   "at": 133.3
+  },
+  {
+   "id": "@ai-sdk/tool-web-fetch#type-check",
+   "status": "ran",
+   "seconds": 82.607,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-16",
+   "at": 38.9
+  },
+  {
+   "id": "@ai-sdk/topaz#build",
+   "status": "ran",
+   "seconds": 3.053,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-16",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/topaz#test",
+   "status": "ran",
+   "seconds": 5.118,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-1",
+   "at": 31.8
+  },
+  {
+   "id": "@ai-sdk/topaz#type-check",
+   "status": "ran",
+   "seconds": 9.451,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-16",
+   "at": 16.4
+  },
+  {
+   "id": "@ai-sdk/tui#build",
+   "status": "ran",
+   "seconds": 2.518,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-2",
+   "at": 36.1
+  },
+  {
+   "id": "@ai-sdk/tui#test",
+   "status": "ran",
+   "seconds": 6.85,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-16",
+   "at": 121.9
+  },
+  {
+   "id": "@ai-sdk/tui#type-check",
+   "status": "ran",
+   "seconds": 83.554,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-26",
+   "at": 39.2
+  },
+  {
+   "id": "@ai-sdk/typesafe-ai#build",
+   "status": "ran",
+   "seconds": 2.37,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-22",
+   "at": 16.2
+  },
+  {
+   "id": "@ai-sdk/typesafe-ai#test",
+   "status": "ran",
+   "seconds": 4.855,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-12",
+   "at": 132.8
+  },
+  {
+   "id": "@ai-sdk/typesafe-ai#type-check",
+   "status": "ran",
+   "seconds": 4.468,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-26",
+   "at": 135.2
+  },
+  {
+   "id": "@ai-sdk/valibot#build",
+   "status": "ran",
+   "seconds": 2.958,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-9",
+   "at": 12.9
+  },
+  {
+   "id": "@ai-sdk/valibot#type-check",
+   "status": "ran",
+   "seconds": 1.586,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-14",
+   "at": 26.4
+  },
+  {
+   "id": "@ai-sdk/voyage#build",
+   "status": "ran",
+   "seconds": 2.877,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-21",
+   "at": 12.4
+  },
+  {
+   "id": "@ai-sdk/voyage#test",
+   "status": "ran",
+   "seconds": 4.053,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-28",
+   "at": 130.8
+  },
+  {
+   "id": "@ai-sdk/voyage#type-check",
+   "status": "ran",
+   "seconds": 9.377,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-21",
+   "at": 15.8
+  },
+  {
+   "id": "@ai-sdk/vue#build",
+   "status": "ran",
+   "seconds": 2.72,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 36.1
+  },
+  {
+   "id": "@ai-sdk/vue#test",
+   "status": "ran",
+   "seconds": 7.774,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-14",
+   "at": 120.7
+  },
+  {
+   "id": "@ai-sdk/vue#type-check",
+   "status": "ran",
+   "seconds": 83.044,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 39.4
+  },
+  {
+   "id": "@ai-sdk/workflow#build",
+   "status": "ran",
+   "seconds": 2.735,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-12",
+   "at": 37
+  },
+  {
+   "id": "@ai-sdk/workflow#test",
+   "status": "ran",
+   "seconds": 38.659,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-8",
+   "at": 40.4
+  },
+  {
+   "id": "@ai-sdk/workflow#type-check",
+   "status": "ran",
+   "seconds": 92.122,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-12",
+   "at": 40.2
+  },
+  {
+   "id": "@ai-sdk/workflow-harness#build",
+   "status": "ran",
+   "seconds": 2.602,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-19",
+   "at": 50.2
+  },
+  {
+   "id": "@ai-sdk/workflow-harness#test",
+   "status": "ran",
+   "seconds": 3.907,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-2",
+   "at": 133.3
+  },
+  {
+   "id": "@ai-sdk/workflow-harness#type-check",
+   "status": "ran",
+   "seconds": 101.647,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-20",
+   "at": 56.3
+  },
+  {
+   "id": "@ai-sdk/xai#test",
+   "status": "ran",
+   "seconds": 16.627,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-18",
+   "at": 20.8
+  },
+  {
+   "id": "@ai-sdk/xai#type-check",
+   "status": "ran",
+   "seconds": 4.315,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-6",
+   "at": 26.1
+  },
+  {
+   "id": "@ai-sdk/zai#build",
+   "status": "ran",
+   "seconds": 3.593,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-4",
+   "at": 17.4
+  },
+  {
+   "id": "@ai-sdk/zai#test",
+   "status": "ran",
+   "seconds": 5.009,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-17",
+   "at": 134.6
+  },
+  {
+   "id": "@ai-sdk/zai#type-check",
+   "status": "ran",
+   "seconds": 5.76,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-31",
+   "at": 135.5
+  },
+  {
+   "id": "ai#test",
+   "status": "ran",
+   "seconds": 213.853,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-24",
+   "at": 33.2
+  },
+  {
+   "id": "ai#type-check",
+   "status": "ran",
+   "seconds": 82.254,
+   "logTail": "",
+   "machine": "bci-980e1c9-z3v3-28",
+   "at": 36.3
+  }
+ ],
+ "machines": 32,
+ "snapshot": "bci-azin-tech-bench-ai-b",
+ "warnings": [],
+ "machineSeconds": {
+  "2": 4675.4
+ },
+ "finishedAt": "2026-10-30T17:18:32.066Z"
+}

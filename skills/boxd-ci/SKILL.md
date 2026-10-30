@@ -9,12 +9,13 @@ boxd-ci runs every Turborepo task tagged `ci` on its own boxd machine, restored 
 repository with its dependencies installed. Results come from the Turborepo remote cache whenever a
 task's inputs did not change, so a run only executes what your change touched.
 
-Every command takes `--json`. Use it: the output is stable and made for you.
+Every command takes `--json`. Use it, since that output is stable and made for you. Until boxd-ci is
+on npm, run it as `npx github:azin-tech/boxd-ci <command>`. The examples below write `boxd-ci`.
 
 ## Check a change before pushing
 
 ```bash
-npx boxd-ci run --json
+boxd-ci run --json
 ```
 
 This uploads the working copy (tracked changes and new files that git does not ignore) as a patch on
@@ -37,10 +38,10 @@ A failed task's `logTail` is the end of its output. Read it before anything else
 ## Read a red run
 
 ```bash
-npx boxd-ci ls --json                       # the latest runs, newest first
-npx boxd-ci logs --failed --json            # the latest run, with every failed task's log
-npx boxd-ci logs <run-id> --task <pkg#task> --json
-npx boxd-ci grep "<error text>" --json      # which runs and tasks printed it
+boxd-ci ls --json                       # the latest runs, newest first
+boxd-ci logs --failed --json            # the latest run, with every failed task's log
+boxd-ci logs <run-id> --task <pkg#task> --json
+boxd-ci grep "<error text>" --json      # which runs and tasks printed it
 ```
 
 A run id prefix or its commit's short hash both work as `<run-id>`.
@@ -58,7 +59,7 @@ boxd machine exec <machine> -- bash -lc 'cd /home/boxd/work/<repo> && <the faili
 ## When something is off
 
 ```bash
-npx boxd-ci doctor --json
+boxd-ci doctor --json
 ```
 
 checks the sign-in, the server and its Turborepo cache, the snapshot, the push automation and the

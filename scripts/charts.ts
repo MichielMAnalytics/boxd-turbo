@@ -6,7 +6,7 @@
 // matches the reader's theme through <picture>). Colors: two categorical slots, validated for both
 // modes with the dataviz palette checks (boxd CI blue, Vercel CI orange).
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -74,6 +74,9 @@ const secs = (s: number) =>
   s < 90
     ? `${s < 10 ? s.toFixed(1) : Math.round(s)} s`
     : `${Math.floor(s / 60)} min ${String(Math.round(s % 60)).padStart(2, "0")} s`;
+/** 0.4¢, 36¢, $1.20: tenths of a cent only where they matter. */
+const money = (v: number) =>
+  v < 0.1 ? `${(v * 100).toFixed(1)}¢` : v < 1 ? `${Math.round(v * 100)}¢` : `$${v.toFixed(2)}`;
 const median = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b);
   return s.length % 2
@@ -163,6 +166,8 @@ function groupedBars(
     value: (lane: "boxd" | "vercel", s: string) => number;
     fmt: (v: number) => string;
     note: string;
+    /** What a shorter bar means: "faster", "cheaper". */
+    better: string;
   },
 ) {
   const W = 880;
@@ -204,18 +209,14 @@ function groupedBars(
     const b = o.value("boxd", s.key);
     const v = o.value("vercel", s.key);
     const ratio = v / b;
-    if (ratio >= 1.15)
-      body += text(W - 32, y + 33, `${ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1)}× faster`, {
-        size: 13,
-        fill: t.ink2,
-        anchor: "end",
-      });
-    else if (ratio <= 1 / 1.15)
-      body += text(W - 32, y + 33, `Vercel ${(1 / ratio).toFixed(1)}× faster`, {
-        size: 13,
-        fill: t.ink2,
-        anchor: "end",
-      });
+    // The comparison sits under the scenario's name, clear of the bars and their labels.
+    const say =
+      ratio >= 1.15
+        ? `boxd CI ${ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1)}× ${o.better}`
+        : ratio <= 1 / 1.15
+          ? `Vercel CI ${(1 / ratio).toFixed(1)}× ${o.better}`
+          : "about even";
+    body += text(32, y + 58, say, { size: 12, weight: 600, fill: t.ink2 });
   });
   body += text(32, H - 22, o.note, { size: 12, fill: t.muted });
   return svg(W, H, t, body, `${o.title}. ${o.subtitle}`);
@@ -250,7 +251,7 @@ function timeline(t: Theme, run: RunFile, o: { title: string; subtitle: string }
   const step = total > 240 ? 60 : total > 90 ? 30 : 10;
   for (let s = 0; s <= total; s += step) {
     body += `<line x1="${x(s)}" y1="${top - 4}" x2="${x(s)}" y2="${top + plotH}" stroke="${t.grid}" stroke-width="1"/>`;
-    body += text(x(s), top + plotH + 20, s === 0 ? "push" : secs(s), {
+    body += text(x(s), top + plotH + 20, s === 0 ? "start" : s % 60 === 0 ? `${s / 60} min` : `${s} s`, {
       size: 12,
       fill: t.muted,
       anchor: s === 0 ? "start" : "middle",
@@ -269,7 +270,7 @@ function timeline(t: Theme, run: RunFile, o: { title: string; subtitle: string }
     );
   }
   body += `<line x1="${x(total)}" y1="${top - 10}" x2="${x(total)}" y2="${top + plotH}" stroke="${t.ink2}" stroke-width="2"/>`;
-  body += text(x(total) - 6, top - 14, `green at ${secs(total)}`, {
+  body += text(x(total) - 6, top - 14, `green after ${secs(total)}`, {
     size: 12,
     weight: 600,
     fill: t.ink,
@@ -278,7 +279,7 @@ function timeline(t: Theme, run: RunFile, o: { title: string; subtitle: string }
   body += text(
     32,
     H - 18,
-    "Each row is a machine restored from the snapshot; each bar is one Turborepo task. Hover a bar for its name.",
+    "Each row is a machine restored from the snapshot, and each bar is one Turborepo task. Times from the run's start.",
     {
       size: 12,
       fill: t.muted,
@@ -304,9 +305,9 @@ function howItWorks(t: Theme) {
   body += box(196, 112, 190, 78, "Plan", "turbo run --dry against");
   body += text(210, 176, "the cache: what changed?", { size: 12, fill: t.ink2 });
   const machines = [
-    ["@ai-sdk/mistral#test", "restored in 2 s"],
-    ["@ai-sdk/mistral#type-check", "restored in 2 s"],
-    ["ai#test", "restored in 2 s"],
+    ["@ai-sdk/mistral#test", "a machine from the snapshot"],
+    ["@ai-sdk/mistral#type-check", "a machine from the snapshot"],
+    ["ai#test", "a machine from the snapshot"],
   ] as const;
   machines.forEach(([task, sub], i) => {
     const y = 66 + i * 64;
@@ -373,13 +374,13 @@ function demo(t: Theme, captured: string) {
           ? term.dim
           : term.ink;
     const p = pct(l.at);
-    css += `.l${i}{opacity:0;animation:a${i} ${loop.toFixed(1)}s linear infinite}@keyframes a${i}{0%,${p.toFixed(2)}%{opacity:0}${(p + 0.01).toFixed(2)}%,100%{opacity:1}}`;
+    css += `.l${i}{animation:a${i} ${loop.toFixed(1)}s linear infinite}@keyframes a${i}{0%,${p.toFixed(2)}%{opacity:0}${(p + 0.01).toFixed(2)}%,100%{opacity:1}}`;
     const stamp = l.stamp ? `<tspan fill="${term.dim}">${esc(l.stamp)}  </tspan>` : "";
     body += `<text class="l${i}" x="24" y="${top + i * lh + 14}" font-size="13.5" fill="${color}" xml:space="preserve">${stamp}${esc(l.text)}</text>`;
   });
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" role="img" aria-label="An animated terminal: boxd-ci run on vercel/ai">
 <title>boxd-ci run on vercel/ai</title>
-<style>${css}@media (prefers-reduced-motion: reduce){text{animation:none!important;opacity:1!important}}</style>
+<style>${css}@media (prefers-reduced-motion: reduce){text{animation:none!important}}</style>
 ${body}
 </svg>
 `;
@@ -387,12 +388,14 @@ ${body}
 
 // ── write ─────────────────────────────────────────────────────────────────────────────────────────
 
+mkdirSync(assets, { recursive: true });
 const boxd = boxdMedians();
 const exp = experiment();
 const vercel = exp.lanes["vercel-ci"] as Record<string, { median_s: number; usd_per_run: number }>;
 const bootstrap = vercelBootstrap();
 const runFile = JSON.parse(readFileSync(join(results, "core-run.json"), "utf8")) as RunFile;
 const ran = runFile.results.filter((r) => r.status === "ran").length;
+const longest = runFile.results.reduce((a, b) => (b.seconds > a.seconds ? b : a));
 
 for (const t of THEMES) {
   writeFileSync(
@@ -403,6 +406,7 @@ for (const t of THEMES) {
       value: (lane, s) => (lane === "boxd" ? (boxd[s]?.median ?? 0) : (vercel[s]?.median_s ?? 0)),
       fmt: secs,
       note: "type-check and test of 84 packages (249 tasks), tagged ci the Vercel CI way. Raw runs in bench/results.",
+      better: "faster",
     }),
   );
   writeFileSync(
@@ -411,8 +415,9 @@ for (const t of THEMES) {
       title: "What one run costs",
       subtitle: "Median per push, at list prices. boxd: every machine for every second it was up, plus the server.",
       value: (lane, s) => (lane === "boxd" ? (boxd[s]?.usd ?? 0) : (vercel[s]?.usd_per_run ?? 0)),
-      fmt: (v) => (v < 0.1 ? `${(v * 100).toFixed(1)}¢` : `$${v.toFixed(2)}`),
+      fmt: money,
       note: "Vercel CI: $0.0035 per CPU-minute. boxd: $0.059 per vCPU-hour and $0.018 per GiB-hour.",
+      better: "cheaper",
     }),
   );
   writeFileSync(
@@ -424,25 +429,26 @@ for (const t of THEMES) {
       value: (lane, s) => (lane === "boxd" ? (boxd[s]?.first ?? 0) : (bootstrap[s] ?? 0)),
       fmt: secs,
       note: "Vercel CI: bootstrapping, from vercel ci inspect. boxd CI: restore the snapshot, check out, plan with Turborepo.",
+      better: "sooner",
     }),
   );
   writeFileSync(
     join(assets, `timeline-${t.name}.svg`),
     timeline(t, runFile, {
       title: "A core change, task by task",
-      subtitle: `${ran} tasks on ${runFile.machines} machines, each starting the moment its dependencies were done.`,
+      subtitle: `${ran} tasks on ${runFile.machines} machines, each starting when its dependencies were done. The long bar is ${longest.id}, ${secs(longest.seconds)}.`,
     }),
   );
   writeFileSync(join(assets, `how-${t.name}.svg`), howItWorks(t));
   writeFileSync(join(assets, `demo-${t.name}.svg`), demo(t, readFileSync(join(results, "demo-run.txt"), "utf8")));
 }
 // The README's table, from the same numbers as the charts.
-const cents = (v: number) => (v < 1 ? `${(v * 100).toFixed(1)}¢` : `$${v.toFixed(2)}`);
+
 const rows = SCENARIOS.map((s) => {
   const b = boxd[s.key] as { median: number; usd: number };
   const v = vercel[s.key] as { median_s: number; usd_per_run: number };
   const r = v.median_s / b.median;
-  return `| ${s.label} | **${secs(b.median)}** | ${secs(v.median_s)} | ${r >= 1 ? `${r >= 10 ? Math.round(r) : r.toFixed(1)}× faster` : `${(1 / r).toFixed(1)}× slower`} | ${cents(b.usd)} | ${cents(v.usd_per_run)} |`;
+  return `| ${s.label} | **${secs(b.median)}** | ${secs(v.median_s)} | ${r >= 1 ? `${r >= 10 ? Math.round(r) : r.toFixed(1)}× faster` : `${(1 / r).toFixed(1)}× slower`} | ${money(b.usd)} | ${money(v.usd_per_run)} |`;
 });
 writeFileSync(
   join(results, "summary.md"),

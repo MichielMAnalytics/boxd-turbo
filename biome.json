@@ -9,6 +9,7 @@
       "!test/fixtures",
       "!.superpowers",
       "!assets",
+      "!bench/results",
       "!**/*.md"
     ]
   },

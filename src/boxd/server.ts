@@ -119,8 +119,8 @@ export async function ensureServer(boxd: ServerBoxd, o: EnsureServerOptions = {}
   }
 
   const store: Store = machineStore(boxd, id, SERVER_ROOT);
-  const saved = JSON.parse((await store.read("server.json")) ?? "{}") as Partial<ServerInfo & { version: number }>;
-  const info = await m.get(id);
+  const [text, info] = await Promise.all([store.read("server.json"), m.get(id)]);
+  const saved = JSON.parse(text ?? "{}") as Partial<ServerInfo & { version: number }>;
   const cacheUrl = `https://cache.${info.name}.${info.access.domain}`;
   let token = saved.token ?? "";
 
