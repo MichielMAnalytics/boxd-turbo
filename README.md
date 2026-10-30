@@ -195,7 +195,7 @@ own change before it pushes.
 | `bci-<repo>-<commit>` | the snapshot runs start from, named after its commit | storage |
 | `bci-<repo>-deps-*` | snapshots for lockfiles that differ from the default branch's | storage |
 | `bci-<commit>-*` | task machines | for the seconds they run, then deleted at the end of the run |
-| `bci-<commit>-*`, hibernated | the machines of failed tasks, at most three per run | disk only, for 24 hours |
+| `bci-<commit>-*`, hibernated | the machines of failed tasks, at most three per run | disk only, for 24 hours. Connecting wakes one, and 15 idle minutes send it back to disk. |
 
 Every task machine is created with a one-hour delete-after timer, so a run that dies halfway leaves
 nothing running for long. `boxd-ci doctor --sweep` cleans up sooner.

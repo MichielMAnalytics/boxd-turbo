@@ -15,7 +15,15 @@ import type { BoxdLike, ExecOutput } from "./sdk.js";
 export type PoolBoxd = {
   machines: Pick<
     BoxdLike["machines"],
-    "create" | "waitUntilReady" | "exec" | "resize" | "hibernate" | "delete" | "setDeleteAfter" | "files"
+    | "create"
+    | "waitUntilReady"
+    | "exec"
+    | "resize"
+    | "hibernate"
+    | "setAutoHibernateTimeout"
+    | "delete"
+    | "setDeleteAfter"
+    | "files"
   >;
 };
 
@@ -168,6 +176,8 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
         live.delete(id);
         ended(id);
         keptNames.push(name);
+        // Connecting wakes it; 15 idle minutes later it goes back to disk instead of running all day.
+        await m.setAutoHibernateTimeout(id, 900).catch(() => {});
         await m.hibernate(id).catch(() => {});
         await m.setDeleteAfter(id, KEEP_FAILED_SECONDS).catch(() => {});
       },

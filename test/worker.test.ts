@@ -73,6 +73,9 @@ class FakeBoxd implements PoolBoxd {
     hibernate: async (id: string) => {
       this.log.push(`hibernate ${id}`);
     },
+    setAutoHibernateTimeout: async (id: string, seconds: number) => {
+      this.log.push(`autoHibernate ${id} ${seconds}`);
+    },
     delete: async (id: string) => {
       this.log.push(`delete ${id}`);
     },
@@ -243,12 +246,12 @@ describe("createPool", () => {
     expect(boxd.log).not.toContain("pause m1");
   });
 
-  test("a failed release hibernates the machine (disk only, no memory billed) and keeps it for 24 hours", async () => {
+  test("a failed release hibernates the machine, and again 15 minutes after someone connects, for 24 hours", async () => {
     const boxd = new FakeBoxd();
     const pool = createPool(boxd, options());
     const w = await pool.acquire();
     await w.release({ failed: true });
-    expect(boxd.log.slice(-2)).toEqual(["hibernate m1", "deleteAfter m1 86400"]);
+    expect(boxd.log.slice(-3)).toEqual(["autoHibernate m1 900", "hibernate m1", "deleteAfter m1 86400"]);
     expect(boxd.log).not.toContain("delete m1");
     expect(pool.kept()).toEqual([w.id]);
   });
