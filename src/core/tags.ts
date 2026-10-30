@@ -7,6 +7,10 @@
 //   ci:os:*             accepted and ignored (boxd machines are Ubuntu)
 //   $TURBO_EXTENDS$     first entry of a package's task tags: keep the root's tags and add these
 //
+// A repository without a single ci tag runs the usual checks its turbo.json defines (lint, type
+// checks, tests), so boxd CI works before anyone tags anything, on any Turborepo version it supports.
+// Tasks that need a Vercel deployment or Vercel's OIDC tokens are left out, with a warning.
+//
 // Turborepo resolves its own configuration, but its dry run does not report tags, so they are
 // resolved here from the root turbo.json and each package's turbo.json.
 
@@ -22,25 +26,52 @@ export type Workspace = {
 
 export type CiTask = { selector: string; cpus?: number };
 
+/** What runs in a repository that tags nothing ci, where turbo.json defines it. */
+export const USUAL_CHECKS = ["lint", "type-check", "typecheck", "check-types", "types", "test", "test:unit"];
+
 const EXTENDS = "$TURBO_EXTENDS$";
 const SIZES = [1, 2, 4, 8];
 
-type TaskDef = { tags?: unknown };
+type TaskDef = { tags?: unknown; dependsOn?: unknown };
 type TurboJson = { tags?: unknown; tasks?: Record<string, TaskDef | undefined> };
 
 const asConfig = (v: unknown): TurboJson => (v && typeof v === "object" ? (v as TurboJson) : {});
 const tagsOf = (v: unknown): string[] | undefined =>
   Array.isArray(v) ? v.filter((t): t is string => typeof t === "string") : undefined;
 
+/** The task names tagged ci anywhere: the root turbo.json, or a package's (its tasks or its top-level tags). */
+function ciTagged(root: TurboJson, workspaces: Workspace[]): string[] {
+  const names = new Set<string>();
+  const scan = (tasks: TurboJson["tasks"], all: boolean) => {
+    for (const [name, def] of Object.entries(tasks ?? {})) {
+      if (all || tagsOf(def?.tags)?.includes("ci")) names.add(name.slice(name.indexOf("#") + 1));
+    }
+  };
+  scan(root.tasks, false);
+  for (const ws of workspaces) {
+    const pkg = asConfig(ws.turboJson);
+    scan(pkg.tasks, !!tagsOf(pkg.tags)?.includes("ci"));
+  }
+  return [...names].sort();
+}
+
+/** A dependsOn entry on a Vercel deployment (`web#deployment`, `^deployment`), if the task has one. */
+const deploymentDep = (...defs: (TaskDef | undefined)[]): string | undefined =>
+  defs
+    .flatMap((d) => (Array.isArray(d?.dependsOn) ? d.dependsOn : []))
+    .find((x): x is string => typeof x === "string" && x.replace(/^\^/, "").split("#").at(-1) === "deployment");
+
 export function resolveCiTasks(
   rootTurboJson: unknown,
   workspaces: Workspace[],
-): { tasks: CiTask[]; warnings: string[] } {
+): { tasks: CiTask[]; warnings: string[]; nothingToRun?: string } {
   const root = asConfig(rootTurboJson);
   const rootTasks = root.tasks ?? {};
   // A repository whose only workspace is the root runs in Turborepo's single-package mode, where
   // tasks are plain names and `//#` selectors are refused.
   const singlePackage = workspaces.every((w) => w.name === "//");
+  const tagged = ciTagged(root, workspaces);
+  const usual = tagged.length === 0;
   const tasks: CiTask[] = [];
   const warnings: string[] = [];
 
@@ -61,9 +92,25 @@ export function resolveCiTasks(
         ...defaults.filter((d) => !(d.startsWith("ci:cpus:") && taskTags.some((t) => t.startsWith("ci:cpus:")))),
         ...taskTags,
       ];
-      if (!tags.includes("ci") || tags.includes("!ci")) continue;
+      if (tags.includes("!ci")) continue;
+      const pkgDef = isRoot ? undefined : pkg.tasks?.[script];
+      if (usual ? !USUAL_CHECKS.includes(script) || !(rootDef || pkgDef) : !tags.includes("ci")) continue;
 
       const selector = singlePackage ? script : `${ws.name}#${script}`;
+      const dep = deploymentDep(rootDef, pkgDef);
+      const oidc = tags.find((t) => t.startsWith("ci:oidc:"));
+      if (dep) {
+        warnings.push(
+          `${selector} depends on a Vercel deployment (${dep}), which boxd CI does not make, so it does not run`,
+        );
+        continue;
+      }
+      if (oidc) {
+        warnings.push(
+          `${selector} asks for Vercel OIDC tokens (${oidc}), which boxd CI does not have, so it does not run`,
+        );
+        continue;
+      }
       const task: CiTask = { selector };
       const asked = tags.filter((t) => t.startsWith("ci:cpus:")).at(-1);
       if (asked) {
@@ -83,5 +130,13 @@ export function resolveCiTasks(
 
   tasks.sort((a, b) => (a.selector < b.selector ? -1 : a.selector > b.selector ? 1 : 0));
   warnings.sort();
-  return { tasks, warnings };
+  const scripts = [...new Set(tasks.map((t) => t.selector.split("#").at(-1) as string))];
+  if (usual && tasks.length) {
+    warnings.unshift(`no task in turbo.json is tagged ci, so boxd CI runs the usual checks: ${scripts.join(", ")}`);
+  }
+  if (tasks.length) return { tasks, warnings };
+  const nothingToRun = usual
+    ? `nothing to run. No task in turbo.json is tagged ci, and it defines none of ${USUAL_CHECKS.slice(0, -1).join(", ")} or ${USUAL_CHECKS.at(-1)}.`
+    : `nothing to run. No package has a script for the tasks tagged ci (${tagged.join(", ")}).`;
+  return { tasks, warnings, nothingToRun };
 }

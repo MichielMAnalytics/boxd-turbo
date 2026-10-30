@@ -123,3 +123,68 @@ describe("resolveCiTasks", () => {
     expect(selectors(resolveCiTasks(null, [pkg("web", ["test"])]))).toEqual([]);
   });
 });
+
+describe("resolveCiTasks without any ci tag", () => {
+  test("runs the usual checks turbo.json defines, in every package that has the script, and says so", () => {
+    const r = resolveCiTasks({ tasks: { build: {}, lint: {}, typecheck: { dependsOn: ["^build"] }, format: {} } }, [
+      root("//", ["lint"]),
+      pkg("web", ["lint", "typecheck", "build", "format"]),
+      pkg("docs", ["build", "lint"]),
+    ]);
+    expect(selectors(r)).toEqual(["docs#lint", "web#lint", "web#typecheck"]);
+    expect(r.warnings).toEqual([
+      "no task in turbo.json is tagged ci, so boxd CI runs the usual checks: lint, typecheck",
+    ]);
+    expect(r.nothingToRun).toBeUndefined();
+  });
+
+  test("a check only a package's turbo.json defines runs in that package, and !ci still opts out", () => {
+    const r = resolveCiTasks({ tasks: { test: {} } }, [
+      pkg("web", ["test", "check-types"], { tasks: { "check-types": {} } }),
+      pkg("legacy", ["test"], { tasks: { test: { tags: ["!ci"] } } }),
+    ]);
+    expect(selectors(r)).toEqual(["web#check-types", "web#test"]);
+  });
+
+  test("one ci tag anywhere turns the usual checks off", () => {
+    const r = resolveCiTasks({ tasks: { lint: {}, test: {} } }, [
+      pkg("web", ["lint", "test", "e2e"], { tasks: { e2e: { tags: ["ci"] } } }),
+    ]);
+    expect(selectors(r)).toEqual(["web#e2e"]);
+    expect(r.warnings).toEqual([]);
+  });
+
+  test("with no usual check defined there is nothing to run, and the reason names them", () => {
+    const r = resolveCiTasks({ tasks: { build: {} } }, [pkg("web", ["build"])]);
+    expect(r.tasks).toEqual([]);
+    expect(r.nothingToRun).toBe(
+      "nothing to run. No task in turbo.json is tagged ci, and it defines none of lint, type-check, typecheck, check-types, types, test or test:unit.",
+    );
+  });
+
+  test("tagged tasks that no package has a script for leave nothing to run, and the reason names them", () => {
+    const r = resolveCiTasks({ tasks: { e2e: { tags: ["ci"] } } }, [pkg("web", ["build"])]);
+    expect(r.tasks).toEqual([]);
+    expect(r.nothingToRun).toBe("nothing to run. No package has a script for the tasks tagged ci (e2e).");
+  });
+});
+
+describe("resolveCiTasks and Vercel deployments", () => {
+  test("a task that depends on a Vercel deployment or asks for Vercel OIDC tokens is left out with a warning", () => {
+    const r = resolveCiTasks(
+      {
+        tasks: {
+          test: { tags: ["ci"] },
+          e2e: { tags: ["ci"], dependsOn: ["web#deployment"] },
+          smoke: { tags: ["ci", "ci:oidc:deployments"] },
+        },
+      },
+      [pkg("web", ["test", "e2e", "smoke"])],
+    );
+    expect(selectors(r)).toEqual(["web#test"]);
+    expect(r.warnings).toEqual([
+      "web#e2e depends on a Vercel deployment (web#deployment), which boxd CI does not make, so it does not run",
+      "web#smoke asks for Vercel OIDC tokens (ci:oidc:deployments), which boxd CI does not have, so it does not run",
+    ]);
+  });
+});

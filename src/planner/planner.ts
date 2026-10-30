@@ -15,6 +15,8 @@ export type Plan = {
   turboVersion: string;
   selectors: CiTask[];
   warnings: string[];
+  /** Why there is no task to run, when there is none: the run fails with it. */
+  nothingToRun?: string;
   /** The run settings from .boxd-ci.json (org and server stay with the CLI). */
   config: Pick<Config, "maxMachines" | "packSeconds">;
   dry: TurboDryRun;
@@ -47,11 +49,35 @@ const scriptsOf = (dir: string): string[] => {
 };
 const rootTurboJson = (cwd: string) => readJsonc(join(cwd, "turbo.json")) ?? readJsonc(join(cwd, "turbo.jsonc"));
 
+/** The oldest Turborepo with every flag boxd CI passes (`--continue=dependencies-successful` came in 2.4). */
+export const MIN_TURBO = [2, 4] as const;
+/** Task tags came in 2.11: an older turbo refuses a turbo.json that has them. */
+const TAGS_TURBO = "2.11";
+
+const versionOf = (text: string): number[] | undefined => /(\d+)\.(\d+)\.(\d+)/.exec(text)?.slice(1, 4).map(Number);
+const older = (v: number[], min: readonly number[]) =>
+  (v[0] ?? 0) < (min[0] ?? 0) || ((v[0] ?? 0) === (min[0] ?? 0) && (v[1] ?? 0) < (min[1] ?? 0));
+
 export async function plan(o: PlanOptions): Promise<Plan> {
   const turbo = o.turbo ?? join(o.cwd, "node_modules", ".bin", "turbo");
   if (!existsSync(turbo)) throw new Error("turbo is not installed in this repository. Add it as a devDependency.");
+  const versionText = (await run(turbo, ["--version"], o.cwd, o.env)).trim();
+  const version = versionOf(versionText);
+  if (version && older(version, MIN_TURBO)) {
+    throw new Error(
+      `boxd CI needs turbo ${MIN_TURBO.join(".")} or newer, and this repository has ${version.join(".")}. Upgrade the turbo devDependency.`,
+    );
+  }
+  // An older turbo stops at the first `tags` key it meets, with a message about the key.
+  const turboRun = (args: string[]) =>
+    run(turbo, args, o.cwd, o.env).catch((e: Error) => {
+      if (!e.message.includes("unknown key `tags`")) throw e;
+      throw new Error(
+        `turbo.json has ci tags, which need turbo ${TAGS_TURBO} or newer, and this repository has ${version?.join(".") ?? versionText}. Upgrade the turbo devDependency, or remove the tags to run the usual checks.`,
+      );
+    });
 
-  const ls = jsonAfterBanner(await run(turbo, ["ls", "--output=json"], o.cwd, o.env)) as {
+  const ls = jsonAfterBanner(await turboRun(["ls", "--output=json"])) as {
     packages?: { items?: { name: string; path: string }[] };
   };
   const workspaces: Workspace[] = [{ name: "//", dir: ".", scripts: scriptsOf(o.cwd) }];
@@ -72,19 +98,19 @@ export async function plan(o: PlanOptions): Promise<Plan> {
   const tasks = resolved.tasks;
   const warnings = [...parsed.warnings, ...resolved.warnings];
   if (tasks.length === 0) {
-    const version = (await run(turbo, ["--version"], o.cwd, o.env)).trim();
     return {
       version: 1,
-      turboVersion: version,
+      turboVersion: versionText,
       selectors: [],
-      warnings: [...warnings, "no task is tagged ci in turbo.json, so there is nothing to run"],
+      warnings,
+      ...(resolved.nothingToRun ? { nothingToRun: resolved.nothingToRun } : {}),
       config,
       dry: { tasks: [] },
     };
   }
 
   const dryArgs = ["run", ...tasks.map((t) => t.selector), "--dry=json", "--cache=local:r,remote:r"];
-  const dry = jsonAfterBanner(await run(turbo, dryArgs, o.cwd, o.env)) as TurboDryRun & { turboVersion: string };
+  const dry = jsonAfterBanner(await turboRun(dryArgs)) as TurboDryRun & { turboVersion: string };
   return {
     version: 1,
     turboVersion: dry.turboVersion,
