@@ -10,7 +10,7 @@ import type { Store } from "../boxd/store.js";
 import { cacheEnv } from "../pipeline.js";
 import { paths, readJson, writeJson } from "../state.js";
 import { bundled, type Ctx } from "./context.js";
-import { defaultBranch, githubToken, remoteHead } from "./git.js";
+import { anonymousRead, defaultBranch, githubToken, remoteHead } from "./git.js";
 
 /** The repository's snapshot record, building the first snapshot when there is none (or on --rebuild). */
 export async function ensureRepoRecord(
@@ -26,7 +26,8 @@ export async function ensureRepoRecord(
   const branch = defaultBranch(ctx.root);
   const sha = remoteHead(ctx.root, branch);
   say(`building the snapshot of ${ctx.repo} from ${branch} (${sha.slice(0, 7)}), a clone and an install, once`);
-  const token = githubToken();
+  // A public repository is cloned without credentials; a private one with your gh login, once.
+  const token = anonymousRead(ctx.cloneUrl) ? undefined : githubToken();
   const record = await buildSnapshot(boxd, {
     ...(ctx.org ? { org: ctx.org } : {}),
     repo: { repo: ctx.repo, cloneUrl: ctx.cloneUrl, defaultBranch: branch },

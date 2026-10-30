@@ -13,8 +13,15 @@ export const LOG_TAIL_BYTES = 20_000;
 /** 'quotes' a value for bash. */
 export const q = (s: string): string => `'${s.replaceAll("'", `'\\''`)}'`;
 
+/** A commit hash, checked before it is written into a script. */
+export function commit(sha: string): string {
+  if (!/^[0-9a-f]{7,40}$/.test(sha)) throw new Error(`not a commit hash: ${sha}`);
+  return sha;
+}
+
 /** Fetches one commit and checks it out. The GitHub token reaches git only as an auth header. */
 export function fetchScript(workdir: string, sha: string): string {
+  commit(sha);
   const auth = `-c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$BOXD_CI_FETCH_TOKEN" | base64 -w0)"`;
   return [
     `cd ${q(workdir)}`,
@@ -28,6 +35,7 @@ export function fetchScript(workdir: string, sha: string): string {
  * stay: on a fresh snapshot they are whatever the install generated.
  */
 export function applyPatchScript(workdir: string, base: string, patchPath: string): string {
+  commit(base);
   return [
     `cd ${q(workdir)}`,
     `{ git cat-file -e ${base}^{commit} 2>/dev/null || git fetch -q origin ${base}; }`,

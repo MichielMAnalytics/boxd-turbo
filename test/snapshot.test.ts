@@ -273,7 +273,7 @@ describe("promote", () => {
   const opts = (r: RepoRecord) => ({
     org: "acme",
     record: r,
-    sha: "d00d2",
+    sha: "d00d2fe",
     fetchToken: "ghs_x",
     env: { CI: "1" },
     selectors: ["web#test"],
@@ -292,7 +292,7 @@ describe("promote", () => {
       "save b1 bci-acme-web-b",
       "delete b1",
     ]);
-    expect(next).toMatchObject({ snapshot: "bci-acme-web-b", commit: "d00d2" });
+    expect(next).toMatchObject({ snapshot: "bci-acme-web-b", commit: "d00d2fe" });
   });
 
   test("installs only when the dependency files changed", async () => {

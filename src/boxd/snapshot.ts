@@ -5,7 +5,7 @@
 // next snapshot under the name runs are not using, then switches. A commit that changes the
 // dependency files gets its own snapshot, keyed by those files, so only that change pays an install.
 
-import { fetchScript, q } from "./scripts.js";
+import { commit, fetchScript, q } from "./scripts.js";
 import type { BoxdLike, ExecOutput } from "./sdk.js";
 import type { BoxWorker } from "./worker.js";
 
@@ -101,6 +101,7 @@ fi`;
 
 /** A full clone (later fetches are then small), checked out at the commit. */
 export function cloneScript(cloneUrl: string, workdir: string, sha: string): string {
+  commit(sha);
   const auth = `-c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$BOXD_CI_FETCH_TOKEN" | base64 -w0)"`;
   return `set -eo pipefail
 rm -rf ${q(workdir)} && mkdir -p "$(dirname ${q(workdir)})"
@@ -286,7 +287,7 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
       );
       const newer = await sh(
         "comparing commits",
-        `cd ${q(r.workdir)} && if git merge-base --is-ancestor ${r.commit} ${o.sha}; then echo yes; else echo no; fi`,
+        `cd ${q(r.workdir)} && if git merge-base --is-ancestor ${commit(r.commit)} ${commit(o.sha)}; then echo yes; else echo no; fi`,
       ).catch(() => null);
       if (!newer || newer.stdout.trim() === "no") {
         say(`${o.sha.slice(0, 7)} is older than the snapshot's ${r.commit.slice(0, 7)}, so the snapshot stays`);

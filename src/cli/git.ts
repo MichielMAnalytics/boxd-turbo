@@ -95,6 +95,20 @@ export function makePatch(root: string, base: string): Buffer {
   }
 }
 
+/** Whether git can read the repository with no credentials at all (a public repository). */
+export function anonymousRead(url: string): boolean {
+  try {
+    execFileSync("git", ["-c", "credential.helper=", "ls-remote", "--exit-code", url, "HEAD"], {
+      stdio: "ignore",
+      timeout: 20_000,
+      env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GIT_ASKPASS: "true", SSH_ASKPASS: "true" },
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** A GitHub token for cloning a private repository into the snapshot: the gh CLI's, when signed in. */
 export function githubToken(): string | undefined {
   if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;

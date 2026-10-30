@@ -88,6 +88,7 @@ type BoxdRow = {
   role: string;
   result: string;
   wall_s: number;
+  first_s?: number;
   machineSeconds?: Record<string, number>;
 };
 const SCENARIOS = [
@@ -106,7 +107,7 @@ export function boxdMedians() {
     .filter(Boolean)
     .map((l) => JSON.parse(l) as BoxdRow)
     .filter((r) => r.role === "measured" && r.result === "success");
-  const out: Record<string, { median: number; runs: number[]; usd: number }> = {};
+  const out: Record<string, { median: number; runs: number[]; usd: number; first: number }> = {};
   for (const s of SCENARIOS) {
     const rs = rows.filter((r) => r.scenario === s.key);
     if (!rs.length) throw new Error(`no measured boxd-ci run for ${s.key}`);
@@ -118,7 +119,30 @@ export function boxdMedians() {
       );
       return machines + r.wall_s * SERVER_PER_SECOND;
     });
-    out[s.key] = { median: median(rs.map((r) => r.wall_s)), runs: rs.map((r) => r.wall_s), usd: median(usd) };
+    const first = rs.map((r) => r.first_s).filter((x): x is number => typeof x === "number");
+    if (first.length !== rs.length)
+      throw new Error(`run details missing for ${s.key}: npx tsx bench/push.ts <clone> --backfill`);
+    out[s.key] = {
+      median: median(rs.map((r) => r.wall_s)),
+      runs: rs.map((r) => r.wall_s),
+      usd: median(usd),
+      first: median(first),
+    };
+  }
+  return out;
+}
+
+/** Vercel CI's bootstrapping per scenario: from the run's creation to its first job starting. */
+function vercelBootstrap() {
+  const rows = readFileSync(join(results, "experiment-2026-10-29.jsonl"), "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((l) => JSON.parse(l) as { lane: string; scenario: string; bootstrap_s?: number });
+  const out: Record<string, number> = {};
+  for (const s of SCENARIOS) {
+    out[s.key] = median(
+      rows.filter((r) => r.lane === "vercel-ci" && r.scenario === s.key).map((r) => r.bootstrap_s ?? 0),
+    );
   }
   return out;
 }
@@ -366,6 +390,7 @@ ${body}
 const boxd = boxdMedians();
 const exp = experiment();
 const vercel = exp.lanes["vercel-ci"] as Record<string, { median_s: number; usd_per_run: number }>;
+const bootstrap = vercelBootstrap();
 const runFile = JSON.parse(readFileSync(join(results, "core-run.json"), "utf8")) as RunFile;
 const ran = runFile.results.filter((r) => r.status === "ran").length;
 
@@ -388,6 +413,17 @@ for (const t of THEMES) {
       value: (lane, s) => (lane === "boxd" ? (boxd[s]?.usd ?? 0) : (vercel[s]?.usd_per_run ?? 0)),
       fmt: (v) => (v < 0.1 ? `${(v * 100).toFixed(1)}¢` : `$${v.toFixed(2)}`),
       note: "Vercel CI: $0.0035 per CPU-minute. boxd: $0.059 per vCPU-hour and $0.018 per GiB-hour.",
+    }),
+  );
+  writeFileSync(
+    join(assets, `first-${t.name}.svg`),
+    groupedBars(t, {
+      title: "Before the first task runs",
+      subtitle:
+        "Median seconds from the run starting to its first task starting, or to its result when the cache had everything.",
+      value: (lane, s) => (lane === "boxd" ? (boxd[s]?.first ?? 0) : (bootstrap[s] ?? 0)),
+      fmt: secs,
+      note: "Vercel CI: bootstrapping, from vercel ci inspect. boxd CI: restore the snapshot, check out, plan with Turborepo.",
     }),
   );
   writeFileSync(
@@ -418,4 +454,4 @@ writeFileSync(
   ].join("\n"),
 );
 console.log("boxd medians", JSON.stringify(boxd));
-console.log("wrote assets/{race,cost,timeline,how}-{light,dark}.svg");
+console.log("wrote assets/{race,cost,first,timeline,how,demo}-{light,dark}.svg and bench/results/summary.md");

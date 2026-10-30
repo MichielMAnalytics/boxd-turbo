@@ -29,25 +29,35 @@ const node = (id: string, logFile = `packages/${id.split("#")[0]}/.turbo/turbo-x
 
 describe("fetchScript", () => {
   test("fetches and checks out the commit, with the token only as an auth header", () => {
-    const s = fetchScript("/home/boxd/work/app", "abc123");
+    const s = fetchScript("/home/boxd/work/app", "abc1234");
     expect(s).toContain("cd '/home/boxd/work/app'");
-    expect(s).toContain("fetch -q origin abc123");
-    expect(s).toContain("checkout -q -f abc123");
+    expect(s).toContain("fetch -q origin abc1234");
+    expect(s).toContain("checkout -q -f abc1234");
     expect(s).toContain('"$BOXD_CI_FETCH_TOKEN"');
     expect(s).not.toMatch(/ghs_|x-access-token:[a-z0-9]/);
   });
 });
 
+describe("commits in scripts", () => {
+  test("anything but a hex commit hash is refused before it reaches a shell", () => {
+    for (const bad of ["main", "abc; rm -rf /", "$(id)", "", "abc123 def"]) {
+      expect(() => fetchScript("/w", bad)).toThrow(`not a commit hash: ${bad}`);
+      expect(() => applyPatchScript("/w", bad, "/tmp/p")).toThrow(`not a commit hash: ${bad}`);
+    }
+    expect(() => fetchScript("/w", "0123abc")).not.toThrow();
+  });
+});
+
 describe("applyPatchScript", () => {
   test("resets to the base commit and applies the patch", () => {
-    const s = applyPatchScript("/w", "base1", "/tmp/p.patch");
-    expect(s).toContain("checkout -q -f base1");
+    const s = applyPatchScript("/w", "ba5e123", "/tmp/p.patch");
+    expect(s).toContain("checkout -q -f ba5e123");
     expect(s).toContain("git apply --binary --whitespace=nowarn '/tmp/p.patch'");
   });
 
   test("fetches a base commit the snapshot does not have, and keeps untracked files an install made", () => {
-    const s = applyPatchScript("/w", "base1", "/tmp/p.patch");
-    expect(s).toContain("git cat-file -e base1^{commit} 2>/dev/null || git fetch -q origin base1");
+    const s = applyPatchScript("/w", "ba5e123", "/tmp/p.patch");
+    expect(s).toContain("git cat-file -e ba5e123^{commit} 2>/dev/null || git fetch -q origin ba5e123");
     expect(s).not.toContain("git clean");
   });
 });

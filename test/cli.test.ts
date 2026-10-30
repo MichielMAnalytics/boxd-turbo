@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { parseCli } from "../src/cli/args.js";
 import { initPlan } from "../src/cli/commands/init.js";
-import { makePatch, parseRemote } from "../src/cli/git.js";
+import { anonymousRead, makePatch, parseRemote } from "../src/cli/git.js";
 import { ciTaggedTasks, proposeCiTags } from "../src/core/propose.js";
 
 describe("parseCli", () => {
@@ -92,6 +92,22 @@ describe("makePatch", () => {
     git(repo, "add", "-A");
     git(repo, "commit", "-qm", "base");
     expect(makePatch(repo, git(repo, "rev-parse", "HEAD").trim()).length).toBe(0);
+  });
+});
+
+describe("anonymousRead", () => {
+  test("a repository anyone can clone needs no token, one that asks for credentials does", () => {
+    const repo = mkdtempSync(join(tmpdir(), "boxd-ci-anon-"));
+    execFileSync("git", ["init", "-q", repo]);
+    execFileSync(
+      "git",
+      ["-c", "user.email=ci@example.com", "-c", "user.name=ci", "commit", "-q", "--allow-empty", "-m", "one"],
+      {
+        cwd: repo,
+      },
+    );
+    expect(anonymousRead(repo)).toBe(true);
+    expect(anonymousRead(join(repo, "missing"))).toBe(false);
   });
 });
 

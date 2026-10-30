@@ -37,6 +37,14 @@ describe("formatSeconds", () => {
 });
 
 describe("checkSummary", () => {
+  test("a failed run says how to get onto the machines kept for the failed tasks", () => {
+    const out = checkSummary(run([r("a#test", "failed", 3, "boom"), r("b#test", "ran")], "failure"));
+    expect(out.summary).toContain(
+      "The machine of a failed task is kept for 24 hours: `boxd machine resume bci-r1-1 && boxd connect bci-r1-1`",
+    );
+    expect(checkSummary(run([r("b#test", "ran")])).summary).not.toContain("kept for 24 hours");
+  });
+
   test("a green run's title gives the time and what ran and what was restored", () => {
     const s = checkSummary(run([r("a#build", "restored", 0), r("a#test", "ran", 12), r("b#test", "ran", 4)]));
     expect(s.title).toBe("green in 25s: 2 ran, 1 restored");

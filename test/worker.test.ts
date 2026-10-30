@@ -126,10 +126,10 @@ describe("createPool", () => {
   test("a working-copy patch is uploaded and applied on the base commit", async () => {
     const boxd = new FakeBoxd();
     const patch = new TextEncoder().encode("diff --git a/x b/x\n");
-    const pool = createPool(boxd, options({ prepare: { kind: "patch", base: "base999", patch } }));
+    const pool = createPool(boxd, options({ prepare: { kind: "patch", base: "ba5e999", patch } }));
     await pool.acquire();
     expect(boxd.uploads).toEqual([{ id: "m1", path: "/tmp/boxd-ci.patch", bytes: patch.length }]);
-    expect(boxd.execs[0]?.script).toContain("checkout -q -f base999");
+    expect(boxd.execs[0]?.script).toContain("checkout -q -f ba5e999");
     expect(boxd.execs[0]?.script).toContain("git apply --binary --whitespace=nowarn '/tmp/boxd-ci.patch'");
   });
 

@@ -53,6 +53,20 @@ export function checkSummary(r: RunRecord): { title: string; summary: string; te
       lines.push(`| ${MARK[t.status]} | \`${t.id}\` | ${formatSeconds(t.seconds)} | ${t.machine ?? ""} |`);
     lines.push("");
   }
+  const kept = [
+    ...new Set(r.results.filter((t) => t.status === "failed" && t.machine).map((t) => t.machine as string)),
+  ];
+  const connect = (m: string) => `\`boxd machine resume ${m} && boxd connect ${m}\``;
+  if (kept.length === 1)
+    lines.push(`The machine of a failed task is kept for 24 hours: ${connect(kept[0] as string)}`, "");
+  else if (kept.length) {
+    lines.push(
+      "The machines of the failed tasks are kept for 24 hours:",
+      "",
+      ...kept.map((m) => `- ${connect(m)}`),
+      "",
+    );
+  }
   if (restored.length) {
     lines.push(
       `<details><summary>${restored.length} tasks restored from the cache</summary>`,
