@@ -1,0 +1,69 @@
+{
+  "repo": "azin-tech/bench-ai and azin-tech/vbench-ai: vercel/ai at dfed8e8, turbo 2.11.10",
+  "measured": "2026-10-29",
+  "wall": "end of git push to the result on GitHub (Vercel CI commit status, boxd-ci check run completed_at)",
+  "pricing": {
+    "vercel_ci": "$0.0035 per CPU-minute; tasks at 2 CPUs, bootstrapping at 4 CPUs, per second",
+    "boxd": "$0.059 per vCPU-hour and $0.018 per GiB-hour"
+  },
+  "lanes": {
+    "prototype-cache-32": {
+      "core": {
+        "median_s": 278.6,
+        "runs_s": [278.6, 269.5, 359.5],
+        "usd_per_run": 0.304
+      }
+    },
+    "prototype-cache-16": {
+      "docs": {
+        "median_s": 7.2,
+        "runs_s": [7.2, 6.8, 10.4],
+        "usd_per_run": 0.0072
+      },
+      "leaf": {
+        "median_s": 25.4,
+        "runs_s": [27.1, 25.3, 25.4],
+        "usd_per_run": 0.0099
+      },
+      "core": {
+        "median_s": 327.9,
+        "runs_s": [332.4, 327.9, 324.9],
+        "usd_per_run": 0.2541
+      }
+    },
+    "vercel-ci": {
+      "docs": {
+        "median_s": 77.6,
+        "runs_s": [77.6, 97.0, 75.2],
+        "usd_per_run": 0.0075
+      },
+      "leaf": {
+        "median_s": 69.3,
+        "runs_s": [69.3, 69.1, 75.1],
+        "usd_per_run": 0.0112
+      },
+      "core": {
+        "median_s": 292.4,
+        "runs_s": [292.4, 280.5, 397.5],
+        "usd_per_run": 0.697
+      }
+    },
+    "prototype-nocache-16": {
+      "docs": {
+        "median_s": 304.9,
+        "runs_s": [340.2, 300.2, 304.9],
+        "usd_per_run": 0.239
+      },
+      "leaf": {
+        "median_s": 293.8,
+        "runs_s": [293.8, 286.2, 326.7],
+        "usd_per_run": 0.224
+      },
+      "core": {
+        "median_s": 353.5,
+        "runs_s": [351.1, 353.5, 354.4],
+        "usd_per_run": 0.283
+      }
+    }
+  }
+}

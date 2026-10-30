@@ -103,6 +103,9 @@ class FakePool implements Pool {
   kept() {
     return [];
   }
+  machineSeconds() {
+    return {};
+  }
 }
 
 const repo: RepoRecord = {
@@ -227,6 +230,20 @@ describe("runPipeline", () => {
     expect(logs).toEqual({ "a#build": "log of a#build", "a#test": "log of a#test", "b#lint": "log of b#lint" });
     const durations = JSON.parse((await store.read("runs/acme-web/durations.json")) ?? "{}");
     expect(durations).toEqual({ "a#build": 2, "a#test": 2, "b#lint": 2 });
+  });
+
+  test("each executed task records when it started, in seconds from the start of the run", async () => {
+    const { pool, deps } = setup();
+    let t = Date.parse("2026-10-30T10:00:00.000Z");
+    deps.now = () => {
+      t += 500;
+      return new Date(t);
+    };
+    pool.plan = ok(planJson([{ id: "a#build" }, { id: "a#test", deps: ["a#build"] }], ["a#test"]));
+    const r = await runPipeline(deps, push("feature"));
+    const at = r.results.map((x) => x.at);
+    expect(at.every((x) => typeof x === "number" && x > 0)).toBe(true);
+    expect((at[1] as number) > (at[0] as number)).toBe(true);
   });
 
   test("a group cleans the outputs of its whole dependency closure", async () => {

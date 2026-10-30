@@ -60,6 +60,7 @@ const fakePool = (fail = false): Pool => {
     drain: async () => {},
     machines: () => n,
     kept: () => [],
+    machineSeconds: () => ({}),
   };
 };
 

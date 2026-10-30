@@ -18,6 +18,8 @@ export type TaskResult = {
   logTail: string;
   /** The machine it ran on. */
   machine?: string;
+  /** When its group started, in seconds from the start of the run. */
+  at?: number;
 };
 
 export interface Worker {

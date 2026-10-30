@@ -31,7 +31,7 @@ export type RepoRecord = {
 };
 
 export type SnapshotBoxd = {
-  machines: Pick<BoxdLike["machines"], "create" | "waitUntilReady" | "exec" | "delete">;
+  machines: Pick<BoxdLike["machines"], "create" | "waitUntilReady" | "exec" | "delete" | "files">;
   snapshots: Pick<BoxdLike["snapshots"], "create" | "get">;
 };
 
@@ -51,6 +51,7 @@ export const DEPENDENCY_FILES = [
 ];
 
 const MEMORY: Record<number, string> = { 1: "4G", 2: "8G", 4: "16G", 8: "32G" };
+export const PLANNER_PATH = "/tmp/boxd-ci-planner.mjs";
 const BUILDER_SECONDS = 7200;
 
 export const repoSlug = (repo: string) =>
@@ -170,7 +171,9 @@ export type BuildOptions = {
   fetchToken?: string;
   /** The remote cache settings and CI=1, for the warm run. */
   env: Record<string, string>;
-  selectors: string[];
+  /** The ci tasks to build once. Without them, the planner (this bundle) finds them on the builder. */
+  selectors?: string[];
+  plannerBundle?: Uint8Array;
   cpus?: number;
   pollMs?: number;
   onProgress?: (line: string) => void;
@@ -203,8 +206,25 @@ export async function buildSnapshot(boxd: SnapshotBoxd, o: BuildOptions): Promis
       say("installing dependencies");
       await sh("installing dependencies", installScript(workdir));
       const depsHash = (await sh("hashing the dependency files", depsHashScript(workdir))).stdout.trim();
-      say("running every ci task once, to fill the cache");
-      await sh("the warm-up run", warmScript(workdir, o.selectors), o.env);
+      let selectors = o.selectors ?? [];
+      if (!o.selectors && o.plannerBundle) {
+        await boxd.machines.files.upload(id, PLANNER_PATH, o.plannerBundle);
+        const out = await boxd.machines.exec(id, {
+          command: ["bash", "-c", `cd ${q(workdir)} && node ${PLANNER_PATH} .`],
+          env: o.env,
+          timeout: 15 * 60_000,
+        });
+        try {
+          selectors =
+            (JSON.parse(out.stdout) as { selectors?: { selector: string }[] }).selectors?.map((x) => x.selector) ?? [];
+        } catch {
+          say(`the planner could not read the ci tasks: ${tail(out)}`);
+        }
+      }
+      if (selectors.length) {
+        say(`running the ${selectors.length} ci tasks once, to fill the cache`);
+        await sh("the warm-up run", warmScript(workdir, selectors), o.env);
+      } else if (!o.selectors) say("no task on the default branch is tagged ci yet, so nothing is built ahead");
       say(`saving the snapshot ${slots[0]}`);
       await saveSnapshot(boxd, id, slots[0], {
         ...(o.org ? { org: o.org } : {}),

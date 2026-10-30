@@ -8,6 +8,7 @@ import type { BoxdLike, ExecOutput } from "./boxd/sdk.js";
 import {
   depsHashScript,
   depsSnapshotName,
+  PLANNER_PATH,
   type RepoRecord,
   repoSlug,
   saveDepsSnapshot,
@@ -54,8 +55,6 @@ export type PipelineDeps = {
   signal?: AbortSignal;
   now?: () => Date;
 };
-
-const PLANNER_PATH = "/tmp/boxd-ci-planner.mjs";
 
 /** What every Turborepo run of this repository gets: the remote cache, and CI=1 everywhere. */
 export function cacheEnv(cache: { url: string; token: string }, repo: string): Record<string, string> {
@@ -121,6 +120,7 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     prepare: input.prepare,
     env,
     runId: id,
+    repo: repoSlug(repo.repo),
     outputsOf: (tasks) => (graph ? closureOutputs(graph, tasks) : tasks.map((t) => ({ dir: t.dir, globs: t.outputs }))),
   });
   let selectors: string[] = [];
@@ -167,14 +167,24 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     pool.park(planner); // the first task group of its size runs where the planner did
 
     const durations = (await readJson<Record<string, number>>(deps.store, paths.durations(repo.repo))) ?? {};
+    const started = new Map<string, number>();
+    const t0 = Date.parse(record.startedAt);
     const results = await schedule(graph, pool, {
       maxWorkers: deps.maxMachines ?? plan.config.maxMachines,
       packSeconds: plan.config.packSeconds,
       durations,
       ...(deps.signal ? { signal: deps.signal } : {}),
-      ...(deps.onEvent ? { onEvent: deps.onEvent } : {}),
+      onEvent: (e) => {
+        if (e.type === "start")
+          for (const id of e.tasks) started.set(id, Math.round((now().getTime() - t0) / 100) / 10);
+        deps.onEvent?.(e);
+      },
     });
-    for (const r of results) if (r.status === "ran" || r.status === "failed") logs[r.id] = r.logTail;
+    for (const r of results) {
+      const at = started.get(r.id);
+      if (at !== undefined) r.at = at;
+      if (r.status === "ran" || r.status === "failed") logs[r.id] = r.logTail;
+    }
     // The record keeps the logs a reader needs first; every log is in the run's logs file.
     record.results = results.map((r) => (r.status === "failed" || r.status === "skipped" ? r : { ...r, logTail: "" }));
     record.status = results.some((r) => r.status === "failed") ? "failure" : "success";
@@ -184,6 +194,7 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
   } finally {
     await pool.drain();
     record.machines = pool.machines();
+    record.machineSeconds = pool.machineSeconds();
     record.finishedAt = now().toISOString();
   }
 

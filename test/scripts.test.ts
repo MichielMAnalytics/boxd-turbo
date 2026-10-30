@@ -115,6 +115,11 @@ describe("parseRunOutput", () => {
     ]);
   });
 
+  test("log tails come without terminal color codes", () => {
+    const out = `${summary([{ taskId: "a#test", cache: { status: "MISS" }, execution: exec(1) }])}${LOG_MARK}a#test\n\x1b[2m Test Files \x1b[22m \x1b[1m\x1b[31m1 failed\x1b[39m\x1b[22m\n`;
+    expect(parseRunOutput(out, [node("a#test")], "m")[0]?.logTail).toBe("Test Files  1 failed");
+  });
+
   test("a task Turborepo restored from the cache meanwhile is restored", () => {
     const out = summary([{ taskId: "a#test", cache: { status: "HIT" }, execution: exec(0, 30) }]);
     expect(parseRunOutput(out, [node("a#test")], "m")[0]?.status).toBe("restored");

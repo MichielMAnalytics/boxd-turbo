@@ -95,8 +95,13 @@ type SummaryTask = {
   execution?: { startTime?: number; endTime?: number; exitCode?: number | null };
 };
 
+/** Terminal color and cursor codes: noise in a GitHub check and in `boxd-ci grep`. */
+// biome-ignore lint/suspicious/noControlCharactersInRegex: matching the escape character is the point
+const ANSI = /\x1b\[[0-9;?]*[ -/]*[@-~]/g;
+
 /** Turns a worker's output into one result per task it was asked to run. */
-export function parseRunOutput(stdout: string, tasks: TaskNode[], machine: string): TaskResult[] {
+export function parseRunOutput(raw: string, tasks: TaskNode[], machine: string): TaskResult[] {
+  const stdout = raw.replace(ANSI, "");
   const at = stdout.indexOf(SUMMARY_MARK);
   const before = (at < 0 ? stdout : stdout.slice(0, at)).trim();
   const fallback = before.slice(-LOG_TAIL_BYTES) || "the machine returned no output";

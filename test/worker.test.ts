@@ -287,6 +287,23 @@ describe("createPool", () => {
     expect(boxd.uploads).toContainEqual({ id: "m1", path: "/tmp/planner.mjs", bytes: 3 });
   });
 
+  test("the pool counts every machine's seconds, from create to delete or pause, by size", async () => {
+    const boxd = new FakeBoxd();
+    let t = 1_000_000;
+    const pool = createPool(boxd, options({ now: () => t }));
+    const a = await pool.acquire();
+    const b = await pool.acquire(4);
+    t += 10_000;
+    await a.release({ failed: false });
+    t += 5_000;
+    await b.release({ failed: true });
+    const c = await pool.acquire();
+    t += 2_000;
+    await pool.drain();
+    expect(pool.machineSeconds()).toEqual({ "2": 12, "4": 15 });
+    expect(c.id).toBeTruthy();
+  });
+
   test("a parked machine goes to the next acquire of its size, and other sizes retire it", async () => {
     const boxd = new FakeBoxd();
     const pool = createPool(boxd, options());

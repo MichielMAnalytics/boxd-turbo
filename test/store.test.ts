@@ -45,9 +45,42 @@ describe.each(stores)("%s", (_name, make) => {
     expect(statSync(join(root, "runs/acme-web/1.json")).mode & 0o777).toBe(0o600);
   });
 
+  test("reads many files at once, null for the missing ones", async () => {
+    const s = make(mkdtempSync(join(tmpdir(), "boxd-ci-store-")));
+    await s.write("runs/a/1.json", '{"n":1}');
+    await s.write("runs/a/3.json", "line one\nline two\n");
+    expect(await s.readMany(["runs/a/1.json", "runs/a/2.json", "runs/a/3.json"])).toEqual([
+      '{"n":1}',
+      null,
+      "line one\nline two\n",
+    ]);
+    expect(await s.readMany([])).toEqual([]);
+  });
+
   test("refuses a path that leaves the root", async () => {
     const s = make(mkdtempSync(join(tmpdir(), "boxd-ci-store-")));
     await expect(s.read("../etc/passwd")).rejects.toThrow("not a store path");
     await expect(s.write("runs/../../x", "")).rejects.toThrow("not a store path");
+  });
+});
+
+describe("fsStore as root (the automation)", () => {
+  test("hands every folder and file it creates to the owner of the state folder", async () => {
+    const root = mkdtempSync(join(tmpdir(), "boxd-ci-store-"));
+    const given: string[] = [];
+    const s = fsStore(root, {
+      isRoot: () => true,
+      chown: async (p, uid, gid) => {
+        given.push(`${p.slice(root.length)} ${uid === statSync(root).uid && gid === statSync(root).gid}`);
+      },
+    });
+    await s.write("runs/acme-web/1.json", "{}");
+    await s.write("runs/acme-web/2.json", "{}");
+    expect(given.filter((g) => !g.includes(".tmp"))).toEqual([
+      "/runs true",
+      "/runs/acme-web true",
+      "/runs/acme-web/1.json true",
+      "/runs/acme-web/2.json true",
+    ]);
   });
 });

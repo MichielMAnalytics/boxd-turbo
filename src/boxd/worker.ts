@@ -38,10 +38,14 @@ export type PoolOptions = {
   /** For every Turborepo run: the remote cache settings and CI=1. */
   env: Record<string, string>;
   runId: string;
+  /** The repository's short name, a label on every machine (`boxd-ci doctor --sweep` reads it). */
+  repo?: string;
   /** What a group deletes before it runs. Default: the group's own declared outputs. */
   outputsOf?: (tasks: TaskNode[]) => { dir: string; globs: string[] }[];
   /** How long one group may run. Default 45 minutes. */
   groupTimeoutMs?: number;
+  /** The clock (tests replace it). */
+  now?: () => number;
 };
 
 export type BoxWorker = Worker & {
@@ -66,6 +70,8 @@ export type Pool = {
   machines(): number;
   /** The machines kept for debugging, by name. */
   kept(): string[];
+  /** Seconds the run's machines were up, by vCPU count: what the run costs. */
+  machineSeconds(): Record<string, number>;
 };
 
 /** A machine lives at most this long after its last group started, whatever happens to the controller. */
@@ -88,6 +94,16 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
   let created = 0;
   let snapshot = o.snapshot;
   let closed = false;
+  const now = o.now ?? Date.now;
+  const born = new Map<string, { at: number; cpus: number }>(); // machine id → when it was asked for
+  const seconds: Record<string, number> = {};
+  /** The machine stops costing compute: deleted, or paused for debugging. */
+  const ended = (id: string) => {
+    const b = born.get(id);
+    if (!b) return;
+    born.delete(id);
+    seconds[b.cpus] = Math.round(((seconds[b.cpus] ?? 0) + (now() - b.at) / 1000) * 10) / 10;
+  };
   const outputsOf = o.outputsOf ?? ((tasks: TaskNode[]) => tasks.map((t) => ({ dir: t.dir, globs: t.outputs })));
 
   const sh = (id: string, script: string, x: { env?: Record<string, string>; timeout?: number } = {}) =>
@@ -99,6 +115,7 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
 
   const remove = async (id: string) => {
     live.delete(id);
+    ended(id);
     await m.delete(id).catch(() => {}); // the delete-after timer is the backstop
   };
 
@@ -142,6 +159,7 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
         if (!live.has(id)) return;
         if (!failed) return remove(id);
         live.delete(id);
+        ended(id);
         keptNames.push(name);
         await m.pause(id).catch(() => {});
         await m.setDeleteAfter(id, KEEP_FAILED_SECONDS).catch(() => {});
@@ -153,16 +171,18 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
   const start = async (cpus: number): Promise<BoxWorker> => {
     created += 1;
     const name = `${prefix}-${created}`;
+    const at = now();
     const machine = await m.create({
       name,
       ...(o.org ? { org: o.org } : {}),
       fromSnapshot: snapshot,
       isolated: true,
       deleteAfter: SAFETY_SECONDS,
-      labels: { "boxd-ci": "worker", "boxd-ci/run": o.runId },
+      labels: { "boxd-ci": "worker", "boxd-ci/run": o.runId, ...(o.repo ? { "boxd-ci/repo": o.repo } : {}) },
     });
     const w = worker(machine.id, name, cpus);
     live.set(machine.id, w);
+    born.set(machine.id, { at, cpus });
     try {
       if (closed) throw new Error("the run is over");
       await m.waitUntilReady(machine.id, { timeout: READY_MS });
@@ -202,5 +222,6 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
     },
     machines: () => created,
     kept: () => [...keptNames],
+    machineSeconds: () => ({ ...seconds }),
   };
 }

@@ -109,6 +109,10 @@ class FakeBoxd implements SnapshotBoxd {
     exec: async (_id: string, p: { command: string[]; env?: Record<string, string> }): Promise<ExecOutput> => {
       const script = p.command[2] ?? "";
       this.execs.push({ script, env: p.env ?? {} });
+      if (script.includes("boxd-ci-planner.mjs")) {
+        this.log.push("plan");
+        return { stdout: JSON.stringify(this.plan), stderr: "", exitCode: 0 };
+      }
       const step = script.includes("clone")
         ? "clone"
         : script.includes("merge-base --is-ancestor")
@@ -131,7 +135,14 @@ class FakeBoxd implements SnapshotBoxd {
     delete: async (id: string) => {
       this.log.push(`delete ${id}`);
     },
+    files: {
+      upload: async (_id: string, path: string) => {
+        this.log.push(`upload ${path}`);
+        return 1;
+      },
+    },
   };
+  plan = { selectors: [{ selector: "web#test" }, { selector: "api#lint" }] };
   snapshots = {
     create: async (machine: string, name: string) => {
       this.log.push(`save ${machine} ${name}`);
@@ -224,6 +235,30 @@ describe("buildSnapshot", () => {
       depsHash: "aaaaaaaaaaaaaaaa",
       cpus: 2,
     });
+  });
+
+  test("without selectors, the planner on the builder decides what the warm run builds", async () => {
+    const boxd = new FakeBoxd();
+    const { selectors: _, ...rest } = opts;
+    await buildSnapshot(boxd, { ...rest, plannerBundle: new Uint8Array([1]) });
+    expect(boxd.log.slice(1, 7)).toEqual([
+      "clone",
+      "install",
+      "hash",
+      "upload /tmp/boxd-ci-planner.mjs",
+      "plan",
+      "warm",
+    ]);
+    expect(boxd.execs.find((e) => e.script.includes("turbo run"))?.script).toContain("'web#test' 'api#lint'");
+  });
+
+  test("a repository with no ci task yet gets its snapshot without a warm run", async () => {
+    const boxd = new FakeBoxd();
+    boxd.plan = { selectors: [] };
+    const { selectors: _, ...rest } = opts;
+    await buildSnapshot(boxd, { ...rest, plannerBundle: new Uint8Array([1]) });
+    expect(boxd.log).not.toContain("warm");
+    expect(boxd.log).toContain("save b1 bci-acme-web-a");
   });
 
   test("a failed install deletes the builder and says what broke", async () => {

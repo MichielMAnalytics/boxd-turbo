@@ -26,7 +26,14 @@ export type CreateParams =
       labels: Record<string, string>;
     };
 
-export type MachineInfo = { id: string; name: string; status: string; access: { domain: string } };
+export type MachineInfo = {
+  id: string;
+  name: string;
+  status: string;
+  access: { domain: string };
+  labels?: Record<string, string>;
+  createdAt?: Date | null;
+};
 export type SnapshotInfo = { name: string; version: number | null; status: string; vcpu: number };
 
 /** Every SDK call boxd-ci makes. `new Boxd()` is one. */

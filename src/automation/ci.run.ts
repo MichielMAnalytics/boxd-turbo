@@ -2,11 +2,17 @@
 // every push of the organization here; the handler keeps the ones `boxd-ci init` registered.
 
 import { readFileSync } from "node:fs";
-import { boxd, githubApp } from "@boxd/run";
+import { githubApp } from "@boxd/run";
+import { Boxd } from "@boxd-sh/sdk";
+import type { BoxdLike } from "../boxd/sdk.js";
 import { SERVER_ROOT } from "../boxd/server.js";
 import { fsStore } from "../boxd/store.js";
 import { createPool } from "../boxd/worker.js";
 import { createHandler } from "./handler.js";
+
+// The SDK version boxd-ci is built and tested against, signed in by the machine itself. The client
+// @boxd/run provides follows the machine's runtime and can lag behind.
+const boxd: BoxdLike = new Boxd();
 
 const server = JSON.parse(readFileSync(`${SERVER_ROOT}/server.json`, "utf8")) as {
   cacheUrl: string;

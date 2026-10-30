@@ -16,6 +16,8 @@ export type RunRecord = {
   results: TaskResult[];
   /** Machines the run started for its tasks. */
   machines: number;
+  /** Seconds those machines were up, by vCPU count. */
+  machineSeconds?: Record<string, number>;
   snapshot: string;
   warnings: string[];
   /** Why the run stopped before or around its tasks (planner, snapshot, an exception). */
