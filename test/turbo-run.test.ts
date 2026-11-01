@@ -14,7 +14,14 @@ import { plan } from "../src/planner/planner.js";
 
 const fixture = fileURLToPath(new URL("./fixtures/mini-turbo", import.meta.url));
 const turbo = fileURLToPath(new URL("../node_modules/.bin/turbo", import.meta.url));
-const env = { ...process.env, CI: "1", TURBO_TELEMETRY_DISABLED: "1", TURBO_NO_UPDATE_NOTIFIER: "1" };
+// Only this test's Turborepo settings: on boxd-turbo's own CI, the task's TURBO_API and TURBO_TOKEN
+// would reach the fixture's runs, and their cache would restore tasks this test expects to run.
+const env = {
+  ...Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("TURBO_"))),
+  CI: "1",
+  TURBO_TELEMETRY_DISABLED: "1",
+  TURBO_NO_UPDATE_NOTIFIER: "1",
+};
 
 let repo: string;
 let graph: TaskGraph;
