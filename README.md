@@ -355,8 +355,9 @@ npm run charts      # redraw assets/ from bench/results
 
 `src/core` is the pure part: tags, graph, scheduler, records, reports. `src/boxd` talks to boxd:
 machines, the server, snapshots. `src/pipeline.ts` is one run, shared by the CLI and the push
-automation in `src/automation`. This repository is one package, not a Turborepo monorepo, so its own
-checks run on GitHub Actions.
+automation in `src/automation`. This repository's own checks run on boxd-turbo. Its `turbo.json` tags
+lint, typecheck, test and build `ci`, so every push gets a `boxd-turbo` check. A pull request from a
+fork is checked once a maintainer pushes it to a branch here.
 
 ## License
 

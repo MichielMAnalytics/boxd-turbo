@@ -1,0 +1,9 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "tasks": {
+    "lint": { "tags": ["ci"] },
+    "typecheck": { "tags": ["ci"] },
+    "test": { "tags": ["ci"] },
+    "build": { "tags": ["ci"], "outputs": ["dist/**"] }
+  }
+}

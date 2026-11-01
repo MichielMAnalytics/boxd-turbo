@@ -4,6 +4,7 @@
   "private": true,
   "description": "CI for Turborepo monorepos on boxd: every task on its own machine, restored from a snapshot. Reads Vercel CI's turbo.json tags.",
   "license": "MIT",
+  "packageManager": "npm@11.6.1",
   "type": "module",
   "bin": {
     "boxd-turbo": "dist/cli.mjs"
