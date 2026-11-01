@@ -85,9 +85,9 @@ plans with Turborepo, and starts the first task. GitHub's own delivery of the pu
   </picture>
 </p>
 
-The cost is at list prices. boxd-turbo counts every task machine for every second it was up, with all its
-RAM in use (boxd bills the RAM in use, so this is an upper bound), and the server for the run plus the
-minute it stays awake after. It leaves out snapshot storage, kept machines of failed tasks (hibernated,
+The cost is at list prices. For boxd-turbo it counts every task machine for every second it was up, with
+all its RAM in use (boxd bills the RAM in use, so this is an upper bound), and the server for the run
+plus the minute it stays awake after. It leaves out snapshot storage, kept machines of failed tasks (hibernated,
 disk only), the promotion after a green push to the default branch, and the server while it sleeps
 between pushes (about 1.7¢ an hour for the RAM it holds, until it goes to disk after four idle hours).
 
@@ -123,8 +123,8 @@ starts as soon as its dependencies finish, and is skipped when the cache already
 model is the reason this repository exists.
 
 On Vercel CI every push starts with bootstrapping. A separate machine clones the repository and
-installs its dependencies, and the task machines start after it. On `vercel/ai` that took a median of
-27 s per push before the first task ran. Vercel CI is also closed source and runs on Vercel only.
+installs its dependencies, and the task machines start after it. On `vercel/ai` the bootstrap alone took
+a median of 27 s per push. Vercel CI is also closed source and runs on Vercel only.
 
 boxd-turbo keeps the model and the configuration and changes what a machine starts from. A boxd
 machine is restored from a snapshot with its memory and disk, so the repository is checked out and
@@ -183,7 +183,8 @@ thing is a few thousand lines of TypeScript under the MIT license.
 | Runs on | your boxd account | Vercel | GitHub | Blacksmith |
 
 Timings and prices in this README are for boxd-turbo and Vercel CI only. Those two are the ones we ran
-on the same repository and the same tasks.
+on the same repository and the same tasks. For GitHub Actions and Blacksmith, the boxd docs time the CI
+of 10 open-source projects in the [CI runner benchmarks](https://docs.boxd.sh/use-cases/ci-runners/benchmarks).
 
 ## Coming from Vercel CI
 
@@ -313,11 +314,11 @@ the secrets.
 
 ```jsonc
 {
-  "org": "acme",              // the boxd org that runs CI (default: your boxd CLI's active org)
-  "server": "boxd-turbo-server", // the server machine
-  "maxMachines": 32,          // machines one run may use at once (1 to 256)
-  "packSeconds": 10,          // tasks shorter than this share a machine (0: every task alone)
-  "secrets": ["NPM_TOKEN"]    // boxd secrets every machine of a run gets
+  "org": "acme",                  // the boxd org that runs CI (default: your boxd CLI's active org)
+  "server": "boxd-turbo-server",  // the server machine
+  "maxMachines": 32,              // machines one run may use at once (1 to 256)
+  "packSeconds": 10,              // tasks shorter than this share a machine (0: every task alone)
+  "secrets": ["NPM_TOKEN"]        // boxd secrets every machine of a run gets
 }
 ```
 
