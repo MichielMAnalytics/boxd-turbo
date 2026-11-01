@@ -109,6 +109,6 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
     `${green("✓")} ${bold(ctx.repo)} is set up on boxd. Runs start from ${record.snapshot} (${record.commit.slice(0, 7)}).`,
   );
   out.line(`  ${bold("boxd-turbo run")}   CI on your working copy, now`);
-  if (github && access === "ok") out.line(`  ${bold("git push")}      the boxd-turbo check appears on the commit`);
+  if (github && access === "ok") out.line(`  ${bold("git push")}         the boxd-turbo check appears on the commit`);
   return 0;
 }

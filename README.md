@@ -38,7 +38,7 @@ A repository without `ci` tags runs its usual checks: lint, type checks and test
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/demo-dark.svg">
-    <img alt="An animated terminal: boxd-turbo run on a change to one vercel/ai package, green in 21 seconds" src="assets/demo-light.svg" width="880">
+    <img alt="An animated terminal: boxd-turbo run on a change to one vercel/ai package, green in 23 seconds" src="assets/demo-light.svg" width="880">
   </picture>
 </p>
 

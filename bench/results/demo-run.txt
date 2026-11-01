@@ -1,17 +1,17 @@
-   2.7s  your working copy (main) on 3b3c1a0: a 1 kB patch
-   3.2s  restoring bci-azin-tech-bench-ai-3b3c1a0
-   6.3s  planning with Turborepo
-   8.2s  249 tasks, 3 to run, 246 restored from the cache
-   8.4s  ▸ @ai-sdk/mistral#build on bci-3b3c1a0-8oqi-1
-  12.2s  ✓ @ai-sdk/mistral#build 3s
-  12.2s  ▸ @ai-sdk/mistral#test on bci-3b3c1a0-8oqi-2
-  12.2s  ▸ @ai-sdk/mistral#type-check on bci-3b3c1a0-8oqi-1
-  21.1s  ✓ @ai-sdk/mistral#type-check 8s
-  23.7s  ✓ @ai-sdk/mistral#test 10s
+   2.3s  your working copy (main) on 30c3066: a 1 kB patch
+   2.8s  restoring bt-azin-tech-bench-ai-30c3066
+   6.4s  planning with Turborepo
+   8.9s  249 tasks, 3 to run, 246 restored from the cache
+   9.1s  ▸ @ai-sdk/mistral#build on bt-30c3066-nowe-1
+  13.3s  ✓ @ai-sdk/mistral#build 3s
+  13.3s  ▸ @ai-sdk/mistral#test on bt-30c3066-nowe-2
+  13.3s  ▸ @ai-sdk/mistral#type-check on bt-30c3066-nowe-1
+  21.7s  ✓ @ai-sdk/mistral#type-check 7s
+  24.8s  ✓ @ai-sdk/mistral#test 10s
 
 ✓ @ai-sdk/mistral#test                           10s
-✓ @ai-sdk/mistral#type-check                      8s
+✓ @ai-sdk/mistral#type-check                      7s
 ✓ @ai-sdk/mistral#build                           3s
 
-green in 21s · 3 ran · 246 restored · 2 machines
-run 20261030-221445-3b3c1a0 · 21s · boxd-ci ls
+green in 23s · 3 ran · 246 restored · 2 machines
+run 20261101-070042-30c3066 · 23s · boxd-turbo ls

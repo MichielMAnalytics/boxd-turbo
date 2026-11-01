@@ -1,4 +1,4 @@
-| Push to green on vercel/ai | boxd CI | Vercel CI | | Cost, boxd CI | Cost, Vercel CI |
+| Push to green on vercel/ai | boxd-turbo | Vercel CI | | Cost, boxd-turbo | Cost, Vercel CI |
 |---|---|---|---|---|---|
 | Docs-only change | **5.9 s** | 78 s | 13× faster | 0.4¢ | 0.8¢ |
 | One provider package | **20 s** | 69 s | 3.5× faster | 0.6¢ | 1.1¢ |
