@@ -9,7 +9,7 @@ import { matchRun, parseRuns } from "../src/cli/commands/history.js";
 import { initPlan } from "../src/cli/commands/init.js";
 import { requireTurboJson, writeRegularFile } from "../src/cli/context.js";
 import { anonymousRead, makePatch, parseRemote } from "../src/cli/git.js";
-import { carryRetired, githubAccess, localSecrets, sameRepo } from "../src/cli/setup.js";
+import { automationJob, automationStep, carryRetired, githubAccess, localSecrets, sameRepo } from "../src/cli/setup.js";
 import { ciTaggedTasks, ownConfigs, usualChecks } from "../src/core/ci-tasks.js";
 
 describe("parseCli", () => {
@@ -243,6 +243,27 @@ describe("first-run errors", () => {
     );
     writeFileSync(join(dir, "turbo.jsonc"), "{}");
     expect(requireTurboJson(dir)).toBe(join(dir, "turbo.jsonc"));
+  });
+});
+
+describe("the push automation", () => {
+  test("a job stuck since before the GitHub App was installed is started again, a running one is left alone", () => {
+    expect(automationStep(undefined, "", "v1")).toBe("install");
+    expect(automationStep({ id: "38dc8", state: "background" }, "v1", "v1")).toBe("none");
+    expect(automationStep({ id: "38dc8", state: "blocked" }, "v1", "v1")).toBe("restart");
+    expect(automationStep({ id: "38dc8", state: "blocked" }, "v0", "v1")).toBe("update");
+    expect(automationStep({ id: "38dc8" }, "v1", "v1")).toBe("none");
+  });
+
+  test("the job is found in run jobs --json by its file", () => {
+    const text = JSON.stringify({
+      jobs: [
+        { id: "a1", path: "/home/boxd/other.run.ts", state: "background" },
+        { id: "38dc8", path: "/home/boxd/boxd-turbo/automation/boxd-turbo.run.ts", state: "blocked" },
+      ],
+    });
+    expect(automationJob(text)).toMatchObject({ id: "38dc8", state: "blocked" });
+    expect(automationJob("not json")).toBeUndefined();
   });
 });
 

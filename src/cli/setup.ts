@@ -78,6 +78,27 @@ const AUTOMATION_DIR = `${SERVER_ROOT}/automation`;
 
 type Job = { id?: string; file?: string; path?: string; state?: string; status?: string };
 
+/** The push automation's row in `run jobs --json`, found by its file. */
+export const automationJob = (text: string): Job | undefined =>
+  parseJobs(text).find((j) => JSON.stringify(j).includes("boxd-turbo.run.ts"));
+
+/** A job that is up: `background` while it waits for events. Runtimes that print no state count as up. */
+export const jobUp = (job: Job): boolean => ["background", "running", undefined].includes(job.state ?? job.status);
+
+/**
+ * What installAutomation does with the job it found. A job registered before the org had the GitHub
+ * App stays blocked until it is started again, so a job that is not up is restarted.
+ */
+export function automationStep(
+  job: Job | undefined,
+  installed: string,
+  version: string,
+): "none" | "restart" | "update" | "install" {
+  if (!job) return "install";
+  if (installed !== version) return "update";
+  return jobUp(job) ? "none" : "restart";
+}
+
 /**
  * Puts the automation and the planner on the server and makes sure the job runs the current
  * version. A restart would stop runs in progress, so with one in progress it waits for the next init.
@@ -90,9 +111,9 @@ export async function installAutomation(boxd: BoxdLike, server: ServerInfo, stor
   const sh = async (script: string) => m.exec(server.machineId, { command: ["bash", "-c", script], timeout: 120_000 });
 
   const current = (await sh(`cat ${q(`${AUTOMATION_DIR}/version`)} 2>/dev/null || true`)).stdout.trim();
-  const jobs = await sh("run jobs --json 2>/dev/null || echo '[]'");
-  const job = parseJobs(jobs.stdout).find((j) => JSON.stringify(j).includes("boxd-turbo.run.ts"));
-  if (job && current === version) {
+  const job = automationJob((await sh("run jobs --json 2>/dev/null || echo '[]'")).stdout);
+  const step = automationStep(job, current, version);
+  if (step === "none") {
     say(`the push automation on ${server.name} is up to date`);
     return;
   }
@@ -105,13 +126,16 @@ export async function installAutomation(boxd: BoxdLike, server: ServerInfo, stor
       return;
     }
   }
-  await sh(`mkdir -p ${q(AUTOMATION_DIR)}`);
-  await m.files.upload(server.machineId, `${AUTOMATION_DIR}/boxd-turbo.run.ts`, code);
-  await m.files.upload(server.machineId, `${AUTOMATION_DIR}/planner.mjs`, planner);
+  if (step !== "restart") {
+    await sh(`mkdir -p ${q(AUTOMATION_DIR)}`);
+    await m.files.upload(server.machineId, `${AUTOMATION_DIR}/boxd-turbo.run.ts`, code);
+    await m.files.upload(server.machineId, `${AUTOMATION_DIR}/planner.mjs`, planner);
+  }
   const start = job?.id ? `run restart ${q(job.id)}` : "run boxd-turbo.run.ts";
   const out = await sh(`cd ${q(AUTOMATION_DIR)} && ${start} 2>&1 && echo ${q(version)} > version`);
   if (out.exitCode !== 0) throw new Error(`starting the push automation failed: ${out.stdout.trim().slice(-1500)}`);
-  say(`the push automation ${job ? "was updated" : "is running"} on ${server.name}`);
+  const done = { install: "is running", update: "was updated", restart: `was ${job?.state ?? "down"}, and runs again` };
+  say(`the push automation ${done[step]} on ${server.name}`);
 }
 
 function parseJobs(text: string): Job[] {

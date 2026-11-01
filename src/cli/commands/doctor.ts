@@ -12,7 +12,7 @@ import { leftovers } from "../../core/sweep.js";
 import { paths, readJson } from "../../state.js";
 import type { Ctx } from "../context.js";
 import { turboFiles } from "../git.js";
-import { GITHUB_HELP, githubAccess } from "../setup.js";
+import { automationJob, GITHUB_HELP, githubAccess, jobUp } from "../setup.js";
 import { ago, bold, dim, green, type Out, red, yellow } from "../ui.js";
 
 type Check = { ok: boolean | "warn"; what: string; fix?: string };
@@ -97,11 +97,17 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
   }
 
   const jobs = await boxd.machines.exec(server.id, { command: ["bash", "-c", "run jobs --json 2>/dev/null || true"] });
-  const automation = jobs.stdout.includes("boxd-turbo.run.ts");
+  const automation = automationJob(jobs.stdout);
   add(
-    automation
-      ? { ok: true, what: `the push automation is installed on ${server.name}` }
-      : { ok: "warn", what: "no push automation, so pushes get no check", fix: "boxd-turbo init installs it" },
+    !automation
+      ? { ok: "warn", what: "no push automation, so pushes get no check", fix: "boxd-turbo init installs it" }
+      : jobUp(automation)
+        ? { ok: true, what: `the push automation is installed on ${server.name}` }
+        : {
+            ok: false,
+            what: `the push automation on ${server.name} is ${automation.state ?? automation.status}, so pushes get no check`,
+            fix: "boxd-turbo init starts it again",
+          },
   );
   if (automation) {
     const access = await githubAccess(
