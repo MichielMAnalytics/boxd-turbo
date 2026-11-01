@@ -4,7 +4,7 @@
 import { parse } from "jsonc-parser";
 import { USUAL_CHECKS } from "./tags.js";
 
-type TurboJson = { tags?: unknown; tasks?: Record<string, { tags?: unknown } | undefined> };
+type TurboJson = { extends?: unknown; tags?: unknown; tasks?: Record<string, { tags?: unknown } | undefined> };
 
 const parsed = (text: string): TurboJson => {
   const v = parse(text) as unknown;
@@ -12,6 +12,27 @@ const parsed = (text: string): TurboJson => {
 };
 const tasksOf = (text: string) => Object.entries(parsed(text).tasks ?? {});
 const hasCi = (tags: unknown) => Array.isArray(tags) && tags.includes("ci");
+
+const dirOf = (path: string) => path.slice(0, path.lastIndexOf("/") + 1);
+const extendsRoot = (text: string) => {
+  const ext = parsed(text).extends;
+  return Array.isArray(ext) && ext.includes("//");
+};
+
+/**
+ * The texts of the turbo.json files Turborepo reads for this repository: the root's, and each
+ * package's (one that extends "//"). A nested turbo.json that does not extend "//" is another
+ * Turborepo, a test fixture say, and it and everything under it are left out.
+ */
+export function ownConfigs(files: { path: string; text: string }[]): string[] {
+  const nested = files.filter((f) => f.path.includes("/"));
+  const otherRoots = nested.filter((f) => !extendsRoot(f.text)).map((f) => dirOf(f.path));
+  return files
+    .filter(
+      (f) => !f.path.includes("/") || (extendsRoot(f.text) && !otherRoots.some((dir) => dirOf(f.path).startsWith(dir))),
+    )
+    .map((f) => f.text);
+}
 
 /**
  * The task names tagged ci in any of these turbo.json files, the way the planner reads them: the tag

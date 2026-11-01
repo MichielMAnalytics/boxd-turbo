@@ -6,7 +6,7 @@ import { connect } from "../../boxd/sdk.js";
 import { cacheAnswers, SERVER_ROOT } from "../../boxd/server.js";
 import { type RepoRecord, snapshotReady } from "../../boxd/snapshot.js";
 import { machineStore } from "../../boxd/store.js";
-import { ciTaggedTasks, usualChecks } from "../../core/ci-tasks.js";
+import { ciTaggedTasks, ownConfigs, usualChecks } from "../../core/ci-tasks.js";
 import type { RunRecord } from "../../core/record.js";
 import { leftovers } from "../../core/sweep.js";
 import { paths, readJson } from "../../state.js";
@@ -27,7 +27,9 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
     }
   };
 
-  const texts = turboFiles(ctx.root).map((f) => readFileSync(join(ctx.root, f), "utf8"));
+  const texts = ownConfigs(
+    turboFiles(ctx.root).map((path) => ({ path, text: readFileSync(join(ctx.root, path), "utf8") })),
+  );
   const tagged = ciTaggedTasks(texts);
   const usual = tagged.length ? [] : usualChecks(texts);
   add(

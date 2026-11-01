@@ -10,7 +10,7 @@ import { initPlan } from "../src/cli/commands/init.js";
 import { requireTurboJson, writeRegularFile } from "../src/cli/context.js";
 import { anonymousRead, makePatch, parseRemote } from "../src/cli/git.js";
 import { carryRetired, githubAccess, localSecrets, sameRepo } from "../src/cli/setup.js";
-import { ciTaggedTasks, usualChecks } from "../src/core/ci-tasks.js";
+import { ciTaggedTasks, ownConfigs, usualChecks } from "../src/core/ci-tasks.js";
 
 describe("parseCli", () => {
   test("a command, its flags and its arguments", () => {
@@ -152,6 +152,21 @@ describe("ciTaggedTasks", () => {
   test("a tags value that is not a list is ignored, and a package tagged ci as a whole is named", () => {
     expect(ciTaggedTasks(['{ "tasks": { "lint": { "tags": "ci" } } }'])).toEqual([]);
     expect(ciTaggedTasks(['{ "extends": ["//"], "tags": ["ci"] }'])).toEqual(["every task of a package tagged ci"]);
+  });
+});
+
+describe("ownConfigs", () => {
+  test("the root's turbo.json and its packages', without another Turborepo inside the repository", () => {
+    const pkg = '{ "extends": ["//"], "tasks": {} }';
+    expect(
+      ownConfigs([
+        { path: "turbo.json", text: '{ "tasks": {} }' },
+        { path: "packages/web/turbo.json", text: pkg },
+        { path: "test/fixtures/mini/turbo.json", text: '{ "tasks": { "//#lint": { "tags": ["ci"] } } }' },
+        { path: "test/fixtures/mini/packages/c/turbo.json", text: pkg },
+        { path: "test/fixtures/minimal/turbo.jsonc", text: "not json" },
+      ]),
+    ).toEqual(['{ "tasks": {} }', pkg]);
   });
 });
 

@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { applyEdits, modify } from "jsonc-parser";
 import { connect } from "../../boxd/sdk.js";
-import { ciTaggedTasks, usualChecks } from "../../core/ci-tasks.js";
+import { ciTaggedTasks, ownConfigs, usualChecks } from "../../core/ci-tasks.js";
 import { CONFIG_FILE } from "../../core/config.js";
 import { paths, readJson } from "../../state.js";
 import { type Ctx, openServer, requireTurboJson, writeRegularFile } from "../context.js";
@@ -36,7 +36,9 @@ export function initPlan(f: InitFacts): string[] {
 
 export async function initCommand(ctx: Ctx, flags: Record<string, string | boolean>, out: Out): Promise<number> {
   requireTurboJson(ctx.root);
-  const texts = turboFiles(ctx.root).map((f) => readFileSync(join(ctx.root, f), "utf8"));
+  const texts = ownConfigs(
+    turboFiles(ctx.root).map((path) => ({ path, text: readFileSync(join(ctx.root, path), "utf8") })),
+  );
   const tagged = ciTaggedTasks(texts);
   const usual = tagged.length ? [] : usualChecks(texts);
   const runs = tagged.length

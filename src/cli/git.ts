@@ -128,7 +128,7 @@ export function githubToken(): string | undefined {
   }
 }
 
-/** Every turbo.json in the repository (the root's and the packages'), relative to the root. */
+/** Every turbo.json in the repository, relative to the root. ownConfigs picks the ones Turborepo reads. */
 export const turboFiles = (root: string): string[] =>
   (
     tryGit(root, [
