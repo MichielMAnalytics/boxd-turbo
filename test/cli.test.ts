@@ -1,15 +1,15 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import type { RepoRecord } from "../src/boxd/snapshot.js";
 import { explain, parseCli } from "../src/cli/args.js";
-import { matchRun } from "../src/cli/commands/history.js";
+import { matchRun, parseRuns } from "../src/cli/commands/history.js";
 import { initPlan } from "../src/cli/commands/init.js";
-import { requireTurboJson } from "../src/cli/context.js";
+import { requireTurboJson, writeRegularFile } from "../src/cli/context.js";
 import { anonymousRead, makePatch, parseRemote } from "../src/cli/git.js";
-import { carryRetired, githubAccess, sameRepo } from "../src/cli/setup.js";
+import { carryRetired, githubAccess, localSecrets, sameRepo } from "../src/cli/setup.js";
 import { ciTaggedTasks, usualChecks } from "../src/core/ci-tasks.js";
 
 describe("parseCli", () => {
@@ -138,15 +138,20 @@ describe("usualChecks", () => {
 });
 
 describe("ciTaggedTasks", () => {
-  test("finds ci tags in the root turbo.json and in package turbo.json files, ignoring !ci", () => {
+  test("finds the tasks tagged exactly ci, at the root and in packages, as the planner does", () => {
     expect(
       ciTaggedTasks([
         '{ "tasks": { "build": {} } }',
         '{ "extends": ["//"], "tasks": { "type-check": { "tags": ["ci"] }, "test": { "tags": ["ci:cpus:4"] } } }',
         '{ "extends": ["//"], "tasks": { "lint": { "tags": ["!ci"] } } }',
       ]),
-    ).toEqual(["test", "type-check"]);
+    ).toEqual(["type-check"]);
     expect(ciTaggedTasks(['{ "tasks": { "lint": { "tags": ["!ci"] } } }', "not json"])).toEqual([]);
+  });
+
+  test("a tags value that is not a list is ignored, and a package tagged ci as a whole is named", () => {
+    expect(ciTaggedTasks(['{ "tasks": { "lint": { "tags": "ci" } } }'])).toEqual([]);
+    expect(ciTaggedTasks(['{ "extends": ["//"], "tags": ["ci"] }'])).toEqual(["every task of a package tagged ci"]);
   });
 });
 
@@ -257,5 +262,52 @@ describe("matchRun", () => {
     expect(matchRun(ids, "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678")).toBe("20261030-101503-a1b2c3d");
     expect(matchRun(ids, "d00d2fe")).toBe("20261031-090000-d00d2fe");
     expect(matchRun(ids, "ffffff0")).toBeUndefined();
+  });
+});
+
+describe("local runs and secrets", () => {
+  const rec = { secrets: ["NPM_TOKEN"] } as unknown as RepoRecord;
+  test("a local run gets the default branch's secrets, and names the working copy's others as left out", () => {
+    expect(localSecrets(rec, ["NPM_TOKEN", "PROD_DB_PASSWORD"])).toEqual({
+      secrets: ["NPM_TOKEN"],
+      ignored: ["PROD_DB_PASSWORD"],
+    });
+    expect(localSecrets({} as RepoRecord, ["A"])).toEqual({ secrets: [], ignored: ["A"] });
+  });
+});
+
+describe("writeRegularFile", () => {
+  test("replaces a regular file in one step, and refuses to write through a symbolic link", () => {
+    const dir = mkdtempSync(join(tmpdir(), "boxd-turbo-write-"));
+    const file = join(dir, ".boxd-turbo.json");
+    writeRegularFile(file, "{}\n");
+    writeRegularFile(file, '{ "org": "acme" }\n');
+    expect(readFileSync(file, "utf8")).toBe('{ "org": "acme" }\n');
+    const target = join(dir, "victim");
+    writeFileSync(target, "precious");
+    const link = join(dir, "linked.json");
+    symlinkSync(target, link);
+    expect(() => writeRegularFile(link, "{}")).toThrow(
+      `${link} is not a regular file, so boxd-turbo will not write it`,
+    );
+    expect(readFileSync(target, "utf8")).toBe("precious");
+    expect(lstatSync(link).isSymbolicLink()).toBe(true);
+  });
+});
+
+describe("parseRuns", () => {
+  test("skips a run file that is not JSON, and removes control characters from what it shows", () => {
+    const good = JSON.stringify({
+      id: "r1",
+      ref: "main",
+      error: "bad \u001b]52;c;ZXZpbA==\u0007thing",
+      warnings: ["\u001b[31mred\u001b[0m"],
+      results: [{ id: "a#te\u001bst", status: "failed" }],
+    });
+    const runs = parseRuns([good, "{ not json", null]);
+    expect(runs).toHaveLength(1);
+    expect(runs[0]?.error).toBe("bad thing");
+    expect(runs[0]?.warnings).toEqual(["red"]);
+    expect(runs[0]?.results[0]?.id).toBe("a#test");
   });
 });

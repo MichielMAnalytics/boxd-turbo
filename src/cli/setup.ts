@@ -23,6 +23,15 @@ export function sameRepo(record: RepoRecord, repo: string): void {
   );
 }
 
+/**
+ * The secrets a local run gets: the default branch's list, as a push's run does. A working copy that
+ * names others (a branch someone else wrote, checked out for review) cannot hand them to its code.
+ */
+export function localSecrets(record: RepoRecord, configured: string[] = []): { secrets: string[]; ignored: string[] } {
+  const secrets = record.secrets ?? [];
+  return { secrets, ignored: configured.filter((n) => !secrets.includes(n)) };
+}
+
 /** A rebuilt record keeps the snapshots still waiting to be deleted, and retires the one it replaces. */
 export function carryRetired(old: RepoRecord | null | undefined, fresh: RepoRecord, now: string): RepoRecord {
   if (!old) return fresh;

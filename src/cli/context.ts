@@ -1,7 +1,7 @@
 // Everything a command needs to know before it touches boxd: the repository, its config, the org,
 // and how to reach the server.
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type BoxdLike, cliCredentialsPath } from "../boxd/sdk.js";
@@ -82,4 +82,17 @@ export function requireTurboJson(root: string): string {
     );
   }
   return file;
+}
+
+/**
+ * Writes a file of the repository (.boxd-turbo.json) in one step. A symbolic link there, which a
+ * branch could commit, is refused, so the write never lands in a file outside the repository.
+ */
+export function writeRegularFile(file: string, text: string): void {
+  if (existsSync(file) && !lstatSync(file).isFile()) {
+    throw new Error(`${file} is not a regular file, so boxd-turbo will not write it`);
+  }
+  const tmp = `${file}.${process.pid}.${Math.random().toString(36).slice(2, 8)}.tmp`;
+  writeFileSync(tmp, text);
+  renameSync(tmp, file);
 }

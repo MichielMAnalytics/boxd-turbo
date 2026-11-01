@@ -50,12 +50,12 @@ async function main(argv: string[]): Promise<number> {
   }
 }
 
-main(process.argv.slice(2)).then(
-  (code) => process.exit(code),
-  (e: Error) => {
-    const message = explain(e.message);
-    if (process.argv.includes("--json")) stdout.json({ error: message });
-    else process.stderr.write(`${red("boxd-turbo:")} ${message}\n`);
-    process.exit(1);
-  },
-);
+// Exit once stdout has drained: piped --json output is never cut off, and an open SDK connection
+// never keeps the process alive.
+const finish = (code: number) => process.stdout.write("", () => process.exit(code));
+main(process.argv.slice(2)).then(finish, (e: Error) => {
+  const message = explain(e.message);
+  if (process.argv.includes("--json")) stdout.json({ error: message });
+  else process.stderr.write(`${red("boxd-turbo:")} ${message}\n`);
+  finish(1);
+});

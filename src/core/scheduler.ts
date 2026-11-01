@@ -194,9 +194,14 @@ export function schedule(g: TaskGraph, pool: WorkerPool, o: ScheduleOptions): Pr
         },
       );
       acquiring.add(p);
-      void p.finally(() => {
+      const cleanup = () => {
         acquiring.delete(p);
         prestarting.set(size, (prestarting.get(size) ?? 1) - 1);
+      };
+      // A throw in a callback ends the run with its error, never as an unhandled rejection.
+      p.then(cleanup, (e: Error) => {
+        cleanup();
+        void settle(e);
       });
     };
 
@@ -243,7 +248,7 @@ export function schedule(g: TaskGraph, pool: WorkerPool, o: ScheduleOptions): Pr
           held++;
         } else continue; // every machine is busy; this group waits for the next to finish
         for (const n of group) started.add(n.id);
-        void launch(group, reuse);
+        launch(group, reuse).catch((e: Error) => void settle(e));
       }
       prestartNextWave();
       // Machines nobody will need again: fewer tasks are waiting than machines are idle.

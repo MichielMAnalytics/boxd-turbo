@@ -1,6 +1,6 @@
 // boxd-turbo ls, logs and grep: the runs of this repository, as the server keeps them.
 
-import { q } from "../../boxd/scripts.js";
+import { q, stripControl } from "../../boxd/scripts.js";
 import { connect } from "../../boxd/sdk.js";
 import { SERVER_ROOT } from "../../boxd/server.js";
 import { repoSlug } from "../../boxd/snapshot.js";
@@ -19,6 +19,14 @@ async function runIds(ctx: Ctx) {
   return { boxd, server, store, ids };
 }
 
+/** A whole number of at least 1 from a flag, or the default when the flag is not given. */
+function positive(value: string | boolean | undefined, fallback: number, flag: string): number {
+  if (value === undefined) return fallback;
+  const n = Number(value);
+  if (!Number.isInteger(n) || n < 1) throw new Error(`${flag} takes a whole number of at least 1`);
+  return n;
+}
+
 const mark = (r: RunRecord) => (r.status === "success" ? green("✓") : r.status === "failure" ? red("✗") : yellow("…"));
 
 function verdict(r: RunRecord): string {
@@ -29,12 +37,10 @@ function verdict(r: RunRecord): string {
 }
 
 export async function lsCommand(ctx: Ctx, flags: Record<string, string | boolean>, out: Out): Promise<number> {
-  const limit = Number(flags.limit ?? 15);
+  const limit = positive(flags.limit, 15, "--limit");
   const { store, ids } = await runIds(ctx);
   const chosen = ids.slice(-limit).reverse();
-  const records = (await store.readMany(chosen.map((id) => paths.run(ctx.repo, id))))
-    .map((t) => (t ? (JSON.parse(t) as RunRecord) : null))
-    .filter((r): r is RunRecord => r !== null);
+  const records = parseRuns(await store.readMany(chosen.map((id) => paths.run(ctx.repo, id))));
   if (ctx.json) {
     out.json(records.map(({ results, ...r }) => ({ ...r, tasks: count(results) })));
     return 0;
@@ -70,7 +76,7 @@ export async function logsCommand(ctx: Ctx, args: string[], flags: Record<string
     throw new Error(
       want ? `no run of ${ctx.repo} matches ${want}. boxd-turbo ls lists them.` : `no runs of ${ctx.repo} yet`,
     );
-  const record = await readJson<RunRecord>(store, paths.run(ctx.repo, id));
+  const [record] = parseRuns([await store.read(paths.run(ctx.repo, id))]);
   if (!record) throw new Error(`run ${id} has no record`);
   const logs = (await readJson<Record<string, string>>(store, paths.logs(ctx.repo, id))) ?? {};
   const task = flags.task as string | undefined;
@@ -96,21 +102,25 @@ export async function logsCommand(ctx: Ctx, args: string[], flags: Record<string
 export async function grepCommand(ctx: Ctx, args: string[], flags: Record<string, string | boolean>, out: Out) {
   const needle = args.join(" ");
   if (!needle) throw new Error("grep needs the text to look for: boxd-turbo grep <text>");
-  const runs = Number(flags.runs ?? 20);
+  const runs = positive(flags.runs, 20, "--runs");
   const boxd = connect();
   const { server } = await openServer(ctx, boxd);
   // Searched on the server, so only the matching lines travel.
   const js = `const fs=require("fs"),p=require("path");const [dir,needle,n]=process.argv.slice(1);
 let files=[];try{files=fs.readdirSync(dir).filter(f=>f.endsWith(".logs.json")).sort().slice(-Number(n))}catch{}
 const hits=[];for(const f of files.reverse()){let logs={};try{logs=JSON.parse(fs.readFileSync(p.join(dir,f),"utf8"))}catch{continue}
-for(const [task,log] of Object.entries(logs)){for(const line of String(log).split("\\n")){if(line.includes(needle)){hits.push({run:f.slice(0,-10),task,line:line.slice(0,400)});if(hits.length>=300)break}}}}
+for(const [task,log] of Object.entries(logs)){for(const line of String(log).split("\\n")){if(line.includes(needle)){hits.push({run:f.slice(0,-10),task,line:line.slice(0,400)});if(hits.length>=300)break}}if(hits.length>=300)break}if(hits.length>=300)break}
 process.stdout.write(JSON.stringify(hits))`;
   const dir = `${SERVER_ROOT}/runs/${repoSlug(ctx.repo)}`;
   const res = await boxd.machines.exec(server.machineId, {
     command: ["node", "-e", js, dir, needle, String(runs)],
     timeout: 120_000,
   });
-  const hits = JSON.parse(res.stdout || "[]") as { run: string; task: string; line: string }[];
+  const hits = (JSON.parse(res.stdout || "[]") as { run: string; task: string; line: string }[]).map((h) => ({
+    run: stripControl(h.run),
+    task: stripControl(h.task),
+    line: stripControl(h.line),
+  }));
   if (ctx.json) {
     out.json(hits);
     return hits.length ? 0 : 1;
@@ -124,4 +134,29 @@ process.stdout.write(JSON.stringify(hits))`;
 export function matchRun(ids: string[], want: string): string | undefined {
   const sha = /^[0-9a-f]{7,40}$/.test(want) ? want.slice(0, 7) : undefined;
   return ids.filter((i) => i.startsWith(want) || (sha !== undefined && i.endsWith(`-${sha}`))).at(-1);
+}
+
+/**
+ * Run records as the CLI shows them: a file that is not JSON (one being written, one damaged) is
+ * skipped, and what came from a commit (errors, warnings, task ids) loses terminal control sequences.
+ */
+export function parseRuns(texts: (string | null)[]): RunRecord[] {
+  const out: RunRecord[] = [];
+  for (const text of texts) {
+    if (!text) continue;
+    let r: RunRecord;
+    try {
+      r = JSON.parse(text) as RunRecord;
+    } catch {
+      continue;
+    }
+    out.push({
+      ...r,
+      ref: stripControl(String(r.ref ?? "")),
+      ...(r.error ? { error: stripControl(r.error) } : {}),
+      warnings: (r.warnings ?? []).map((w) => stripControl(String(w))),
+      results: (r.results ?? []).map((t) => ({ ...t, id: stripControl(String(t.id)) })),
+    });
+  }
+  return out;
 }

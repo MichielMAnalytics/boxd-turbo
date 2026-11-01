@@ -8,7 +8,7 @@ import { formatSeconds, keptMachines, terminalSummary } from "../../core/report.
 import { runPipeline } from "../../pipeline.js";
 import { bundled, type Ctx, openServer, requireTurboJson } from "../context.js";
 import { currentBranch, ensureCommit, makePatch } from "../git.js";
-import { ensureRepoRecord } from "../setup.js";
+import { ensureRepoRecord, localSecrets } from "../setup.js";
 import { bold, clock, dim, green, type Out, red, runPrinter, yellow } from "../ui.js";
 
 const MAX_PATCH_BYTES = 100 * 1024 * 1024;
@@ -26,6 +26,15 @@ export async function runCommand(ctx: Ctx, flags: Record<string, string | boolea
   const { server, store } = await openServer(ctx, boxd, say);
   const repo = await ensureRepoRecord(ctx, boxd, server, store, say);
 
+  // The default branch's list, as a push gets: a working copy someone else wrote cannot ask for more.
+  const { secrets, ignored } = localSecrets(repo, ctx.config.secrets);
+  if (ignored.length) {
+    say(
+      yellow(
+        `${ignored.join(", ")} ${ignored.length === 1 ? "is" : "are"} named in your working copy's .boxd-turbo.json only, so this run leaves ${ignored.length === 1 ? "it" : "them"} out. The default branch's list counts.`,
+      ),
+    );
+  }
   ensureCommit(ctx.root, repo.commit);
   const patch = makePatch(ctx.root, repo.commit);
   if (patch.length > MAX_PATCH_BYTES) {
@@ -65,7 +74,7 @@ export async function runCommand(ctx: Ctx, flags: Record<string, string | boolea
         sha: repo.commit,
         ref,
         prepare: { kind: "patch", base: repo.commit, patch },
-        ...(ctx.config.secrets?.length ? { secrets: ctx.config.secrets } : {}),
+        ...(secrets.length ? { secrets } : {}),
       },
     );
     if (ctx.json) {

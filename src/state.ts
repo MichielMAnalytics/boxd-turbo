@@ -18,13 +18,14 @@ export const paths = {
   durations: (repo: string) => `runs/${repoSlug(repo)}/durations.json`,
 };
 
+/** The file's JSON, or null when there is none. A damaged file is an error: it never reads as missing. */
 export async function readJson<T>(store: Store, path: string): Promise<T | null> {
   const text = await store.read(path);
   if (text === null) return null;
   try {
     return JSON.parse(text) as T;
   } catch {
-    return null;
+    throw new Error(`${path} is not valid JSON. Fix or delete it on the server.`);
   }
 }
 

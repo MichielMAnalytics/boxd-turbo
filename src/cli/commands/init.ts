@@ -1,13 +1,13 @@
 // boxd-turbo init: start the server, build the snapshot, install the push automation, and say what CI runs.
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { applyEdits, modify } from "jsonc-parser";
 import { connect } from "../../boxd/sdk.js";
 import { ciTaggedTasks, usualChecks } from "../../core/ci-tasks.js";
 import { CONFIG_FILE } from "../../core/config.js";
 import { paths, readJson } from "../../state.js";
-import { type Ctx, openServer, requireTurboJson } from "../context.js";
+import { type Ctx, openServer, requireTurboJson, writeRegularFile } from "../context.js";
 import { turboFiles } from "../git.js";
 import { ensureRepoRecord, GITHUB_HELP, githubAccess, installAutomation } from "../setup.js";
 import { bold, clock, dim, green, type Out, yellow } from "../ui.js";
@@ -72,7 +72,7 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
   say(tagged.length || usual.length ? runs : yellow(runs));
   if (writeConfig) {
     const text = existsSync(configPath) ? readFileSync(configPath, "utf8") : "{}\n";
-    writeFileSync(
+    writeRegularFile(
       configPath,
       applyEdits(text, modify(text, ["org"], ctx.org, { formattingOptions: { insertSpaces: true, tabSize: 2 } })),
     );

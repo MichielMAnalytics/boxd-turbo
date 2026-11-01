@@ -253,4 +253,24 @@ describe("pack", () => {
   test("packSeconds 0 gives every task its own machine", () => {
     expect(pack([node("a"), node("b")], { a: 1, b: 1 }, 0)).toHaveLength(2);
   });
+
+  test("a callback that throws ends the run with its error, never as an unhandled rejection", async () => {
+    const unhandled: unknown[] = [];
+    const listen = (e: unknown) => unhandled.push(e);
+    process.on("unhandledRejection", listen);
+    try {
+      const g = graph([t("a#build"), t("b#build")], ["a#build", "b#build"]);
+      const run = schedule(g, new FakePool(), {
+        ...opts,
+        onEvent: (e) => {
+          if (e.type === "start") throw new Error("the printer broke");
+        },
+      });
+      await expect(run).rejects.toThrow("the printer broke");
+      await new Promise((r) => setTimeout(r, 20));
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off("unhandledRejection", listen);
+    }
+  });
 });

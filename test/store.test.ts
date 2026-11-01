@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import type { ExecOutput } from "../src/boxd/sdk.js";
 import { fsStore, machineStore, type Store, type StoreBoxd } from "../src/boxd/store.js";
+import { readJson } from "../src/state.js";
 
 /** A "machine" that is this computer: exec runs bash here, upload writes a local file. */
 const localMachine = (): StoreBoxd => ({
@@ -82,5 +83,12 @@ describe("fsStore as root (the automation)", () => {
       "/runs/acme-web/1.json true",
       "/runs/acme-web/2.json true",
     ]);
+  });
+
+  test("readJson tells a missing file from a damaged one", async () => {
+    const store = fsStore(mkdtempSync(join(tmpdir(), "boxd-turbo-state-")));
+    expect(await readJson(store, "repos/none.json")).toBeNull();
+    await store.write("repos/bad.json", "{ half");
+    await expect(readJson(store, "repos/bad.json")).rejects.toThrow("repos/bad.json is not valid JSON");
   });
 });

@@ -2,12 +2,12 @@
 // scope, which reaches only the machines that name it, and its name goes into .boxd-turbo.json, which
 // is how boxd-turbo's machines name it. The value never reaches this terminal's output.
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { applyEdits, modify, parse } from "jsonc-parser";
 import { connect } from "../../boxd/sdk.js";
 import { CONFIG_FILE, SECRET_NAME } from "../../core/config.js";
-import type { Ctx } from "../context.js";
+import { type Ctx, writeRegularFile } from "../context.js";
 import { bold, dim, green, type Out, yellow } from "../ui.js";
 
 type Scope = { scope?: "unattached"; org?: string };
@@ -68,7 +68,7 @@ export async function secretCommand(
     const value = await d.readValue(name);
     if (!value) throw new Error(`no value for ${name}`);
     await d.secrets.set(name, value, scope);
-    writeFileSync(file, withSecretName(config, name, true));
+    writeRegularFile(file, withSecretName(config, name, true));
     if (ctx.json) out.json({ name, set: true });
     else {
       out.line(`${green("✓")} ${name} is set in ${ctx.org ?? "your org"}, for boxd-turbo's machines only.`);
@@ -78,7 +78,7 @@ export async function secretCommand(
     return 0;
   }
   await d.secrets.delete(name, scope);
-  writeFileSync(file, withSecretName(config, name, false));
+  writeRegularFile(file, withSecretName(config, name, false));
   if (ctx.json) out.json({ name, set: false });
   else out.line(`${name} is deleted, and ${CONFIG_FILE} no longer names it.`);
   return 0;

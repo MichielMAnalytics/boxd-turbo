@@ -4,17 +4,24 @@
 import { parse } from "jsonc-parser";
 import { USUAL_CHECKS } from "./tags.js";
 
-type TurboJson = { tasks?: Record<string, { tags?: string[] } | undefined> };
+type TurboJson = { tags?: unknown; tasks?: Record<string, { tags?: unknown } | undefined> };
 
-const tasksOf = (text: string) => Object.entries((parse(text) as TurboJson | undefined)?.tasks ?? {});
+const parsed = (text: string): TurboJson => {
+  const v = parse(text) as unknown;
+  return v && typeof v === "object" ? (v as TurboJson) : {};
+};
+const tasksOf = (text: string) => Object.entries(parsed(text).tasks ?? {});
+const hasCi = (tags: unknown) => Array.isArray(tags) && tags.includes("ci");
 
-/** The task names tagged ci (or ci:…) in any of these turbo.json files; `!ci` does not count. */
+/**
+ * The task names tagged ci in any of these turbo.json files, the way the planner reads them: the tag
+ * itself, not `ci:cpus:N` alone, and `!ci` does not count. A package tagged ci as a whole is named so.
+ */
 export function ciTaggedTasks(texts: string[]): string[] {
   const names = new Set<string>();
   for (const text of texts) {
-    for (const [name, t] of tasksOf(text)) {
-      if (t?.tags?.some((tag) => tag === "ci" || tag.startsWith("ci:"))) names.add(name);
-    }
+    for (const [name, t] of tasksOf(text)) if (hasCi(t?.tags)) names.add(name);
+    if (hasCi(parsed(text).tags)) names.add("every task of a package tagged ci");
   }
   return [...names].sort();
 }
