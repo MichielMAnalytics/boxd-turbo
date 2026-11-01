@@ -792,7 +792,7 @@ function demo(captured: string) {
       at: 0,
       parts: [
         ["$ ", TERM.prompt],
-        ["npx github:azin-tech/boxd-turbo run", TERM.command],
+        ["npx github:MichielMAnalytics/boxd-turbo run", TERM.command],
       ],
     },
   ];

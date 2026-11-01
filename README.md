@@ -27,9 +27,9 @@ for any repository.
   task. On the one-package change the same tasks took half as long.
 
 ```bash
-boxd auth login                        # once, signs you in to boxd
-npx github:azin-tech/boxd-turbo run    # CI on your working copy, now
-npx github:azin-tech/boxd-turbo init   # a boxd-turbo check on every push
+boxd auth login                                # once, signs you in to boxd
+npx github:MichielMAnalytics/boxd-turbo run    # CI on your working copy, now
+npx github:MichielMAnalytics/boxd-turbo init   # a boxd-turbo check on every push
 ```
 
 A repository without `ci` tags runs its usual checks: lint, type checks and tests. See

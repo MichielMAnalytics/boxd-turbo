@@ -11,7 +11,7 @@ Results come from the Turborepo remote cache whenever a task's inputs did not ch
 executes what your change touched.
 
 Every command takes `--json`. Use it, since that output is stable and made for you. Until boxd-turbo is
-on npm, run it as `npx github:azin-tech/boxd-turbo <command>`. The examples below write `boxd-turbo`.
+on npm, run it as `npx github:MichielMAnalytics/boxd-turbo <command>`. The examples below write `boxd-turbo`.
 
 ## Check a change before pushing
 

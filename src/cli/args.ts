@@ -64,7 +64,7 @@ export const HELP = `boxd-turbo: CI for Turborepo monorepos on boxd machines
 CI runs the tasks turbo.json tags "ci", the way Vercel CI reads them, or the usual checks (lint,
 type checks, tests) when nothing is tagged.
 Sign in once with \`boxd auth login\` (or set BOXD_API_KEY).
-https://github.com/azin-tech/boxd-turbo`;
+https://github.com/MichielMAnalytics/boxd-turbo`;
 
 /** An error as a person should read it: the SDK's sign-in errors become how to sign in. */
 export function explain(message: string): string {
