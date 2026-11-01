@@ -168,6 +168,18 @@ class Doc {
     return `<text x="${x}" y="${y}" font-family="${MONO}" font-size="${o.size}"${o.cls ? ` class="${o.cls}"` : ""} xml:space="preserve">${body}</text>`;
   }
 
+  /** Sans spans of one line in different sizes, laid out by the renderer: no width is guessed. */
+  line(x: number, y: number, parts: { s: string; size: number; fill: string; dx?: number; tracking?: string }[]) {
+    for (const p of parts) for (const c of p.s) this.used.sans400.add(c);
+    const body = parts
+      .map(
+        (p) =>
+          `<tspan font-size="${p.size}" fill="${p.fill}"${p.dx ? ` dx="${p.dx}"` : ""}${p.tracking ? ` letter-spacing="${p.tracking}"` : ""}>${esc(p.s)}</tspan>`,
+      )
+      .join("");
+    return `<text x="${x}" y="${y}" font-family="${SANS}" xml:space="preserve">${body}</text>`;
+  }
+
   /** Kicker: uppercase mono, wide tracking, muted. */
   kicker(x: number, y: number, s: string, t: Theme) {
     return this.text(x, y, s.toUpperCase(), { font: "mono", size: 10.5, fill: t.muted, tracking: "0.15em" });
@@ -530,7 +542,7 @@ function hatch(d: Doc, t: Theme) {
 
 function whereTimeGoes(t: Theme, vercel: Record<string, Parts>, boxd: Record<string, Parts>) {
   const W = 880;
-  const tileH = 214;
+  const tileH = 270;
   const top = 124;
   const notes = [
     "The median of 3 pushes each, from git push to the result on GitHub. Each change on its own scale.",
@@ -546,8 +558,8 @@ function whereTimeGoes(t: Theme, vercel: Record<string, Parts>, boxd: Record<str
   d.body += panel(d, t);
   header(d, t, {
     kicker: "boxd-turbo vs Vercel CI, on vercel/ai",
-    title: "Where the time goes",
-    subtitle: "Waiting before the first task and after the last one, against the tasks themselves.",
+    title: "Push to green, and where the time goes",
+    subtitle: "Hatched is waiting: before the first task, and after the last one until GitHub has the result.",
   });
   // Legend: what the two fills mean.
   const lx = d.w - 32 - monoWidth("tasks", 11);
@@ -569,9 +581,16 @@ function whereTimeGoes(t: Theme, vercel: Record<string, Parts>, boxd: Record<str
     const scale = (right - x) / Math.max(v.total, b.total);
     d.body += d.text(x, y + 34, s.label, { size: 15, weight: 500, fill: t.ink, tracking: "-0.01em" });
     d.body += d.text(x, y + 54, s.sub, { font: "mono", size: 11, fill: t.muted });
+    // The answer first: how much faster, as big as the tile allows.
+    const ratio = v.total / b.total;
+    const big = `${ratio >= 10 ? Math.round(ratio) : ratio.toFixed(1)}×`;
+    d.body += d.line(x - 2, y + 106, [
+      { s: big, size: 46, fill: t.ink, tracking: "-0.03em" },
+      { s: "faster", size: 16, fill: t.body, dx: 10 },
+    ]);
     const rows = [
-      { lane: "vercel" as const, name: "Vercel CI", p: v, y: y + 84 },
-      { lane: "boxd" as const, name: "boxd-turbo", p: b, y: y + 128 },
+      { lane: "vercel" as const, name: "Vercel CI", p: v, y: y + 140 },
+      { lane: "boxd" as const, name: "boxd-turbo", p: b, y: y + 184 },
     ];
     for (const r of rows) {
       const ours = r.lane === "boxd";
@@ -620,15 +639,15 @@ function whereTimeGoes(t: Theme, vercel: Record<string, Parts>, boxd: Record<str
     }
     const waitV = v.start + v.report;
     const waitB = b.start + b.report;
-    d.body += `<line x1="${x}" y1="${y + 172}" x2="${right}" y2="${y + 172}" stroke="${t.rule}" stroke-width="1"/>`;
-    d.body += d.text(x, y + 194, "waiting", { font: "mono", size: 11, fill: t.muted });
+    d.body += `<line x1="${x}" y1="${y + 228}" x2="${right}" y2="${y + 228}" stroke="${t.rule}" stroke-width="1"/>`;
+    d.body += d.text(x, y + 250, "waiting", { font: "mono", size: 11, fill: t.muted });
     let wx2 = x + monoWidth("waiting  ", 11);
-    d.body += triangle(wx2, y + 184, 11, t.quiet);
+    d.body += triangle(wx2, y + 240, 11, t.quiet);
     wx2 += 15;
-    d.body += d.text(wx2, y + 194, secs(waitV), { font: "mono", size: 11, fill: t.quiet });
+    d.body += d.text(wx2, y + 250, secs(waitV), { font: "mono", size: 11, fill: t.quiet });
     wx2 += monoWidth(`${secs(waitV)}  `, 11);
-    d.body += logo(wx2, y + 184.5, 10.5, t.mark);
-    d.body += d.text(wx2 + 15, y + 194, secs(waitB), { font: "mono", size: 11, fill: t.ink });
+    d.body += logo(wx2, y + 240.5, 10.5, t.mark);
+    d.body += d.text(wx2 + 15, y + 250, secs(waitB), { font: "mono", size: 11, fill: t.ink });
   });
   notes.forEach((n, i) => {
     d.body += d.text(32, top + tileH + 30 + i * 18, n, { font: "mono", size: 11, fill: t.deep });

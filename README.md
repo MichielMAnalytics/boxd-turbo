@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/time-dark.svg">
-    <img alt="Where the time goes on vercel/ai: Vercel CI waits 78, 41 and 47 seconds outside its tasks, boxd-turbo 5.9, 6.3 and 4.5 seconds" src="assets/time-light.svg" width="880">
+    <img alt="Push to green on vercel/ai: boxd-turbo is 13× faster than Vercel CI on a docs-only change, 3.5× on one package and 1.2× on a core package. Vercel CI waits 78, 41 and 47 seconds outside its tasks, boxd-turbo 5.9, 6.3 and 4.5 seconds." src="assets/time-light.svg" width="880">
   </picture>
 </p>
 
