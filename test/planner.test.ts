@@ -10,7 +10,7 @@ const turbo = fileURLToPath(new URL("../node_modules/.bin/turbo", import.meta.ur
 
 /** A stand-in turbo binary: prints this version, and this error for anything else. */
 function fakeTurbo(version: string, error = "should not run"): string {
-  const dir = mkdtempSync(join(tmpdir(), "boxd-ci-turbo-"));
+  const dir = mkdtempSync(join(tmpdir(), "boxd-turbo-turbo-"));
   const file = join(dir, "turbo");
   writeFileSync(
     file,
@@ -41,12 +41,12 @@ describe("plan", () => {
     // c's own turbo.json defines lint, so lint is one of its checks; its test opts out with !ci.
     expect(p.selectors).toEqual([{ selector: "a#test" }, { selector: "b#test" }, { selector: "c#lint", cpus: 4 }]);
     expect(p.dry.tasks.map((t) => t.taskId).sort()).toEqual(["a#build", "a#test", "b#build", "b#test", "c#lint"]);
-    expect(p.warnings).toContain("no task in turbo.json is tagged ci, so boxd CI runs the usual checks: test, lint");
+    expect(p.warnings).toContain("no task in turbo.json is tagged ci, so boxd-turbo runs the usual checks: test, lint");
     expect(p.nothingToRun).toBeUndefined();
   });
 
   test("a repository with nothing to run plans nothing and says why", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "boxd-ci-plan-"));
+    const dir = mkdtempSync(join(tmpdir(), "boxd-turbo-plan-"));
     cpSync(fixture, dir, { recursive: true });
     writeFileSync(join(dir, "packages/c/turbo.json"), '{ "extends": ["//"] }');
     const p = await plan({ cwd: dir, turbo, readTurboJson: () => ({ tasks: { build: {} } }) });
@@ -57,7 +57,7 @@ describe("plan", () => {
 
   test("a turbo older than 2.4 is refused, naming the version it found", async () => {
     await expect(plan({ cwd: fixture, turbo: fakeTurbo("2.3.4") })).rejects.toThrow(
-      "boxd CI needs turbo 2.4 or newer, and this repository has 2.3.4. Upgrade the turbo devDependency.",
+      "boxd-turbo needs turbo 2.4 or newer, and this repository has 2.3.4. Upgrade the turbo devDependency.",
     );
   });
 
@@ -74,16 +74,16 @@ describe("plan", () => {
     );
   });
 
-  test("reads .boxd-ci.json at the planned commit, and passes its warnings on", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "boxd-ci-plan-"));
+  test("reads .boxd-turbo.json at the planned commit, and passes its warnings on", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "boxd-turbo-plan-"));
     cpSync(fixture, dir, { recursive: true });
-    writeFileSync(join(dir, ".boxd-ci.json"), '{ "maxMachines": 8, "colour": "blue" }');
+    writeFileSync(join(dir, ".boxd-turbo.json"), '{ "maxMachines": 8, "colour": "blue" }');
     const p = await plan({ cwd: dir, turbo });
     expect(p.config).toEqual({ maxMachines: 8, packSeconds: 10 });
-    expect(p.warnings).toContain(".boxd-ci.json: unknown setting colour");
+    expect(p.warnings).toContain(".boxd-turbo.json: unknown setting colour");
   });
 
-  test("without .boxd-ci.json the plan carries the defaults", async () => {
+  test("without .boxd-turbo.json the plan carries the defaults", async () => {
     expect((await plan({ cwd: fixture, turbo })).config).toEqual({ maxMachines: 32, packSeconds: 10 });
   });
 });

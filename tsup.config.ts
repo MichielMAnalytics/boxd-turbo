@@ -9,7 +9,7 @@ export default defineConfig([
   { ...shared, entry: { planner: "src/planner/main.ts" }, noExternal: [/.*/] },
   {
     ...shared,
-    entry: { "boxd-ci.run": "src/automation/ci.run.ts" },
+    entry: { "boxd-turbo.run": "src/automation/ci.run.ts" },
     noExternal: [/^(?!@boxd\/run$).*/],
     external: ["@boxd/run"],
   },

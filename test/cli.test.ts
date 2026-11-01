@@ -53,7 +53,7 @@ describe("parseRemote", () => {
 
   test("a remote on another host is refused before any token could be sent there", () => {
     expect(() => parseRemote("https://gitlab.com/acme/web.git")).toThrow(
-      "boxd CI runs repositories on github.com, and origin is on gitlab.com",
+      "boxd-turbo runs repositories on github.com, and origin is on gitlab.com",
     );
     expect(() => parseRemote("git@github.example.com:acme/web.git")).toThrow("origin is on github.example.com");
   });
@@ -64,7 +64,7 @@ describe("makePatch", () => {
     execFileSync("git", ["-c", "user.email=ci@example.com", "-c", "user.name=ci", ...args], { cwd, encoding: "utf8" });
 
   test("the working copy against a base commit, tracked edits, deletions, new files and binaries included", () => {
-    const repo = mkdtempSync(join(tmpdir(), "boxd-ci-patch-"));
+    const repo = mkdtempSync(join(tmpdir(), "boxd-turbo-patch-"));
     git(repo, "init", "-q");
     writeFileSync(join(repo, ".gitignore"), "node_modules/\n");
     writeFileSync(join(repo, "a.txt"), "one\n");
@@ -85,7 +85,7 @@ describe("makePatch", () => {
     const patch = makePatch(repo, base);
     expect(git(repo, "diff", "--cached", "--name-only").trim()).toBe("new.txt");
 
-    const copy = mkdtempSync(join(tmpdir(), "boxd-ci-apply-"));
+    const copy = mkdtempSync(join(tmpdir(), "boxd-turbo-apply-"));
     execFileSync("git", ["clone", "-q", repo, copy]);
     git(copy, "checkout", "-q", "-f", base);
     writeFileSync(join(copy, "p.patch"), patch);
@@ -99,7 +99,7 @@ describe("makePatch", () => {
   });
 
   test("a clean working copy at the base is an empty patch", () => {
-    const repo = mkdtempSync(join(tmpdir(), "boxd-ci-patch-"));
+    const repo = mkdtempSync(join(tmpdir(), "boxd-turbo-patch-"));
     git(repo, "init", "-q");
     writeFileSync(join(repo, "a.txt"), "one\n");
     git(repo, "add", "-A");
@@ -110,7 +110,7 @@ describe("makePatch", () => {
 
 describe("anonymousRead", () => {
   test("a repository anyone can clone needs no token, one that asks for credentials does", () => {
-    const repo = mkdtempSync(join(tmpdir(), "boxd-ci-anon-"));
+    const repo = mkdtempSync(join(tmpdir(), "boxd-turbo-anon-"));
     execFileSync("git", ["init", "-q", repo]);
     execFileSync(
       "git",
@@ -155,16 +155,16 @@ describe("init --dry-run", () => {
     const steps = initPlan({
       repo: "acme/web",
       org: "acme",
-      server: "boxd-ci-server",
+      server: "boxd-turbo-server",
       hasServer: false,
       hasSnapshot: false,
       github: true,
     });
     expect(steps).toEqual([
-      "write .boxd-ci.json (org acme)",
-      "start boxd-ci-server in acme: the Turborepo cache and run history",
+      "write .boxd-turbo.json (org acme)",
+      "start boxd-turbo-server in acme: the Turborepo cache and run history",
       "build the first snapshot of acme/web from its default branch",
-      "install the push automation on boxd-ci-server and check the boxd GitHub App can read acme/web",
+      "install the push automation on boxd-turbo-server and check the boxd GitHub App can read acme/web",
     ]);
   });
 });
@@ -176,7 +176,7 @@ describe("repository records", () => {
     cloneUrl: "https://github.com/acme/web.git",
     defaultBranch: "main",
     workdir: "/home/boxd/work/web",
-    snapshot: "bci-acme-web-aaaaaaa",
+    snapshot: "bt-acme-web-aaaaaaa",
     commit: "aaaaaaa",
     depsHash: "0".repeat(16),
     cpus: 2,
@@ -185,16 +185,16 @@ describe("repository records", () => {
   });
 
   test("a rebuild keeps the snapshots waiting to be deleted, and retires the one it replaces", () => {
-    const waiting = { name: "bci-acme-web-0000000", at: "2026-10-30T00:00:00.000Z" };
-    const fresh = rec({ snapshot: "bci-acme-web-bbbbbbb", commit: "bbbbbbb" });
+    const waiting = { name: "bt-acme-web-0000000", at: "2026-10-30T00:00:00.000Z" };
+    const fresh = rec({ snapshot: "bt-acme-web-bbbbbbb", commit: "bbbbbbb" });
     const next = carryRetired(rec({ retired: [waiting] }), fresh, "2026-10-30T12:00:00.000Z");
-    expect(next.retired).toEqual([waiting, { name: "bci-acme-web-aaaaaaa", at: "2026-10-30T12:00:00.000Z" }]);
+    expect(next.retired).toEqual([waiting, { name: "bt-acme-web-aaaaaaa", at: "2026-10-30T12:00:00.000Z" }]);
     expect(carryRetired(undefined, fresh, "2026-10-30T12:00:00.000Z").retired).toBeUndefined();
   });
 
   test("another repository whose name maps to the same record is refused", () => {
     expect(() => sameRepo(rec({ repo: "acme/my.app" }), "acme/my_app")).toThrow(
-      "acme/my_app and acme/my.app have the same short name in boxd (acme-my-app), and boxd-ci already runs acme/my.app. One account runs one of them.",
+      "acme/my_app and acme/my.app have the same short name in boxd (acme-my-app), and boxd-turbo already runs acme/my.app. One account runs one of them.",
     );
     expect(() => sameRepo(rec({ repo: "Acme/Web" }), "acme/web")).not.toThrow();
   });
@@ -209,9 +209,9 @@ describe("first-run errors", () => {
   });
 
   test("a folder without turbo.json is refused before anything starts in the cloud", () => {
-    const dir = mkdtempSync(join(tmpdir(), "boxd-ci-noturbo-"));
+    const dir = mkdtempSync(join(tmpdir(), "boxd-turbo-noturbo-"));
     expect(() => requireTurboJson(dir)).toThrow(
-      `no turbo.json in ${dir}. boxd-ci runs the tasks of a Turborepo monorepo.`,
+      `no turbo.json in ${dir}. boxd-turbo runs Turborepo monorepos. For any other repository, the CI runners guide sets up CI on boxd: https://docs.boxd.sh/use-cases/ci-runners`,
     );
     writeFileSync(join(dir, "turbo.jsonc"), "{}");
     expect(requireTurboJson(dir)).toBe(join(dir, "turbo.jsonc"));
@@ -219,7 +219,7 @@ describe("first-run errors", () => {
 });
 
 describe("githubAccess", () => {
-  const server = { machineId: "srv", name: "boxd-ci-server", cacheUrl: "", token: "" };
+  const server = { machineId: "srv", name: "boxd-turbo-server", cacheUrl: "", token: "" };
   const ask = async (stdout: string) => {
     const scripts: string[] = [];
     const boxd = {

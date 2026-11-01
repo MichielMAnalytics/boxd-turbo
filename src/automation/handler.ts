@@ -1,5 +1,5 @@
 // What the server does with a GitHub push: run CI on the commit, report it as a check, and after a
-// green push to the default branch save the next snapshot. Pushes to repositories boxd-ci has no
+// green push to the default branch save the next snapshot. Pushes to repositories boxd-turbo has no
 // record of, tags and deleted branches are ignored. When the automation starts, runs a restart cut
 // short are closed, so no check stays in progress.
 
@@ -60,7 +60,7 @@ export async function recoverInterruptedRuns(deps: AutomationDeps, startedBefore
     const closed: RunRecord = { ...r, status: "failure", error: RESTARTED, finishedAt: new Date().toISOString() };
     await writeJson(deps.store, path, closed);
     deps.log(`${r.repo}: closed ${r.id}, which the restart cut short`);
-    for (const m of await deps.boxd.machines.list({ ...scope, labels: { "boxd-ci/run": r.id } }).catch(() => [])) {
+    for (const m of await deps.boxd.machines.list({ ...scope, labels: { "boxd-turbo/run": r.id } }).catch(() => [])) {
       if (m.status === "running") await deps.boxd.machines.delete(m.id).catch(() => {});
     }
     const id = r.checkId;

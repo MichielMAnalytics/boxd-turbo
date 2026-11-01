@@ -40,7 +40,7 @@ export type PrepareSpec =
    * repositories; a function is asked again for every machine, since such tokens expire in an hour.
    */
   | { kind: "commit"; sha: string; fetchToken?: string | (() => Promise<string>) }
-  /** Apply a working copy on top of a commit the snapshot already has (`boxd-ci run`). */
+  /** Apply a working copy on top of a commit the snapshot already has (`boxd-turbo run`). */
   | { kind: "patch"; base: string; patch: Uint8Array };
 
 export type PoolOptions = {
@@ -54,7 +54,7 @@ export type PoolOptions = {
   /** For every Turborepo run: the remote cache settings and CI=1. */
   env: Record<string, string>;
   runId: string;
-  /** The repository's short name, a label on every machine (`boxd-ci doctor --sweep` reads it). */
+  /** The repository's short name, a label on every machine (`boxd-turbo doctor --sweep` reads it). */
   repo?: string;
   /** Names of boxd secrets every machine gets (unattached secrets reach only machines that name them). */
   secrets?: string[];
@@ -106,7 +106,7 @@ export const SAFETY_SECONDS = 3600;
 export const KEEP_FAILED_SECONDS = 86_400;
 /** How many failed machines one run keeps; the others are deleted (their logs are in the run). */
 export const KEEP_FAILED_MAX = 3;
-export const PATCH_PATH = "/tmp/boxd-ci.patch";
+export const PATCH_PATH = "/tmp/boxd-turbo.patch";
 /** A restore from a large snapshot can take longer than the SDK's 90-second default. */
 const READY_MS = 180_000;
 const MEMORY: Record<number, string> = { 1: "4G", 2: "8G", 4: "16G", 8: "32G" };
@@ -115,7 +115,7 @@ const randomTag = () => Math.random().toString(36).slice(2, 6).padEnd(4, "0");
 
 export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
   const m = boxd.machines;
-  const prefix = `bci-${o.runId.split("-").at(-1)?.slice(0, 7) ?? "run"}-${randomTag()}`;
+  const prefix = `bt-${o.runId.split("-").at(-1)?.slice(0, 7) ?? "run"}-${randomTag()}`;
   const live = new Map<string, BoxWorker>(); // by machine id
   const parked: BoxWorker[] = [];
   const keptNames: string[] = [];
@@ -156,7 +156,7 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
       out = await sh(id, checkoutScript(o.workdir, p.sha));
     } else if (p.kind === "commit") {
       const token = typeof p.fetchToken === "function" ? await p.fetchToken() : p.fetchToken;
-      out = await sh(id, fetchScript(o.workdir, p.sha), token ? { env: { BOXD_CI_FETCH_TOKEN: token } } : {});
+      out = await sh(id, fetchScript(o.workdir, p.sha), token ? { env: { BOXD_TURBO_FETCH_TOKEN: token } } : {});
     } else {
       await m.files.upload(id, PATCH_PATH, p.patch);
       out = await sh(id, applyPatchScript(o.workdir, p.base, PATCH_PATH));
@@ -220,7 +220,7 @@ export function createPool(boxd: PoolBoxd, o: PoolOptions): Pool {
           fromSnapshot: snapshot,
           deleteAfter: SAFETY_SECONDS,
           ...isolatedShape(
-            { "boxd-ci": "worker", "boxd-ci/run": o.runId, ...(o.repo ? { "boxd-ci/repo": o.repo } : {}) },
+            { "boxd-turbo": "worker", "boxd-turbo/run": o.runId, ...(o.repo ? { "boxd-turbo/repo": o.repo } : {}) },
             o.secrets,
           ),
         });

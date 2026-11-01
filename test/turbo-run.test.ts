@@ -31,7 +31,7 @@ const runGroup = (ids: string[]) => {
 };
 
 beforeAll(async () => {
-  repo = mkdtempSync(join(tmpdir(), "boxd-ci-turbo-"));
+  repo = mkdtempSync(join(tmpdir(), "boxd-turbo-turbo-"));
   cpSync(fixture, repo, { recursive: true });
   // a#lint fails, so a group holds a failure next to a success.
   const a = JSON.parse(readFileSync(join(repo, "packages/a/package.json"), "utf8"));

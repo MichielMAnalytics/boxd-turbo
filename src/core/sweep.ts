@@ -1,4 +1,4 @@
-// Which boxd-ci machines a sweep may delete: running machines of runs that are over, and builders and
+// Which boxd-turbo machines a sweep may delete: running machines of runs that are over, and builders and
 // workers far older than any run. A failed task's machine, kept on purpose, is never one of them: it
 // is hibernated, or someone woke it by connecting, and its delete-after timer runs for a day.
 
@@ -11,7 +11,7 @@ export type SweepMachine = {
   labels?: Record<string, string>;
 };
 
-/** Older than this, a running boxd-ci machine belongs to no live run. */
+/** Older than this, a running boxd-turbo machine belongs to no live run. */
 export const STALE_MS = 3 * 3600_000;
 /** A run's machines are deleted within an hour; one whose timer is further off was kept for debugging. */
 const KEPT_AFTER_MS = 2 * 3600_000;
@@ -26,9 +26,9 @@ export function leftovers<M extends SweepMachine>(
     if (m.deleteAt && m.deleteAt.getTime() - now > KEPT_AFTER_MS) return false;
     const age = m.createdAt ? now - m.createdAt.getTime() : 0;
     if (age > STALE_MS) return true;
-    const run = m.labels?.["boxd-ci/run"];
-    const repo = m.labels?.["boxd-ci/repo"];
-    if (m.labels?.["boxd-ci"] !== "worker" || !run || !repo) return false;
+    const run = m.labels?.["boxd-turbo/run"];
+    const repo = m.labels?.["boxd-turbo/repo"];
+    if (m.labels?.["boxd-turbo"] !== "worker" || !run || !repo) return false;
     const status = runStatus(repo, run);
     return status !== undefined && status !== "running";
   });

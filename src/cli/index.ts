@@ -1,4 +1,4 @@
-// boxd-ci: CI for Turborepo monorepos on boxd machines.
+// boxd-turbo: CI for Turborepo monorepos on boxd machines.
 
 import { readFileSync } from "node:fs";
 import { explain, HELP, parseCli } from "./args.js";
@@ -55,7 +55,7 @@ main(process.argv.slice(2)).then(
   (e: Error) => {
     const message = explain(e.message);
     if (process.argv.includes("--json")) stdout.json({ error: message });
-    else process.stderr.write(`${red("boxd-ci:")} ${message}\n`);
+    else process.stderr.write(`${red("boxd-turbo:")} ${message}\n`);
     process.exit(1);
   },
 );

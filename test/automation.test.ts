@@ -76,7 +76,7 @@ const repo: RepoRecord = {
   cloneUrl: "https://github.com/acme/web.git",
   defaultBranch: "main",
   workdir: "/home/boxd/work/web",
-  snapshot: "bci-acme-web-c0ffee1",
+  snapshot: "bt-acme-web-c0ffee1",
   commit: "c0ffee1",
   depsHash: "aaaaaaaaaaaaaaaa",
   cpus: 2,
@@ -86,7 +86,7 @@ const repo: RepoRecord = {
 const setup = async (
   o: { fail?: boolean; refuseText?: boolean; record?: RepoRecord; clientFailures?: number[] } = {},
 ) => {
-  const store = fsStore(mkdtempSync(join(tmpdir(), "boxd-ci-auto-")));
+  const store = fsStore(mkdtempSync(join(tmpdir(), "boxd-turbo-auto-")));
   await writeJson(store, paths.repo("acme/web"), o.record ?? repo);
   const checks: { op: string; [k: string]: unknown }[] = [];
   const gh: ChecksApi = {
@@ -114,8 +114,8 @@ const setup = async (
       snapshots: { create: async () => ({ version: 1 }), get: async () => Promise.reject(new Error("none")) },
       machines: {
         list: async (q: { labels: Record<string, string> }) =>
-          q.labels["boxd-ci/run"] === "20261030-100000-d00d2fe"
-            ? [{ id: "m9", name: "bci-d00d2fe-x-1", status: "running" }]
+          q.labels["boxd-turbo/run"] === "20261030-100000-d00d2fe"
+            ? [{ id: "m9", name: "bt-d00d2fe-x-1", status: "running" }]
             : [],
         delete: async (id: string) => {
           deletedMachines.push(id);
@@ -142,7 +142,7 @@ const setup = async (
       promoted.push(sha);
       chain.push(`${record.commit}->${sha}`);
       await new Promise((r) => setTimeout(r, 5));
-      return { ...record, snapshot: `bci-acme-web-${sha.slice(0, 7)}`, commit: sha };
+      return { ...record, snapshot: `bt-acme-web-${sha.slice(0, 7)}`, commit: sha };
     },
     log: () => {},
   };
@@ -158,7 +158,7 @@ const event = (o: Partial<PushEvent> = {}): PushEvent => ({
 });
 
 describe("the push handler", () => {
-  test("ignores tags, deleted branches and repositories boxd-ci does not know", async () => {
+  test("ignores tags, deleted branches and repositories boxd-turbo does not know", async () => {
     const { checks, handle } = await setup();
     await handle(event({ ref: "refs/tags/v1" }));
     await handle(event({ deleted: true, after: "0000000000000000000000000000000000000000" }));
@@ -166,14 +166,14 @@ describe("the push handler", () => {
     expect(checks).toEqual([]);
   });
 
-  test("creates the boxd-ci check when the run starts and completes it with the result", async () => {
+  test("creates the boxd-turbo check when the run starts and completes it with the result", async () => {
     const { checks, handle } = await setup();
     await handle(event({ ref: "refs/heads/feature" }));
     expect(checks[0]).toMatchObject({
       op: "create",
       owner: "acme",
       repo: "web",
-      name: "boxd-ci",
+      name: "boxd-turbo",
       head_sha: "d00d2fe1234567",
       status: "in_progress",
     });
@@ -193,7 +193,7 @@ describe("the push handler", () => {
     };
     expect(last).toMatchObject({ op: "update", status: "completed", conclusion: "failure" });
     expect(last.output.text).toBeUndefined();
-    expect(last.output.summary).toContain("boxd-ci logs");
+    expect(last.output.summary).toContain("boxd-turbo logs");
   });
 
   test("the result is reported with a client asked for at the end, since tokens expire within an hour", async () => {
@@ -214,7 +214,7 @@ describe("the push handler", () => {
     await handle(event());
     expect(promoted).toEqual(["d00d2fe1234567"]);
     const next = await readJson<RepoRecord>(store, paths.repo("acme/web"));
-    expect(next).toMatchObject({ snapshot: "bci-acme-web-d00d2fe", commit: "d00d2fe1234567" });
+    expect(next).toMatchObject({ snapshot: "bt-acme-web-d00d2fe", commit: "d00d2fe1234567" });
   });
 
   test("promotions of one repository run one after another, each from the record the last one wrote", async () => {
@@ -300,7 +300,7 @@ describe("after the automation restarts", () => {
 
 describe("runningPushRuns", () => {
   test("finds the push runs still marked running, in every repository, with their files", async () => {
-    const store = fsStore(mkdtempSync(join(tmpdir(), "boxd-ci-running-")));
+    const store = fsStore(mkdtempSync(join(tmpdir(), "boxd-turbo-running-")));
     const base = {
       sha: "d00d2fe",
       ref: "main",

@@ -1,4 +1,4 @@
-// The boxd SDK as boxd-ci uses it: the calls it makes, typed narrowly enough for a test to fake, and
+// The boxd SDK as boxd-turbo uses it: the calls it makes, typed narrowly enough for a test to fake, and
 // a client that signs in the way the boxd CLI does.
 
 import { existsSync, readFileSync } from "node:fs";
@@ -50,7 +50,7 @@ export type SnapshotInfo = {
   createdAt?: Date | null;
 };
 
-/** Every SDK call boxd-ci makes. `new Boxd()` is one. */
+/** Every SDK call boxd-turbo makes. `new Boxd()` is one. */
 export type BoxdLike = {
   machines: {
     create(p: CreateParams): Promise<{ id: string; name: string }>;

@@ -19,7 +19,7 @@ import { anonymousRead, defaultBranch, githubToken, remoteHead } from "./git.js"
 export function sameRepo(record: RepoRecord, repo: string): void {
   if (record.repo.toLowerCase() === repo.toLowerCase()) return;
   throw new Error(
-    `${repo} and ${record.repo} have the same short name in boxd (${repoSlug(repo)}), and boxd-ci already runs ${record.repo}. One account runs one of them.`,
+    `${repo} and ${record.repo} have the same short name in boxd (${repoSlug(repo)}), and boxd-turbo already runs ${record.repo}. One account runs one of them.`,
   );
 }
 
@@ -75,14 +75,14 @@ type Job = { id?: string; file?: string; path?: string; state?: string; status?:
  */
 export async function installAutomation(boxd: BoxdLike, server: ServerInfo, store: Store, say: (m: string) => void) {
   const m = boxd.machines;
-  const code = bundled("boxd-ci.run.mjs");
+  const code = bundled("boxd-turbo.run.mjs");
   const planner = bundled("planner.mjs");
   const version = createHash("sha256").update(code).update(planner).digest("hex").slice(0, 16);
   const sh = async (script: string) => m.exec(server.machineId, { command: ["bash", "-c", script], timeout: 120_000 });
 
   const current = (await sh(`cat ${q(`${AUTOMATION_DIR}/version`)} 2>/dev/null || true`)).stdout.trim();
   const jobs = await sh("run jobs --json 2>/dev/null || echo '[]'");
-  const job = parseJobs(jobs.stdout).find((j) => JSON.stringify(j).includes("boxd-ci.run.ts"));
+  const job = parseJobs(jobs.stdout).find((j) => JSON.stringify(j).includes("boxd-turbo.run.ts"));
   if (job && current === version) {
     say(`the push automation on ${server.name} is up to date`);
     return;
@@ -97,9 +97,9 @@ export async function installAutomation(boxd: BoxdLike, server: ServerInfo, stor
     }
   }
   await sh(`mkdir -p ${q(AUTOMATION_DIR)}`);
-  await m.files.upload(server.machineId, `${AUTOMATION_DIR}/boxd-ci.run.ts`, code);
+  await m.files.upload(server.machineId, `${AUTOMATION_DIR}/boxd-turbo.run.ts`, code);
   await m.files.upload(server.machineId, `${AUTOMATION_DIR}/planner.mjs`, planner);
-  const start = job?.id ? `run restart ${q(job.id)}` : "run boxd-ci.run.ts";
+  const start = job?.id ? `run restart ${q(job.id)}` : "run boxd-turbo.run.ts";
   const out = await sh(`cd ${q(AUTOMATION_DIR)} && ${start} 2>&1 && echo ${q(version)} > version`);
   if (out.exitCode !== 0) throw new Error(`starting the push automation failed: ${out.stdout.trim().slice(-1500)}`);
   say(`the push automation ${job ? "was updated" : "is running"} on ${server.name}`);

@@ -31,7 +31,7 @@ export type RepoRecord = {
   /** Its machine size: task machines asking for another one are resized. */
   cpus: number;
   builtAt: string;
-  /** The boxd secrets every machine of a push's run gets: .boxd-ci.json's list at the snapshot's commit. */
+  /** The boxd secrets every machine of a push's run gets: .boxd-turbo.json's list at the snapshot's commit. */
   secrets?: string[];
 };
 
@@ -59,7 +59,7 @@ export const DEPENDENCY_FILES = [
 ];
 
 const MEMORY: Record<number, string> = { 1: "4G", 2: "8G", 4: "16G", 8: "32G" };
-export const PLANNER_PATH = "/tmp/boxd-ci-planner.mjs";
+export const PLANNER_PATH = "/tmp/boxd-turbo-planner.mjs";
 const BUILDER_SECONDS = 7200;
 
 /**
@@ -76,18 +76,18 @@ export function repoSlug(repo: string): string {
   return `${slug.slice(0, 33).replace(/-+$/, "")}-${hash}`;
 }
 
-export const snapshotName = (repo: string, sha: string) => `bci-${repoSlug(repo)}-${commit(sha).slice(0, 7)}`;
+export const snapshotName = (repo: string, sha: string) => `bt-${repoSlug(repo)}-${commit(sha).slice(0, 7)}`;
 /**
  * Dependency snapshots, one name per maker, since a snapshot runs code its maker installed:
  * `deps`, made by a push to the default branch, which every run may restore; `dev`, made by
- * `boxd-ci run`, which only `boxd-ci run` restores; `run`, made by a branch push for its own machines
+ * `boxd-turbo run`, which only `boxd-turbo run` restores; `run`, made by a branch push for its own machines
  * and deleted when the run ends.
  */
 export const depsSnapshotName = (repo: string, depsHash: string) =>
-  `bci-${repoSlug(repo)}-deps-${depsHash.slice(0, 10)}`;
-export const devSnapshotName = (repo: string, depsHash: string) => `bci-${repoSlug(repo)}-dev-${depsHash.slice(0, 10)}`;
+  `bt-${repoSlug(repo)}-deps-${depsHash.slice(0, 10)}`;
+export const devSnapshotName = (repo: string, depsHash: string) => `bt-${repoSlug(repo)}-dev-${depsHash.slice(0, 10)}`;
 export const runSnapshotName = (repo: string, depsHash: string, tag: string) =>
-  `bci-${repoSlug(repo)}-run-${depsHash.slice(0, 6)}${tag.slice(0, 4)}`;
+  `bt-${repoSlug(repo)}-run-${depsHash.slice(0, 6)}${tag.slice(0, 4)}`;
 /** A shared or dev dependency snapshot this old is deleted; the next run that needs it installs again. */
 export const DEPS_KEEP_MS = 7 * 86_400_000;
 export const workdirFor = (repo: string) => `/home/boxd/work/${repo.split("/").pop()}`;
@@ -111,7 +111,7 @@ const INSTALL_FIELDS = [
 ];
 const INSTALL_SCRIPTS = ["preinstall", "install", "postinstall", "prepare"];
 /** In the hash script, so a reader (or a test) can tell it apart. */
-export const DEPS_HASH_MARK = "boxd-ci deps hash";
+export const DEPS_HASH_MARK = "boxd-turbo deps hash";
 
 /**
  * Prints 16 hex characters that change exactly when an install could come out differently: a
@@ -187,7 +187,7 @@ cd ${q(workdir)} && git -c core.hooksPath=/dev/null checkout -q -f ${sha} && ${S
  * restore instead of build. Best effort: a failing task here only means less is cached.
  */
 export function warmScript(workdir: string, selectors: string[]): string {
-  return `cd ${q(workdir)} && ./node_modules/.bin/turbo run ${selectors.map(q).join(" ")} --cache=local:rw,remote:rw --continue > /tmp/boxd-ci-warm.log 2>&1; tail -n 5 /tmp/boxd-ci-warm.log; exit 0`;
+  return `cd ${q(workdir)} && ./node_modules/.bin/turbo run ${selectors.map(q).join(" ")} --cache=local:rw,remote:rw --continue > /tmp/boxd-turbo-warm.log 2>&1; tail -n 5 /tmp/boxd-turbo-warm.log; exit 0`;
 }
 
 /** Saves the machine as a new version of `name` and waits until machines can restore from it. */
@@ -261,7 +261,7 @@ export async function buildSnapshot(boxd: SnapshotBoxd, o: BuildOptions): Promis
   const cpus = o.cpus ?? 2;
   const target = snapshotName(o.repo.repo, o.sha);
   const workdir = workdirFor(o.repo.repo);
-  const name = `bci-${repoSlug(o.repo.repo).slice(0, 30)}-build-${Math.random().toString(36).slice(2, 6)}`;
+  const name = `bt-${repoSlug(o.repo.repo).slice(0, 30)}-build-${Math.random().toString(36).slice(2, 6)}`;
   return withBuilder(
     boxd,
     {
@@ -269,14 +269,14 @@ export async function buildSnapshot(boxd: SnapshotBoxd, o: BuildOptions): Promis
       ...(o.org ? { org: o.org } : {}),
       config: { vcpu: cpus, memory: MEMORY[cpus] ?? "8G", autoSuspendTimeout: 0 },
       deleteAfter: BUILDER_SECONDS,
-      ...isolatedShape({ "boxd-ci": "builder" }, o.secrets),
+      ...isolatedShape({ "boxd-turbo": "builder" }, o.secrets),
     },
     async (id, sh) => {
       say(`cloning ${o.repo.repo} at ${o.sha.slice(0, 7)}`);
       await sh(
         "cloning the repository",
         cloneScript(o.repo.cloneUrl, workdir, o.sha),
-        o.fetchToken ? { BOXD_CI_FETCH_TOKEN: o.fetchToken } : undefined,
+        o.fetchToken ? { BOXD_TURBO_FETCH_TOKEN: o.fetchToken } : undefined,
       );
       say("installing dependencies");
       await sh("installing dependencies", installScript(workdir));
@@ -349,17 +349,17 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
   return withBuilder(
     boxd,
     {
-      name: `bci-${repoSlug(r.repo).slice(0, 30)}-next-${Math.random().toString(36).slice(2, 6)}`,
+      name: `bt-${repoSlug(r.repo).slice(0, 30)}-next-${Math.random().toString(36).slice(2, 6)}`,
       ...(o.org ? { org: o.org } : {}),
       fromSnapshot: r.snapshot,
       deleteAfter: BUILDER_SECONDS,
-      ...isolatedShape({ "boxd-ci": "builder" }, r.secrets),
+      ...isolatedShape({ "boxd-turbo": "builder" }, r.secrets),
     },
     async (id, sh) => {
       await sh(
         "checking out the commit",
         fetchScript(r.workdir, o.sha),
-        o.fetchToken ? { BOXD_CI_FETCH_TOKEN: o.fetchToken } : undefined,
+        o.fetchToken ? { BOXD_TURBO_FETCH_TOKEN: o.fetchToken } : undefined,
       );
       const order = await sh(
         "comparing commits",
@@ -368,15 +368,16 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
           GITHUB_AUTH,
           `if git merge-base --is-ancestor ${commit(r.commit)} ${commit(o.sha)}; then echo newer; else case "$(git ls-remote origin ${q(`refs/heads/${r.defaultBranch}`)} | cut -c1-40)" in ${o.sha}*) echo head ;; *) echo older ;; esac; fi`,
         ].join(" && "),
-        o.fetchToken ? { BOXD_CI_FETCH_TOKEN: o.fetchToken } : undefined,
+        o.fetchToken ? { BOXD_TURBO_FETCH_TOKEN: o.fetchToken } : undefined,
       ).catch(() => null);
       const answer = order?.stdout.trim();
       if (answer !== "newer" && answer !== "head") {
         say(`${o.sha.slice(0, 7)} is older than the snapshot's ${r.commit.slice(0, 7)}, so the snapshot stays`);
         return null;
       }
-      const config = (await sh("reading .boxd-ci.json", `cat ${q(`${r.workdir}/.boxd-ci.json`)} 2>/dev/null || true`))
-        .stdout;
+      const config = (
+        await sh("reading .boxd-turbo.json", `cat ${q(`${r.workdir}/.boxd-turbo.json`)} 2>/dev/null || true`)
+      ).stdout;
       const secrets = parseConfig(config.trim() ? config : undefined).config.secrets;
       const depsHash = (await sh("hashing the dependency files", depsHashScript(r.workdir))).stdout.trim();
       if (depsHash !== r.depsHash) {
@@ -416,7 +417,7 @@ export async function saveDepsSnapshot(
     name: string;
     org?: string;
     pollMs?: number;
-    /** A working copy (boxd-ci run): taken out before the snapshot is saved, put back after. */
+    /** A working copy (boxd-turbo run): taken out before the snapshot is saved, put back after. */
     patch?: { path: string; data: Uint8Array };
   },
 ): Promise<string> {
@@ -480,7 +481,7 @@ export async function pruneDepsSnapshots(
 ): Promise<string[]> {
   const now = o.now ?? Date.now();
   const scope = o.org ? { org: o.org } : undefined;
-  const prefix = `bci-${repoSlug(repo)}-`;
+  const prefix = `bt-${repoSlug(repo)}-`;
   const deleted: string[] = [];
   for (const s of await boxd.snapshots.list(scope)) {
     const kind = s.name.startsWith(prefix)

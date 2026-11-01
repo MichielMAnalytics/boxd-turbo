@@ -1,4 +1,4 @@
-// boxd-ci run: CI on the working copy, now. The working copy goes up as one patch on the snapshot's
+// boxd-turbo run: CI on the working copy, now. The working copy goes up as one patch on the snapshot's
 // commit, the run's tasks are scheduled on machines restored from the snapshot, and the machines of
 // failed tasks stay for a day.
 
@@ -89,11 +89,11 @@ export async function runCommand(ctx: Ctx, flags: Record<string, string | boolea
           : "These machines are kept for 24 hours, as the failed tasks left them:",
       );
       for (const k of kept) out.line(`  ${bold(`boxd connect ${k}`)}`);
-      out.line(dim(`  boxd-ci logs ${record.id} --failed   the end of each failed log`));
+      out.line(dim(`  boxd-turbo logs ${record.id} --failed   the end of each failed log`));
     }
     out.line(
       dim(
-        `run ${record.id} · ${formatSeconds((Date.parse(record.finishedAt ?? "") - Date.parse(record.startedAt)) / 1000)} · boxd-ci ls`,
+        `run ${record.id} · ${formatSeconds((Date.parse(record.finishedAt ?? "") - Date.parse(record.startedAt)) / 1000)} · boxd-turbo ls`,
       ),
     );
     return record.status === "success" ? 0 : 1;

@@ -8,7 +8,7 @@
 //   $TURBO_EXTENDS$     first entry of a package's task tags: keep the root's tags and add these
 //
 // A repository without a single ci tag runs the usual checks its turbo.json defines (lint, type
-// checks, tests), so boxd CI works before anyone tags anything, on any Turborepo version it supports.
+// checks, tests), so boxd-turbo works before anyone tags anything, on any Turborepo version it supports.
 // Tasks that need a Vercel deployment or Vercel's OIDC tokens are left out, with a warning.
 //
 // Turborepo resolves its own configuration, but its dry run does not report tags, so they are
@@ -101,13 +101,13 @@ export function resolveCiTasks(
       const oidc = tags.find((t) => t.startsWith("ci:oidc:"));
       if (dep) {
         warnings.push(
-          `${selector} depends on a Vercel deployment (${dep}), which boxd CI does not make, so it does not run`,
+          `${selector} depends on a Vercel deployment (${dep}), which boxd-turbo does not make, so it does not run`,
         );
         continue;
       }
       if (oidc) {
         warnings.push(
-          `${selector} asks for Vercel OIDC tokens (${oidc}), which boxd CI does not have, so it does not run`,
+          `${selector} asks for Vercel OIDC tokens (${oidc}), which boxd-turbo does not have, so it does not run`,
         );
         continue;
       }
@@ -132,7 +132,7 @@ export function resolveCiTasks(
   warnings.sort();
   const scripts = [...new Set(tasks.map((t) => t.selector.split("#").at(-1) as string))];
   if (usual && tasks.length) {
-    warnings.unshift(`no task in turbo.json is tagged ci, so boxd CI runs the usual checks: ${scripts.join(", ")}`);
+    warnings.unshift(`no task in turbo.json is tagged ci, so boxd-turbo runs the usual checks: ${scripts.join(", ")}`);
   }
   if (tasks.length) return { tasks, warnings };
   const nothingToRun = usual

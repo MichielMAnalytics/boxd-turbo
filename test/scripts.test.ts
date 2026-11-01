@@ -35,7 +35,7 @@ describe("fetchScript", () => {
     expect(s).toContain("cd '/home/boxd/work/app'");
     expect(s).toContain("fetch -q origin abc1234");
     expect(s).toContain("checkout -q -f abc1234");
-    expect(s).toContain('"$BOXD_CI_FETCH_TOKEN"');
+    expect(s).toContain('"$BOXD_TURBO_FETCH_TOKEN"');
     // From the environment, so the header is in no process's arguments, and for github.com only,
     // so a submodule elsewhere never sees it.
     expect(s).toContain("GIT_CONFIG_KEY_0=http.https://github.com/.extraheader");
@@ -44,7 +44,7 @@ describe("fetchScript", () => {
   });
 
   test("on a real repository: checks out the commit with its submodules, and runs no hook the repository planted", () => {
-    const root = mkdtempSync(join(tmpdir(), "boxd-ci-fetch-"));
+    const root = mkdtempSync(join(tmpdir(), "boxd-turbo-fetch-"));
     const git = (cwd: string, ...args: string[]) =>
       execFileSync("git", ["-c", "protocol.file.allow=always", "-c", "user.name=t", "-c", "user.email=t@t", ...args], {
         cwd,
@@ -92,7 +92,7 @@ describe("checkoutScript", () => {
     expect(s).toContain("checkout -q -f abc1234");
     expect(s).toContain("core.hooksPath=/dev/null");
     expect(s).not.toContain("fetch");
-    expect(s).not.toContain("BOXD_CI_FETCH_TOKEN");
+    expect(s).not.toContain("BOXD_TURBO_FETCH_TOKEN");
     expect(() => checkoutScript("/w", "$(id)")).toThrow("not a commit hash");
   });
 });
@@ -126,7 +126,7 @@ describe("applyPatchScript", () => {
 describe("cleanOutputsScript", () => {
   // The script runs on task machines, which have Node 22 or newer (fs.globSync).
   test.skipIf(!("globSync" in fs))("deletes the declared outputs, keeps negated globs and node_modules", () => {
-    const repo = mkdtempSync(join(tmpdir(), "boxd-ci-clean-"));
+    const repo = mkdtempSync(join(tmpdir(), "boxd-turbo-clean-"));
     const make = (p: string) => {
       mkdirSync(join(repo, p, ".."), { recursive: true });
       writeFileSync(join(repo, p), "x");
@@ -180,10 +180,10 @@ describe("parseRunOutput", () => {
         { taskId: "a#build", cache: { status: "HIT" }, execution: exec(0, 10) },
       ]) +
       `${LOG_MARK}a#test\nall good\n${LOG_MARK}b#test\nboom\nExpected 1\n`;
-    const r = parseRunOutput(out, [node("a#test"), node("b#test")], "bci-1");
+    const r = parseRunOutput(out, [node("a#test"), node("b#test")], "bt-1");
     expect(r).toEqual([
-      { id: "a#test", status: "ran", seconds: 4, logTail: "all good", machine: "bci-1" },
-      { id: "b#test", status: "failed", seconds: 2.5, logTail: "boom\nExpected 1", machine: "bci-1" },
+      { id: "a#test", status: "ran", seconds: 4, logTail: "all good", machine: "bt-1" },
+      { id: "b#test", status: "failed", seconds: 2.5, logTail: "boom\nExpected 1", machine: "bt-1" },
     ]);
   });
 

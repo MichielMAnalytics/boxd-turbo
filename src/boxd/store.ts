@@ -1,4 +1,4 @@
-// boxd-ci keeps its state as files on the server machine: the repositories it knows, their snapshots,
+// boxd-turbo keeps its state as files on the server machine: the repositories it knows, their snapshots,
 // and every run. Inside that machine (the GitHub automation) they are local files; from a laptop
 // they are the same files, reached through the boxd API.
 
@@ -91,7 +91,7 @@ export function machineStore(boxd: StoreBoxd, machineId: string, root: string): 
     },
     async write(path, data) {
       const file = join(root, safe(path));
-      const tmp = `/tmp/boxd-ci-${Math.random().toString(36).slice(2)}`;
+      const tmp = `/tmp/boxd-turbo-${Math.random().toString(36).slice(2)}`;
       await boxd.machines.files.upload(machineId, tmp, new TextEncoder().encode(data));
       const out = await sh(`mkdir -p -m 700 ${q(dirname(file))} && chmod 600 ${q(tmp)} && mv -f ${q(tmp)} ${q(file)}`);
       if (out.exitCode !== 0) throw new Error(`writing ${file} failed: ${out.stderr.trim()}`);

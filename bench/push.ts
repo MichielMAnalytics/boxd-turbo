@@ -1,6 +1,6 @@
 // The benchmark: one scenario push after another on a clone of the benchmark repository, each
-// measured from the end of `git push` to the boxd-ci check's completion on GitHub, the way the
-// Vercel CI lane was measured. One line per push goes to bench/results/boxd-ci.jsonl.
+// measured from the end of `git push` to the boxd-turbo check's completion on GitHub, the way the
+// Vercel CI lane was measured. One line per push goes to bench/results/boxd-turbo.jsonl.
 //
 //   npx tsx bench/push.ts <clone> <scenario>:<warmups>:<measured> ...
 //   npx tsx bench/push.ts ../bench-ai docs:1:3 leaf:1:3 core:1:3
@@ -24,7 +24,7 @@ const FILES = {
 type Scenario = keyof typeof FILES;
 
 const here = fileURLToPath(new URL(".", import.meta.url));
-const out = join(here, "results", "boxd-ci.jsonl");
+const out = join(here, "results", "boxd-turbo.jsonl");
 const cli = resolve(here, "..", "dist", "cli.mjs");
 
 const sh = (cwd: string, cmd: string, args: string[]) =>
@@ -61,11 +61,11 @@ async function push(clone: string, scenario: Scenario, role: "warmup" | "measure
     const runs = JSON.parse(sh(clone, "gh", ["api", `repos/${repo}/commits/${sha}/check-runs`])) as {
       check_runs: Check[];
     };
-    check = runs.check_runs.find((c) => c.name === "boxd-ci" && c.status === "completed");
+    check = runs.check_runs.find((c) => c.name === "boxd-turbo" && c.status === "completed");
   }
   const run = details(clone, sha);
   const row = {
-    platform: "boxd-ci",
+    platform: "boxd-turbo",
     scenario,
     role,
     sha,

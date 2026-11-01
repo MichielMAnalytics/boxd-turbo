@@ -1,4 +1,4 @@
-// boxd-ci ls, logs and grep: the runs of this repository, as the server keeps them.
+// boxd-turbo ls, logs and grep: the runs of this repository, as the server keeps them.
 
 import { q } from "../../boxd/scripts.js";
 import { connect } from "../../boxd/sdk.js";
@@ -40,7 +40,7 @@ export async function lsCommand(ctx: Ctx, flags: Record<string, string | boolean
     return 0;
   }
   if (!records.length) {
-    out.line(`no runs of ${ctx.repo} yet. ${bold("boxd-ci run")} starts one.`);
+    out.line(`no runs of ${ctx.repo} yet. ${bold("boxd-turbo run")} starts one.`);
     return 0;
   }
   for (const r of records) {
@@ -68,7 +68,7 @@ export async function logsCommand(ctx: Ctx, args: string[], flags: Record<string
   const id = want ? matchRun(ids, want) : ids.at(-1);
   if (!id)
     throw new Error(
-      want ? `no run of ${ctx.repo} matches ${want}. boxd-ci ls lists them.` : `no runs of ${ctx.repo} yet`,
+      want ? `no run of ${ctx.repo} matches ${want}. boxd-turbo ls lists them.` : `no runs of ${ctx.repo} yet`,
     );
   const record = await readJson<RunRecord>(store, paths.run(ctx.repo, id));
   if (!record) throw new Error(`run ${id} has no record`);
@@ -95,7 +95,7 @@ export async function logsCommand(ctx: Ctx, args: string[], flags: Record<string
 
 export async function grepCommand(ctx: Ctx, args: string[], flags: Record<string, string | boolean>, out: Out) {
   const needle = args.join(" ");
-  if (!needle) throw new Error("grep needs the text to look for: boxd-ci grep <text>");
+  if (!needle) throw new Error("grep needs the text to look for: boxd-turbo grep <text>");
   const runs = Number(flags.runs ?? 20);
   const boxd = connect();
   const { server } = await openServer(ctx, boxd);

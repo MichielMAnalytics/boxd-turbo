@@ -37,13 +37,13 @@ describe("repoSlug and names", () => {
 
   test("a repository becomes a lowercase name boxd accepts", () => {
     expect(repoSlug("Azin-Tech/bench.AI")).toBe("azin-tech-bench-ai");
-    expect(depsSnapshotName("azin-tech/bench-ai", "0123456789abcdef")).toBe("bci-azin-tech-bench-ai-deps-0123456789");
+    expect(depsSnapshotName("azin-tech/bench-ai", "0123456789abcdef")).toBe("bt-azin-tech-bench-ai-deps-0123456789");
   });
 
   test("dependency snapshots name who made them, and stay within 63 characters for the longest slug", () => {
     const long = "acme-engineering/payments-dashboard-service-api";
-    expect(devSnapshotName("acme/web", "0123456789abcdef")).toBe("bci-acme-web-dev-0123456789");
-    expect(runSnapshotName("acme/web", "0123456789abcdef", "x7k2")).toBe("bci-acme-web-run-012345x7k2");
+    expect(devSnapshotName("acme/web", "0123456789abcdef")).toBe("bt-acme-web-dev-0123456789");
+    expect(runSnapshotName("acme/web", "0123456789abcdef", "x7k2")).toBe("bt-acme-web-run-012345x7k2");
     for (const n of [
       depsSnapshotName(long, "0".repeat(16)),
       devSnapshotName(long, "0".repeat(16)),
@@ -60,7 +60,7 @@ describe("depsHashScript", () => {
     `${JSON.stringify({ name: "a", version: "1.0.0", scripts: { build: "tsc" }, dependencies: deps, ...extra }, null, 2)}\n`;
   /** A committed repository with a root package, one workspace package, and (unless told) a lockfile. */
   const repo = (o: { lockfile?: boolean } = {}) => {
-    const dir = mkdtempSync(join(tmpdir(), "boxd-ci-deps-"));
+    const dir = mkdtempSync(join(tmpdir(), "boxd-turbo-deps-"));
     if (o.lockfile !== false) writeFileSync(join(dir, "pnpm-lock.yaml"), "lockfileVersion: 9\n");
     writeFileSync(join(dir, "README.md"), "hi\n");
     writeFileSync(join(dir, "package.json"), pkg({}, { name: "root" }));
@@ -135,7 +135,7 @@ describe("cloneScript", () => {
 describe("installScript", () => {
   /** A repo with the given files and stub tools that print how they were called. */
   const run = (files: Record<string, string>) => {
-    const dir = mkdtempSync(join(tmpdir(), "boxd-ci-install-"));
+    const dir = mkdtempSync(join(tmpdir(), "boxd-turbo-install-"));
     const bin = join(dir, ".bin");
     mkdirSync(bin);
     for (const [f, body] of Object.entries(files)) writeFileSync(join(dir, f), body);
@@ -192,7 +192,7 @@ class FakeBoxd implements SnapshotBoxd {
     exec: async (_id: string, p: { command: string[]; env?: Record<string, string> }): Promise<ExecOutput> => {
       const script = p.command[2] ?? "";
       this.execs.push({ script, env: p.env ?? {} });
-      if (script.includes("boxd-ci-planner.mjs")) {
+      if (script.includes("boxd-turbo-planner.mjs")) {
         this.log.push("plan");
         return { stdout: JSON.stringify(this.plan), stderr: "", exitCode: 0 };
       }
@@ -200,7 +200,7 @@ class FakeBoxd implements SnapshotBoxd {
         ? "clone"
         : script.includes("merge-base --is-ancestor")
           ? "ancestor"
-          : script.includes(".boxd-ci.json")
+          : script.includes(".boxd-turbo.json")
             ? "config"
             : script.includes("fetch -q origin")
               ? "fetch"
@@ -259,7 +259,7 @@ const record = (o: Partial<RepoRecord> = {}): RepoRecord => ({
   cloneUrl: "https://github.com/acme/web.git",
   defaultBranch: "main",
   workdir: "/home/boxd/work/web",
-  snapshot: "bci-acme-web-c0ffee1",
+  snapshot: "bt-acme-web-c0ffee1",
   commit: "c0ffee1",
   depsHash: "aaaaaaaaaaaaaaaa",
   cpus: 2,
@@ -300,7 +300,7 @@ describe("buildSnapshot", () => {
       config: { vcpu: 2, memory: "8G", autoSuspendTimeout: 0 },
       isolated: true,
       deleteAfter: 7200,
-      labels: { "boxd-ci": "builder" },
+      labels: { "boxd-turbo": "builder" },
     });
     expect(boxd.log).toEqual([
       "create image",
@@ -308,16 +308,16 @@ describe("buildSnapshot", () => {
       "install",
       "hash",
       "warm",
-      "save b1 bci-acme-web-c0ffee1",
+      "save b1 bt-acme-web-c0ffee1",
       "delete b1",
     ]);
-    expect(boxd.execs.find((e) => e.script.includes("clone"))?.env).toEqual({ BOXD_CI_FETCH_TOKEN: "ghs_x" });
-    expect(boxd.execs.filter((e) => e.env.BOXD_CI_FETCH_TOKEN)).toHaveLength(1);
+    expect(boxd.execs.find((e) => e.script.includes("clone"))?.env).toEqual({ BOXD_TURBO_FETCH_TOKEN: "ghs_x" });
+    expect(boxd.execs.filter((e) => e.env.BOXD_TURBO_FETCH_TOKEN)).toHaveLength(1);
     expect(boxd.execs.find((e) => e.script.includes("turbo run"))?.env).toMatchObject({ TURBO_TOKEN: "t" });
     expect(r).toMatchObject({
       repo: "acme/web",
       workdir: "/home/boxd/work/web",
-      snapshot: "bci-acme-web-c0ffee1",
+      snapshot: "bt-acme-web-c0ffee1",
       commit: "c0ffee1",
       depsHash: "aaaaaaaaaaaaaaaa",
       cpus: 2,
@@ -332,7 +332,7 @@ describe("buildSnapshot", () => {
       "clone",
       "install",
       "hash",
-      "upload /tmp/boxd-ci-planner.mjs",
+      "upload /tmp/boxd-turbo-planner.mjs",
       "plan",
       "warm",
     ]);
@@ -345,14 +345,14 @@ describe("buildSnapshot", () => {
     const { selectors: _, ...rest } = opts;
     await buildSnapshot(boxd, { ...rest, plannerBundle: new Uint8Array([1]) });
     expect(boxd.log).not.toContain("warm");
-    expect(boxd.log).toContain("save b1 bci-acme-web-c0ffee1");
+    expect(boxd.log).toContain("save b1 bt-acme-web-c0ffee1");
   });
 
   test("the builder gets the repository's secrets, and the record keeps the list", async () => {
     const boxd = new FakeBoxd();
     const r = await buildSnapshot(boxd, { ...opts, secrets: ["NPM_TOKEN"] });
     expect(boxd.creates[0]).toMatchObject({
-      spec: { isolated: true, labels: { "boxd-ci": "builder" }, secrets: ["NPM_TOKEN"] },
+      spec: { isolated: true, labels: { "boxd-turbo": "builder" }, secrets: ["NPM_TOKEN"] },
     });
     expect(r.secrets).toEqual(["NPM_TOKEN"]);
   });
@@ -380,19 +380,19 @@ describe("promote", () => {
     const boxd = new FakeBoxd();
     const next = await promote(boxd, opts(record()));
     expect(boxd.log).toEqual([
-      "create bci-acme-web-c0ffee1",
+      "create bt-acme-web-c0ffee1",
       "fetch",
       "ancestor",
       "config",
       "hash",
       "warm",
-      "save b1 bci-acme-web-d00d2fe",
+      "save b1 bt-acme-web-d00d2fe",
       "delete b1",
     ]);
     expect(next).toMatchObject({
-      snapshot: "bci-acme-web-d00d2fe",
+      snapshot: "bt-acme-web-d00d2fe",
       commit: "d00d2fe",
-      retired: [{ name: "bci-acme-web-c0ffee1" }],
+      retired: [{ name: "bt-acme-web-c0ffee1" }],
     });
   });
 
@@ -423,10 +423,10 @@ describe("promote", () => {
     boxd.notAncestor = true;
     boxd.isHead = true;
     const next = await promote(boxd, opts(record()));
-    expect(next?.snapshot).toBe("bci-acme-web-d00d2fe");
+    expect(next?.snapshot).toBe("bt-acme-web-d00d2fe");
     const ancestor = boxd.execs.find((e) => e.script.includes("merge-base --is-ancestor"));
     expect(ancestor?.script).toContain("ls-remote origin 'refs/heads/main'");
-    expect(ancestor?.env).toEqual({ BOXD_CI_FETCH_TOKEN: "ghs_x" });
+    expect(ancestor?.env).toEqual({ BOXD_TURBO_FETCH_TOKEN: "ghs_x" });
   });
 
   test("the builder gets the snapshot's secrets, and the new record takes the commit's list", async () => {
@@ -464,24 +464,24 @@ describe("saveDepsSnapshot", () => {
       };
     },
   });
-  const patch = { path: "/tmp/boxd-ci.patch", data: new Uint8Array([1, 2, 3]) };
+  const patch = { path: "/tmp/boxd-turbo.patch", data: new Uint8Array([1, 2, 3]) };
 
   test("installs, and saves the snapshot with neither the working copy nor its patch file on the machine", async () => {
     const boxd = new FakeBoxd();
     const log = boxd.log;
     const name = await saveDepsSnapshot(boxd, worker(log), {
       record: record(),
-      name: "bci-acme-web-deps-bbbbbbbbbb",
+      name: "bt-acme-web-deps-bbbbbbbbbb",
       patch,
       pollMs: 1,
     });
-    expect(name).toBe("bci-acme-web-deps-bbbbbbbbbb");
+    expect(name).toBe("bt-acme-web-deps-bbbbbbbbbb");
     expect(log).toEqual([
       "install",
       "unapply",
       "remove patch",
-      "save w1 bci-acme-web-deps-bbbbbbbbbb",
-      "upload /tmp/boxd-ci.patch",
+      "save w1 bt-acme-web-deps-bbbbbbbbbb",
+      "upload /tmp/boxd-turbo.patch",
       "apply",
     ]);
   });
@@ -491,7 +491,7 @@ describe("saveDepsSnapshot", () => {
     await expect(
       saveDepsSnapshot(boxd, worker(boxd.log, "unapply"), {
         record: record(),
-        name: "bci-acme-web-deps-bbbbbbbbbb",
+        name: "bt-acme-web-deps-bbbbbbbbbb",
         patch,
         pollMs: 1,
       }),
@@ -513,12 +513,12 @@ describe("pruneSnapshots", () => {
     const now = Date.parse("2026-10-30T20:00:00Z");
     const r = record({
       retired: [
-        { name: "bci-acme-web-0000001", at: "2026-10-30T10:00:00Z" },
-        { name: "bci-acme-web-0000002", at: "2026-10-30T17:00:00Z" },
+        { name: "bt-acme-web-0000001", at: "2026-10-30T10:00:00Z" },
+        { name: "bt-acme-web-0000002", at: "2026-10-30T17:00:00Z" },
       ],
     });
     const next = await pruneSnapshots(boxd, r, { now });
-    expect(deleted).toEqual(["bci-acme-web-0000001"]);
-    expect(next.retired).toEqual([{ name: "bci-acme-web-0000002", at: "2026-10-30T17:00:00Z" }]);
+    expect(deleted).toEqual(["bt-acme-web-0000001"]);
+    expect(next.retired).toEqual([{ name: "bt-acme-web-0000002", at: "2026-10-30T17:00:00Z" }]);
   });
 });

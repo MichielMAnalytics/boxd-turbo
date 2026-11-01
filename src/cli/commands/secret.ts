@@ -1,6 +1,6 @@
-// boxd-ci secret: the secrets tasks and installs get. Each is a boxd secret with the unattached
-// scope, which reaches only the machines that name it, and its name goes into .boxd-ci.json, which
-// is how boxd-ci's machines name it. The value never reaches this terminal's output.
+// boxd-turbo secret: the secrets tasks and installs get. Each is a boxd secret with the unattached
+// scope, which reaches only the machines that name it, and its name goes into .boxd-turbo.json, which
+// is how boxd-turbo's machines name it. The value never reaches this terminal's output.
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -22,7 +22,7 @@ export type SecretDeps = {
   readValue(name: string): Promise<string>;
 };
 
-/** .boxd-ci.json's text with the name in (or out of) its secrets list, comments and all kept. */
+/** .boxd-turbo.json's text with the name in (or out of) its secrets list, comments and all kept. */
 export function withSecretName(text: string, name: string, present: boolean): string {
   const current = ((parse(text) as { secrets?: unknown } | undefined)?.secrets ?? []) as unknown[];
   const names = current.filter((n): n is string => typeof n === "string");
@@ -51,12 +51,12 @@ export async function secretCommand(
       out.json(configured.map((n) => ({ name: n, set: have.has(n) })));
       return 0;
     }
-    if (!configured.length) out.line(`no secrets in ${CONFIG_FILE}. ${bold("boxd-ci secret set NAME")} adds one.`);
+    if (!configured.length) out.line(`no secrets in ${CONFIG_FILE}. ${bold("boxd-turbo secret set NAME")} adds one.`);
     for (const n of configured) out.line(`${n.padEnd(28)} ${have.has(n) ? green("set") : yellow("missing")}`);
     return 0;
   }
   if ((action !== "set" && action !== "rm") || !name) {
-    throw new Error("usage: boxd-ci secret set NAME, boxd-ci secret rm NAME, or boxd-ci secret ls");
+    throw new Error("usage: boxd-turbo secret set NAME, boxd-turbo secret rm NAME, or boxd-turbo secret ls");
   }
   if (!SECRET_NAME.test(name)) {
     throw new Error(
@@ -71,7 +71,7 @@ export async function secretCommand(
     writeFileSync(file, withSecretName(config, name, true));
     if (ctx.json) out.json({ name, set: true });
     else {
-      out.line(`${green("✓")} ${name} is set in ${ctx.org ?? "your org"}, for boxd-ci's machines only.`);
+      out.line(`${green("✓")} ${name} is set in ${ctx.org ?? "your org"}, for boxd-turbo's machines only.`);
       out.line(`  ${CONFIG_FILE} names it. Commit it, since pushes use the default branch's list.`);
       out.line(dim(`  Tasks see it once turbo.json lists it, in a task's "env" or in "globalEnv".`));
     }

@@ -1,10 +1,10 @@
-// The GitHub check: "boxd-ci" on the pushed commit, in progress while the run plans and runs, then
+// The GitHub check: "boxd-turbo" on the pushed commit, in progress while the run plans and runs, then
 // green or red with a row per task and the end of every failed log.
 
 import type { RunRecord } from "../core/record.js";
 import { checkSummary } from "../core/report.js";
 
-export const CHECK_NAME = "boxd-ci";
+export const CHECK_NAME = "boxd-turbo";
 
 type Output = { title: string; summary: string; text?: string };
 
@@ -76,7 +76,7 @@ export async function updateCheck(gh: ChecksApi, repo: string, id: number, recor
     });
   } catch {
     // A check left in progress blocks a merge, so whatever GitHub refused, complete it with less.
-    const short = `${out.summary.slice(0, 20_000)}\n\nGitHub refused the full report. \`boxd-ci logs ${record.id} --failed\` prints it.`;
+    const short = `${out.summary.slice(0, 20_000)}\n\nGitHub refused the full report. \`boxd-turbo logs ${record.id} --failed\` prints it.`;
     await gh.rest.checks.update({ ...done, output: { title: out.title.slice(0, 200), summary: short } });
   }
 }

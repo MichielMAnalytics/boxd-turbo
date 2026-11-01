@@ -133,7 +133,7 @@ describe("resolveCiTasks without any ci tag", () => {
     ]);
     expect(selectors(r)).toEqual(["docs#lint", "web#lint", "web#typecheck"]);
     expect(r.warnings).toEqual([
-      "no task in turbo.json is tagged ci, so boxd CI runs the usual checks: lint, typecheck",
+      "no task in turbo.json is tagged ci, so boxd-turbo runs the usual checks: lint, typecheck",
     ]);
     expect(r.nothingToRun).toBeUndefined();
   });
@@ -183,8 +183,8 @@ describe("resolveCiTasks and Vercel deployments", () => {
     );
     expect(selectors(r)).toEqual(["web#test"]);
     expect(r.warnings).toEqual([
-      "web#e2e depends on a Vercel deployment (web#deployment), which boxd CI does not make, so it does not run",
-      "web#smoke asks for Vercel OIDC tokens (ci:oidc:deployments), which boxd CI does not have, so it does not run",
+      "web#e2e depends on a Vercel deployment (web#deployment), which boxd-turbo does not make, so it does not run",
+      "web#smoke asks for Vercel OIDC tokens (ci:oidc:deployments), which boxd-turbo does not have, so it does not run",
     ]);
   });
 });

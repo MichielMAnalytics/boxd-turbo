@@ -1,12 +1,12 @@
 {
-  "name": "boxd-ci",
+  "name": "boxd-turbo",
   "version": "0.1.0",
   "private": true,
   "description": "CI for Turborepo monorepos on boxd: every task on its own machine, restored from a snapshot. Reads Vercel CI's turbo.json tags.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "boxd-ci": "dist/cli.mjs"
+    "boxd-turbo": "dist/cli.mjs"
   },
   "files": [
     "dist",
@@ -44,7 +44,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/azin-tech/boxd-ci.git"
+    "url": "https://github.com/azin-tech/boxd-turbo.git"
   },
   "keywords": [
     "ci",

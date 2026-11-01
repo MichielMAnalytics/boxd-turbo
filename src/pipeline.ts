@@ -1,4 +1,4 @@
-// One CI run, from either door: a push (the automation on the server) or `boxd-ci run` (a laptop).
+// One CI run, from either door: a push (the automation on the server) or `boxd-turbo run` (a laptop).
 //
 //   restore the planner's machine → check the dependency files → plan with Turborepo
 //   → schedule the uncached tasks on machines → store the record → report → promote
@@ -52,7 +52,7 @@ export type PipelineDeps = {
   /** dist/planner.mjs, run on the planner's machine. */
   plannerBundle: Uint8Array;
   pool: (o: PoolOptions) => Pool;
-  /** Overrides .boxd-ci.json's maxMachines. */
+  /** Overrides .boxd-turbo.json's maxMachines. */
   maxMachines?: number;
   /** After a green push to the default branch, once the run is reported. */
   promote?: (o: { repo: RepoRecord; run: RunRecord; selectors: string[] }) => Promise<void>;

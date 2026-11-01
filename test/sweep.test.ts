@@ -8,7 +8,7 @@ const worker = (name: string, status: string, run: string, age = 0.5) => ({
   name,
   status,
   createdAt: ago(age),
-  labels: { "boxd-ci": "worker", "boxd-ci/run": run, "boxd-ci/repo": "acme-web" },
+  labels: { "boxd-turbo": "worker", "boxd-turbo/run": run, "boxd-turbo/repo": "acme-web" },
 });
 
 describe("leftovers", () => {
@@ -41,8 +41,8 @@ describe("leftovers", () => {
       [
         worker("old", "running", "gone", 4),
         worker("young", "running", "gone", 1),
-        { id: "b1", name: "b1", status: "running", createdAt: ago(5), labels: { "boxd-ci": "builder" } },
-        { id: "b2", name: "b2", status: "running", createdAt: ago(1), labels: { "boxd-ci": "builder" } },
+        { id: "b1", name: "b1", status: "running", createdAt: ago(5), labels: { "boxd-turbo": "builder" } },
+        { id: "b2", name: "b2", status: "running", createdAt: ago(1), labels: { "boxd-turbo": "builder" } },
       ],
       status,
       now,

@@ -1,4 +1,4 @@
-// The server: one machine per boxd account that runs the Turborepo remote cache and keeps boxd-ci's
+// The server: one machine per boxd account that runs the Turborepo remote cache and keeps boxd-turbo's
 // state (repositories, snapshots, runs). It sleeps when idle and wakes on the next request, so a
 // cached run still answers in seconds.
 
@@ -8,11 +8,11 @@ import { machineStore, type Store } from "./store.js";
 
 /** Bumped when the setup script changes, so existing servers are set up again. */
 export const SERVER_VERSION = 1;
-export const SERVER_ROOT = "/home/boxd/boxd-ci";
-export const DEFAULT_SERVER_NAME = "boxd-ci-server";
+export const SERVER_ROOT = "/home/boxd/boxd-turbo";
+export const DEFAULT_SERVER_NAME = "boxd-turbo-server";
 const CACHE_PORT = 3000;
 const CACHE_SERVER = "turborepo-remote-cache@2.14.5";
-const TOKEN_LINE = "boxd-ci-token=";
+const TOKEN_LINE = "boxd-turbo-token=";
 
 export type ServerInfo = { machineId: string; name: string; cacheUrl: string; token: string };
 
@@ -35,11 +35,11 @@ cd '${root}/cache-server'
 [ -f package.json ] || printf '{"private":true}\\n' > package.json
 npm install --no-fund --no-audit --loglevel=error ${CACHE_SERVER} >/dev/null
 if [ ! -f '${env}' ]; then
-  printf 'TURBO_TOKEN=%s\\nSTORAGE_PROVIDER=local\\nSTORAGE_PATH=${root}/cache\\nSTORAGE_PATH_USE_TMP_FOLDER=false\\nPORT=${CACHE_PORT}\\nLOG_LEVEL=warn\\nBODY_LIMIT=1048576000\\n' "$BOXD_CI_CACHE_TOKEN" > '${env}'
+  printf 'TURBO_TOKEN=%s\\nSTORAGE_PROVIDER=local\\nSTORAGE_PATH=${root}/cache\\nSTORAGE_PATH_USE_TMP_FOLDER=false\\nPORT=${CACHE_PORT}\\nLOG_LEVEL=warn\\nBODY_LIMIT=1048576000\\n' "$BOXD_TURBO_CACHE_TOKEN" > '${env}'
 fi
-sudo tee /etc/systemd/system/boxd-ci-cache.service >/dev/null <<UNIT
+sudo tee /etc/systemd/system/boxd-turbo-cache.service >/dev/null <<UNIT
 [Unit]
-Description=boxd-ci Turborepo remote cache
+Description=boxd-turbo Turborepo remote cache
 After=network.target
 [Service]
 User=$(id -un)
@@ -50,14 +50,14 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 UNIT
-sudo tee /etc/systemd/system/boxd-ci-cache-clean.service >/dev/null <<UNIT
+sudo tee /etc/systemd/system/boxd-turbo-cache-clean.service >/dev/null <<UNIT
 [Unit]
 Description=Delete Turborepo artifacts nobody used for 14 days
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/find ${root}/cache -type f -atime +14 -delete
 UNIT
-sudo tee /etc/systemd/system/boxd-ci-cache-clean.timer >/dev/null <<UNIT
+sudo tee /etc/systemd/system/boxd-turbo-cache-clean.timer >/dev/null <<UNIT
 [Timer]
 OnCalendar=daily
 Persistent=true
@@ -65,8 +65,8 @@ Persistent=true
 WantedBy=timers.target
 UNIT
 sudo systemctl daemon-reload
-sudo systemctl enable --quiet boxd-ci-cache.service boxd-ci-cache-clean.timer
-sudo systemctl restart boxd-ci-cache.service boxd-ci-cache-clean.timer
+sudo systemctl enable --quiet boxd-turbo-cache.service boxd-turbo-cache-clean.timer
+sudo systemctl restart boxd-turbo-cache.service boxd-turbo-cache-clean.timer
 echo "${TOKEN_LINE}$(sed -n 's/^TURBO_TOKEN=//p' '${env}')"`;
 }
 
@@ -96,23 +96,23 @@ export async function ensureServer(boxd: ServerBoxd, o: EnsureServerOptions = {}
   const m = boxd.machines;
   const name = o.name ?? DEFAULT_SERVER_NAME;
   const say = o.onProgress ?? (() => {});
-  const found = (await m.list({ ...(o.org ? { org: o.org } : {}), labels: { "boxd-ci": "server" } })).find(
+  const found = (await m.list({ ...(o.org ? { org: o.org } : {}), labels: { "boxd-turbo": "server" } })).find(
     (x) => x.name === name,
   );
 
   let id: string;
   if (found) id = found.id;
   else {
-    say(`starting the boxd-ci server (${name}): the Turborepo cache and run history`);
+    say(`starting the boxd-turbo server (${name}): the Turborepo cache and run history`);
     const created = await m
       .create({
         name,
         ...(o.org ? { org: o.org } : {}),
         config: { vcpu: 2, memory: "8G", autoSuspendTimeout: 60 },
-        labels: { "boxd-ci": "server" },
+        labels: { "boxd-turbo": "server" },
       })
       .catch((e: Error) => {
-        throw new Error(`could not start the boxd-ci server "${name}": ${e.message}`);
+        throw new Error(`could not start the boxd-turbo server "${name}": ${e.message}`);
       });
     id = created.id;
     await m.waitUntilReady(id, { timeout: 180_000 });
@@ -128,12 +128,12 @@ export async function ensureServer(boxd: ServerBoxd, o: EnsureServerOptions = {}
     say("installing the Turborepo cache on the server");
     const out = await m.exec(id, {
       command: ["bash", "-c", serverSetupScript()],
-      env: { BOXD_CI_CACHE_TOKEN: token || randomBytes(24).toString("hex") },
+      env: { BOXD_TURBO_CACHE_TOKEN: token || randomBytes(24).toString("hex") },
       timeout: 600_000,
     });
     const line = out.stdout.split("\n").find((l) => l.startsWith(TOKEN_LINE));
     if (out.exitCode !== 0 || !line) {
-      throw new Error(`setting up the boxd-ci server failed: ${`${out.stderr}\n${out.stdout}`.trim().slice(-2000)}`);
+      throw new Error(`setting up the boxd-turbo server failed: ${`${out.stderr}\n${out.stdout}`.trim().slice(-2000)}`);
     }
     token = line.slice(TOKEN_LINE.length).trim();
     if (!(await m.proxies.list(id)).some((p) => p.name === "cache")) await m.proxies.create(id, "cache", CACHE_PORT);

@@ -1,4 +1,4 @@
-// Where boxd-ci's files live on the server, relative to its state folder:
+// Where boxd-turbo's files live on the server, relative to its state folder:
 //
 //   server.json                       the cache URL and token
 //   repos/<repo>.json                 a repository's snapshot record

@@ -1,4 +1,4 @@
-// boxd-ci doctor: is everything in place? --sweep deletes machines that finished runs left behind.
+// boxd-turbo doctor: is everything in place? --sweep deletes machines that finished runs left behind.
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -44,7 +44,7 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
 
   const boxd = connect();
   const servers = await boxd.machines
-    .list({ ...(ctx.org ? { org: ctx.org } : {}), labels: { "boxd-ci": "server" } })
+    .list({ ...(ctx.org ? { org: ctx.org } : {}), labels: { "boxd-turbo": "server" } })
     .catch((e: Error) => {
       add({ ok: false, what: `boxd: ${e.message}`, fix: "sign in with boxd auth login, or set BOXD_API_KEY" });
       return null;
@@ -54,7 +54,7 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
 
   const server = servers.find((s) => s.name === ctx.serverName);
   if (!server) {
-    add({ ok: false, what: `no server ${ctx.serverName}`, fix: "boxd-ci init (or boxd-ci run) starts it" });
+    add({ ok: false, what: `no server ${ctx.serverName}`, fix: "boxd-turbo init (or boxd-turbo run) starts it" });
     return finish(ctx, out, checks);
   }
   const store = machineStore(boxd, server.id, SERVER_ROOT);
@@ -66,11 +66,12 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
           ok: true,
           what: `server ${server.name} is ${server.status === "running" ? "awake" : "asleep"} and its cache answers at ${info.cacheUrl}`,
         }
-      : { ok: false, what: `the cache on ${server.name} does not answer`, fix: "boxd-ci init sets it up again" },
+      : { ok: false, what: `the cache on ${server.name} does not answer`, fix: "boxd-turbo init sets it up again" },
   );
 
   const repo = await readJson<RepoRecord>(store, paths.repo(ctx.repo));
-  if (!repo) add({ ok: false, what: `no snapshot of ${ctx.repo} yet`, fix: "boxd-ci init (or boxd-ci run) builds it" });
+  if (!repo)
+    add({ ok: false, what: `no snapshot of ${ctx.repo} yet`, fix: "boxd-turbo init (or boxd-turbo run) builds it" });
   else {
     const ready = await snapshotReady(boxd, repo.snapshot, ctx.org);
     add(
@@ -79,16 +80,16 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
             ok: true,
             what: `snapshot ${repo.snapshot}: ${repo.commit.slice(0, 7)} of ${repo.defaultBranch}, saved ${ago(repo.builtAt)}`,
           }
-        : { ok: false, what: `snapshot ${repo.snapshot} cannot be restored`, fix: "boxd-ci init --rebuild" },
+        : { ok: false, what: `snapshot ${repo.snapshot} cannot be restored`, fix: "boxd-turbo init --rebuild" },
     );
   }
 
   const jobs = await boxd.machines.exec(server.id, { command: ["bash", "-c", "run jobs --json 2>/dev/null || true"] });
-  const automation = jobs.stdout.includes("boxd-ci.run.ts");
+  const automation = jobs.stdout.includes("boxd-turbo.run.ts");
   add(
     automation
       ? { ok: true, what: `the push automation is installed on ${server.name}` }
-      : { ok: "warn", what: "no push automation, so pushes get no check", fix: "boxd-ci init installs it" },
+      : { ok: "warn", what: "no push automation, so pushes get no check", fix: "boxd-turbo init installs it" },
   );
   if (automation) {
     const access = await githubAccess(
@@ -106,14 +107,14 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
   // Machines of finished runs that are still up: a controller that died, or a sweep nobody ran.
   const scope = ctx.org ? { org: ctx.org } : {};
   const machines = [
-    ...(await boxd.machines.list({ ...scope, labels: { "boxd-ci": "worker" } })),
-    ...(await boxd.machines.list({ ...scope, labels: { "boxd-ci": "builder" } })),
+    ...(await boxd.machines.list({ ...scope, labels: { "boxd-turbo": "worker" } })),
+    ...(await boxd.machines.list({ ...scope, labels: { "boxd-turbo": "builder" } })),
   ];
   const asked = [
     ...new Set(
       machines
-        .filter((m) => m.status === "running" && m.labels?.["boxd-ci/run"] && m.labels?.["boxd-ci/repo"])
-        .map((m) => `runs/${m.labels?.["boxd-ci/repo"]}/${m.labels?.["boxd-ci/run"]}.json`),
+        .filter((m) => m.status === "running" && m.labels?.["boxd-turbo/run"] && m.labels?.["boxd-turbo/repo"])
+        .map((m) => `runs/${m.labels?.["boxd-turbo/repo"]}/${m.labels?.["boxd-turbo/run"]}.json`),
     ),
   ];
   const statuses = new Map<string, string>();
@@ -137,7 +138,7 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
     add({
       ok: "warn",
       what: `${left.length} machines of finished runs are still running: ${left.map((m) => m.name).join(", ")}`,
-      fix: "boxd-ci doctor --sweep deletes them",
+      fix: "boxd-turbo doctor --sweep deletes them",
     });
   }
   return finish(ctx, out, checks);

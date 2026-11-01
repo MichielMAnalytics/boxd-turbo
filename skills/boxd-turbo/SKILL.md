@@ -1,22 +1,22 @@
 ---
-name: boxd-ci
-description: Run CI for a Turborepo monorepo on boxd and read the results with the boxd-ci CLI. Use when asked to run CI or the checks before pushing, to find out why a boxd-ci check is red, to read a failed task's log, or to search past CI logs for an error.
+name: boxd-turbo
+description: Run CI for a Turborepo monorepo on boxd and read the results with the boxd-turbo CLI. Use when asked to run CI or the checks before pushing, to find out why a boxd-turbo check is red, to read a failed task's log, or to search past CI logs for an error.
 ---
 
-# boxd-ci
+# boxd-turbo
 
-boxd-ci runs a Turborepo monorepo's CI tasks on boxd machines restored from a snapshot of the
+boxd-turbo runs a Turborepo monorepo's CI tasks on boxd machines restored from a snapshot of the
 repository with its dependencies installed. Each task starts as soon as its dependencies finish.
 Results come from the Turborepo remote cache whenever a task's inputs did not change, so a run only
 executes what your change touched.
 
-Every command takes `--json`. Use it, since that output is stable and made for you. Until boxd-ci is
-on npm, run it as `npx github:azin-tech/boxd-ci <command>`. The examples below write `boxd-ci`.
+Every command takes `--json`. Use it, since that output is stable and made for you. Until boxd-turbo is
+on npm, run it as `npx github:azin-tech/boxd-turbo <command>`. The examples below write `boxd-turbo`.
 
 ## Check a change before pushing
 
 ```bash
-boxd-ci run --json
+boxd-turbo run --json
 ```
 
 This uploads the working copy (tracked changes and new files that git does not ignore) as a patch on
@@ -27,9 +27,9 @@ is the run record:
 {
   "id": "20261030-165434-0b8443a",
   "status": "failure",
-  "results": [{ "id": "@ai-sdk/mistral#test", "status": "failed", "seconds": 9.1, "logTail": "...", "machine": "bci-0b8443a-0vnu-1" }],
+  "results": [{ "id": "@ai-sdk/mistral#test", "status": "failed", "seconds": 9.1, "logTail": "...", "machine": "bt-0b8443a-0vnu-1" }],
   "machines": 2,
-  "kept": ["bci-0b8443a-0vnu-1"],
+  "kept": ["bt-0b8443a-0vnu-1"],
   "error": "only set when the run stopped before its tasks"
 }
 ```
@@ -40,10 +40,10 @@ A failed task's `logTail` is the end of its output. Read it before anything else
 ## Read a red run
 
 ```bash
-boxd-ci ls --json                       # the latest runs, newest first
-boxd-ci logs --failed --json            # the latest run, with every failed task's log
-boxd-ci logs <run-id> --task <pkg#task> --json
-boxd-ci grep "<error text>" --json      # which runs and tasks printed it
+boxd-turbo ls --json                       # the latest runs, newest first
+boxd-turbo logs --failed --json            # the latest run, with every failed task's log
+boxd-turbo logs <run-id> --task <pkg#task> --json
+boxd-turbo grep "<error text>" --json      # which runs and tasks printed it
 ```
 
 A run id, the start of one, or its commit's hash (7 to 40 characters) works as `<run-id>`.
@@ -61,7 +61,7 @@ boxd connect <machine>      # an interactive shell
 ## When something is off
 
 ```bash
-boxd-ci doctor --json
+boxd-turbo doctor --json
 ```
 
 checks the sign-in, the server and its Turborepo cache, the snapshot, the push automation and the
@@ -70,9 +70,9 @@ GitHub App. `--sweep` deletes machines that a finished run left behind.
 ## Rules
 
 - Never paste the cache token, a GitHub token or a secret's value into a task, a log or a commit.
-- Fix the failing task, then run `boxd-ci run` again. A run is cheap, since unchanged tasks are restored.
+- Fix the failing task, then run `boxd-turbo run` again. A run is cheap, since unchanged tasks are restored.
 - The tasks CI runs are the ones tagged `ci` in turbo.json (root or package level), as Vercel CI reads
   them. A repository with no `ci` tag runs the usual checks its turbo.json defines (lint, type checks,
-  tests). `boxd-ci doctor` says which.
-- A task that needs a secret gets it from `boxd-ci secret set NAME` (the value on stdin), with the name
+  tests). `boxd-turbo doctor` says which.
+- A task that needs a secret gets it from `boxd-turbo secret set NAME` (the value on stdin), with the name
   in that task's `env` in turbo.json. Ask the person for the value. Never invent one.

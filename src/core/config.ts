@@ -1,8 +1,8 @@
-// .boxd-ci.json, in the repository root: optional, and every setting has a default.
+// .boxd-turbo.json, in the repository root: optional, and every setting has a default.
 //
-//   { "org": "acme", "server": "boxd-ci-server", "maxMachines": 32, "packSeconds": 10, "secrets": ["NPM_TOKEN"] }
+//   { "org": "acme", "server": "boxd-turbo-server", "maxMachines": 32, "packSeconds": 10, "secrets": ["NPM_TOKEN"] }
 //
-// org and server say where the laptop CLI finds the account's boxd-ci server. maxMachines and
+// org and server say where the laptop CLI finds the account's boxd-turbo server. maxMachines and
 // packSeconds shape a run; the planner reads them at the commit it plans, so they change with code.
 // secrets names the boxd secrets every machine of a run gets; pushes take the list from the default
 // branch, so a branch cannot ask for more.
@@ -12,18 +12,18 @@ import { type ParseError, parse } from "jsonc-parser";
 export type Config = {
   /** The boxd org that runs CI. Default: the boxd CLI's active org. */
   org?: string;
-  /** The server machine's name. Default: boxd-ci-server. */
+  /** The server machine's name. Default: boxd-turbo-server. */
   server?: string;
   /** Machines one run may use at once. */
   maxMachines: number;
   /** Tasks that took less than this many seconds last time share a machine (0: never). */
   packSeconds: number;
-  /** Names of boxd secrets (`boxd-ci secret set`) that every machine of a run gets. */
+  /** Names of boxd secrets (`boxd-turbo secret set`) that every machine of a run gets. */
   secrets?: string[];
 };
 
 export const DEFAULT_CONFIG: Config = { maxMachines: 32, packSeconds: 10 };
-export const CONFIG_FILE = ".boxd-ci.json";
+export const CONFIG_FILE = ".boxd-turbo.json";
 
 const RANGES = { maxMachines: [1, 256], packSeconds: [0, 600] } as const;
 /** An environment variable name boxd accepts for a secret: BOXD_* is boxd's own. */

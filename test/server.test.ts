@@ -17,7 +17,7 @@ class FakeBoxd implements ServerBoxd {
     },
     get: async (id: string): Promise<MachineInfo> => ({
       id,
-      name: "boxd-ci-server",
+      name: "boxd-turbo-server",
       status: "running",
       access: { domain: "boxd.sh" },
     }),
@@ -32,7 +32,7 @@ class FakeBoxd implements ServerBoxd {
         this.log.push("setup");
         this.setupEnv = p.env;
         return {
-          stdout: `installed\nboxd-ci-token=${p.env?.BOXD_CI_CACHE_TOKEN ?? "kept-token"}\n`,
+          stdout: `installed\nboxd-turbo-token=${p.env?.BOXD_TURBO_CACHE_TOKEN ?? "kept-token"}\n`,
           stderr: "",
           exitCode: 0,
         };
@@ -69,10 +69,10 @@ describe("serverSetupScript", () => {
   test("pins the cache server and keeps its artifacts on disk", () => {
     expect(s).toContain("turborepo-remote-cache@2.14.5");
     expect(s).toContain("STORAGE_PATH_USE_TMP_FOLDER=false");
-    expect(s).toContain("STORAGE_PATH=/home/boxd/boxd-ci/cache");
+    expect(s).toContain("STORAGE_PATH=/home/boxd/boxd-turbo/cache");
   });
   test("takes the token from the environment and never replaces an existing one", () => {
-    expect(s).toContain('"$BOXD_CI_CACHE_TOKEN"');
+    expect(s).toContain('"$BOXD_TURBO_CACHE_TOKEN"');
     expect(s).toMatch(/if \[ ! -f [^\]]+\.env' \]; then/);
   });
   test("runs the service with an absolute node path", () => {
@@ -83,37 +83,37 @@ describe("serverSetupScript", () => {
 describe("ensureServer", () => {
   test("with no server, starts one with the cache, its proxy and a fresh 48-character token", async () => {
     const boxd = new FakeBoxd();
-    const s = await ensureServer(boxd, { org: "acme", name: "boxd-ci-server", health: healthy });
+    const s = await ensureServer(boxd, { org: "acme", name: "boxd-turbo-server", health: healthy });
     expect(boxd.created).toMatchObject({
-      name: "boxd-ci-server",
+      name: "boxd-turbo-server",
       org: "acme",
       config: { vcpu: 2, memory: "8G", autoSuspendTimeout: 60 },
-      labels: { "boxd-ci": "server" },
+      labels: { "boxd-turbo": "server" },
     });
-    expect(boxd.setupEnv?.BOXD_CI_CACHE_TOKEN).toMatch(/^[0-9a-f]{48}$/);
+    expect(boxd.setupEnv?.BOXD_TURBO_CACHE_TOKEN).toMatch(/^[0-9a-f]{48}$/);
     expect(boxd.log).toContain("proxy cache 3000");
     expect(s).toEqual({
       machineId: "srv1",
-      name: "boxd-ci-server",
-      cacheUrl: "https://cache.boxd-ci-server.boxd.sh",
-      token: boxd.setupEnv?.BOXD_CI_CACHE_TOKEN,
+      name: "boxd-turbo-server",
+      cacheUrl: "https://cache.boxd-turbo-server.boxd.sh",
+      token: boxd.setupEnv?.BOXD_TURBO_CACHE_TOKEN,
     });
-    const saved = JSON.parse(boxd.files.get("/home/boxd/boxd-ci/server.json") ?? "{}");
+    const saved = JSON.parse(boxd.files.get("/home/boxd/boxd-turbo/server.json") ?? "{}");
     expect(saved).toEqual({ version: SERVER_VERSION, cacheUrl: s.cacheUrl, token: s.token });
   });
 
   test("an up-to-date server is reused as it is", async () => {
     const boxd = new FakeBoxd();
-    boxd.servers = [{ id: "old", name: "boxd-ci-server", status: "standby", access: { domain: "boxd.sh" } }];
+    boxd.servers = [{ id: "old", name: "boxd-turbo-server", status: "standby", access: { domain: "boxd.sh" } }];
     boxd.files.set(
-      "/home/boxd/boxd-ci/server.json",
+      "/home/boxd/boxd-turbo/server.json",
       JSON.stringify({
         version: SERVER_VERSION,
-        cacheUrl: "https://cache.boxd-ci-server.boxd.sh",
+        cacheUrl: "https://cache.boxd-turbo-server.boxd.sh",
         token: "t".repeat(48),
       }),
     );
-    const s = await ensureServer(boxd, { org: "acme", name: "boxd-ci-server", health: healthy });
+    const s = await ensureServer(boxd, { org: "acme", name: "boxd-turbo-server", health: healthy });
     expect(s).toMatchObject({ machineId: "old", token: "t".repeat(48) });
     expect(boxd.log).not.toContain("setup");
     expect(boxd.log.some((l) => l.startsWith("create"))).toBe(false);
@@ -121,12 +121,12 @@ describe("ensureServer", () => {
 
   test("an older server is set up again and keeps its token", async () => {
     const boxd = new FakeBoxd();
-    boxd.servers = [{ id: "old", name: "boxd-ci-server", status: "running", access: { domain: "boxd.sh" } }];
+    boxd.servers = [{ id: "old", name: "boxd-turbo-server", status: "running", access: { domain: "boxd.sh" } }];
     boxd.proxies = [{ name: "cache", port: 3000 }];
-    boxd.files.set("/home/boxd/boxd-ci/server.json", JSON.stringify({ version: 0, token: "k".repeat(48) }));
-    const s = await ensureServer(boxd, { org: "acme", name: "boxd-ci-server", health: healthy });
+    boxd.files.set("/home/boxd/boxd-turbo/server.json", JSON.stringify({ version: 0, token: "k".repeat(48) }));
+    const s = await ensureServer(boxd, { org: "acme", name: "boxd-turbo-server", health: healthy });
     expect(boxd.log).toContain("setup");
-    expect(boxd.setupEnv?.BOXD_CI_CACHE_TOKEN).toBe("k".repeat(48));
+    expect(boxd.setupEnv?.BOXD_TURBO_CACHE_TOKEN).toBe("k".repeat(48));
     expect(boxd.log).not.toContain("proxy cache 3000");
     expect(s.token).toBe("k".repeat(48));
   });
@@ -134,7 +134,7 @@ describe("ensureServer", () => {
   test("a cache that never answers is an error that names the URL", async () => {
     const boxd = new FakeBoxd();
     await expect(
-      ensureServer(boxd, { org: "acme", name: "boxd-ci-server", health: async () => false, healthTimeoutMs: 10 }),
-    ).rejects.toThrow("the Turborepo cache at https://cache.boxd-ci-server.boxd.sh did not answer");
+      ensureServer(boxd, { org: "acme", name: "boxd-turbo-server", health: async () => false, healthTimeoutMs: 10 }),
+    ).rejects.toThrow("the Turborepo cache at https://cache.boxd-turbo-server.boxd.sh did not answer");
   });
 });

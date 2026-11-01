@@ -5,8 +5,8 @@
 import type { TaskNode } from "../core/graph.js";
 import type { TaskResult } from "../core/scheduler.js";
 
-export const SUMMARY_MARK = "::boxd-ci-summary::";
-export const LOG_MARK = "::boxd-ci-log::";
+export const SUMMARY_MARK = "::boxd-turbo-summary::";
+export const LOG_MARK = "::boxd-turbo-log::";
 /** How much of each task's log comes back to the controller. */
 export const LOG_TAIL_BYTES = 20_000;
 
@@ -19,14 +19,14 @@ export function commit(sha: string): string {
   return sha;
 }
 
-/** Git as boxd-ci runs it: hooks a task may have planted in .git (a snapshot keeps them) never run. */
+/** Git as boxd-turbo runs it: hooks a task may have planted in .git (a snapshot keeps them) never run. */
 const GIT = "git -c core.hooksPath=/dev/null";
 
 /**
  * The GitHub token as an auth header for github.com only (a submodule elsewhere never sees it), set
  * through the environment so it is in no process's arguments.
  */
-export const GITHUB_AUTH = `if [ -n "$BOXD_CI_FETCH_TOKEN" ]; then export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$BOXD_CI_FETCH_TOKEN" | base64 -w0)"; fi`;
+export const GITHUB_AUTH = `if [ -n "$BOXD_TURBO_FETCH_TOKEN" ]; then export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$BOXD_TURBO_FETCH_TOKEN" | base64 -w0)"; fi`;
 
 /** The submodules at the checked-out commit, when the repository has any. */
 export const SUBMODULES = `{ [ ! -f .gitmodules ] || ${GIT} submodule update --init --recursive -q; }`;
@@ -50,7 +50,7 @@ export function checkoutScript(workdir: string, sha: string): string {
 }
 
 /**
- * Puts the base commit back and applies a working-copy patch on top (`boxd-ci run`). Untracked files
+ * Puts the base commit back and applies a working-copy patch on top (`boxd-turbo run`). Untracked files
  * stay: on a fresh snapshot they are whatever the install generated.
  */
 export function applyPatchScript(workdir: string, base: string, patchPath: string): string {
@@ -73,7 +73,7 @@ export function cleanOutputsScript(workdir: string, outputs: { dir: string; glob
   if (work.length === 0) return "true";
   const js = `
 const fs = require("node:fs"), path = require("node:path");
-if (!fs.globSync) { console.error("boxd-ci: Node.js " + process.version + " has no fs.globSync, so declared outputs were not cleaned (needs Node 22+)"); process.exit(0); }
+if (!fs.globSync) { console.error("boxd-turbo: Node.js " + process.version + " has no fs.globSync, so declared outputs were not cleaned (needs Node 22+)"); process.exit(0); }
 const [root, spec] = [process.argv[1], JSON.parse(process.argv[2])];
 for (const { dir, globs } of spec) {
   const base = path.join(root, dir);
@@ -105,9 +105,9 @@ export function turboRunScript(workdir: string, tasks: TaskNode[]): string {
   return [
     `cd ${q(workdir)}`,
     "rm -rf .turbo/runs",
-    `./node_modules/.bin/turbo run ${selectors} --summarize --cache=local:rw,remote:rw --continue=dependencies-successful > /tmp/boxd-ci-turbo.log 2>&1`,
+    `./node_modules/.bin/turbo run ${selectors} --summarize --cache=local:rw,remote:rw --continue=dependencies-successful > /tmp/boxd-turbo-turbo.log 2>&1`,
     "code=$?",
-    "tail -c 4000 /tmp/boxd-ci-turbo.log",
+    "tail -c 4000 /tmp/boxd-turbo-turbo.log",
     `echo ${q(SUMMARY_MARK)}`,
     "cat .turbo/runs/*.json 2>/dev/null | head -c 50000000",
     "echo",
@@ -125,7 +125,7 @@ type SummaryTask = {
 /**
  * Terminal control: colors and cursor codes (CSI), links, titles and clipboard writes (OSC, ended by
  * BEL or ESC \\), other escapes, and every control character but newline and tab. Noise in a GitHub
- * check, and in `boxd-ci logs`, a way for a task's output to reach your terminal.
+ * check, and in `boxd-turbo logs`, a way for a task's output to reach your terminal.
  */
 // biome-ignore lint/suspicious/noControlCharactersInRegex: matching control characters is the point
 const ANSI = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)?|\x1b[@-_]?|[\x00-\x08\x0b-\x1f\x7f]/g;

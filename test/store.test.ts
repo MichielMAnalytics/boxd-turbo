@@ -34,7 +34,7 @@ const stores: [string, (root: string) => Store][] = [
 
 describe.each(stores)("%s", (_name, make) => {
   test("writes, reads back, and lists, with private files", async () => {
-    const root = mkdtempSync(join(tmpdir(), "boxd-ci-store-"));
+    const root = mkdtempSync(join(tmpdir(), "boxd-turbo-store-"));
     const s = make(root);
     expect(await s.read("runs/acme-web/1.json")).toBeNull();
     expect(await s.list("runs/acme-web")).toEqual([]);
@@ -46,7 +46,7 @@ describe.each(stores)("%s", (_name, make) => {
   });
 
   test("reads many files at once, null for the missing ones", async () => {
-    const s = make(mkdtempSync(join(tmpdir(), "boxd-ci-store-")));
+    const s = make(mkdtempSync(join(tmpdir(), "boxd-turbo-store-")));
     await s.write("runs/a/1.json", '{"n":1}');
     await s.write("runs/a/3.json", "line one\nline two\n");
     expect(await s.readMany(["runs/a/1.json", "runs/a/2.json", "runs/a/3.json"])).toEqual([
@@ -58,7 +58,7 @@ describe.each(stores)("%s", (_name, make) => {
   });
 
   test("refuses a path that leaves the root", async () => {
-    const s = make(mkdtempSync(join(tmpdir(), "boxd-ci-store-")));
+    const s = make(mkdtempSync(join(tmpdir(), "boxd-turbo-store-")));
     await expect(s.read("../etc/passwd")).rejects.toThrow("not a store path");
     await expect(s.write("runs/../../x", "")).rejects.toThrow("not a store path");
   });
@@ -66,7 +66,7 @@ describe.each(stores)("%s", (_name, make) => {
 
 describe("fsStore as root (the automation)", () => {
   test("hands every folder and file it creates to the owner of the state folder", async () => {
-    const root = mkdtempSync(join(tmpdir(), "boxd-ci-store-"));
+    const root = mkdtempSync(join(tmpdir(), "boxd-turbo-store-"));
     const given: string[] = [];
     const s = fsStore(root, {
       isRoot: () => true,

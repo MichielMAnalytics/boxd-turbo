@@ -32,7 +32,7 @@ export function parseRemote(url: string): { repo: string; cloneUrl: string } {
   }
   const [, host, owner, name] = m as unknown as [string, string, string, string];
   if (host.toLowerCase() !== "github.com") {
-    throw new Error(`boxd CI runs repositories on github.com, and origin is on ${host}`);
+    throw new Error(`boxd-turbo runs repositories on github.com, and origin is on ${host}`);
   }
   return { repo: `${owner}/${name}`, cloneUrl: `https://github.com/${owner}/${name}.git` };
 }
@@ -46,7 +46,7 @@ export function repoRoot(cwd: string): string {
 export function originUrl(root: string): string {
   const url = tryGit(root, ["remote", "get-url", "origin"]);
   if (!url)
-    throw new Error("this repository has no remote named origin, and boxd-ci builds its snapshot by cloning it");
+    throw new Error("this repository has no remote named origin, and boxd-turbo builds its snapshot by cloning it");
   return url;
 }
 
@@ -86,7 +86,7 @@ export function ensureCommit(root: string, sha: string): void {
  */
 export function makePatch(root: string, base: string): Buffer {
   const index = resolve(root, git(root, ["rev-parse", "--git-path", "index"]));
-  const tmp = join(tmpdir(), `boxd-ci-index-${process.pid}-${Math.random().toString(36).slice(2)}`);
+  const tmp = join(tmpdir(), `boxd-turbo-index-${process.pid}-${Math.random().toString(36).slice(2)}`);
   try {
     if (existsSync(index)) copyFileSync(index, tmp);
     const env = { ...process.env, GIT_INDEX_FILE: tmp };

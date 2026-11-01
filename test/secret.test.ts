@@ -14,7 +14,7 @@ const ctx = (root: string, secrets?: string[]): Ctx =>
     config: { maxMachines: 32, packSeconds: 10, ...(secrets ? { secrets } : {}) },
     warnings: [],
     org: "acme",
-    serverName: "boxd-ci-server",
+    serverName: "boxd-turbo-server",
     json: false,
   }) as Ctx;
 
@@ -44,7 +44,7 @@ const fake = (existing: string[] = []) => {
 };
 
 describe("withSecretName", () => {
-  test("adds a name to .boxd-ci.json's secrets once, keeping the rest of the file, and removes it", () => {
+  test("adds a name to .boxd-turbo.json's secrets once, keeping the rest of the file, and removes it", () => {
     const text = '{\n  // ours\n  "org": "acme"\n}\n';
     const added = withSecretName(text, "NPM_TOKEN", true);
     expect(added).toContain("// ours");
@@ -54,14 +54,14 @@ describe("withSecretName", () => {
   });
 });
 
-describe("boxd-ci secret", () => {
-  test("set stores an unattached org secret, names it in .boxd-ci.json, and never prints the value", async () => {
-    const root = mkdtempSync(join(tmpdir(), "boxd-ci-secret-"));
+describe("boxd-turbo secret", () => {
+  test("set stores an unattached org secret, names it in .boxd-turbo.json, and never prints the value", async () => {
+    const root = mkdtempSync(join(tmpdir(), "boxd-turbo-secret-"));
     const { calls, deps } = fake();
     const { lines, out } = capture();
     expect(await secretCommand(ctx(root), ["set", "DATABASE_URL"], {}, out, deps)).toBe(0);
     expect(calls).toEqual(["set DATABASE_URL=s3cret-value unattached acme"]);
-    expect(JSON.parse(readFileSync(join(root, ".boxd-ci.json"), "utf8")).secrets).toEqual(["DATABASE_URL"]);
+    expect(JSON.parse(readFileSync(join(root, ".boxd-turbo.json"), "utf8")).secrets).toEqual(["DATABASE_URL"]);
     expect(lines.join("\n")).not.toContain("s3cret-value");
     expect(lines.join("\n")).toContain("turbo.json");
   });
@@ -77,7 +77,7 @@ describe("boxd-ci secret", () => {
   });
 
   test("ls shows each configured name and whether boxd has it", async () => {
-    const root = mkdtempSync(join(tmpdir(), "boxd-ci-secret-"));
+    const root = mkdtempSync(join(tmpdir(), "boxd-turbo-secret-"));
     const { deps } = fake(["NPM_TOKEN"]);
     const { lines, out } = capture();
     await secretCommand(ctx(root, ["NPM_TOKEN", "DATABASE_URL"]), ["ls"], {}, out, deps);
@@ -85,12 +85,12 @@ describe("boxd-ci secret", () => {
     expect(lines.join("\n")).toMatch(/DATABASE_URL.*missing/);
   });
 
-  test("rm deletes the secret and takes its name out of .boxd-ci.json", async () => {
-    const root = mkdtempSync(join(tmpdir(), "boxd-ci-secret-"));
-    writeFileSync(join(root, ".boxd-ci.json"), '{ "secrets": ["NPM_TOKEN"] }\n');
+  test("rm deletes the secret and takes its name out of .boxd-turbo.json", async () => {
+    const root = mkdtempSync(join(tmpdir(), "boxd-turbo-secret-"));
+    writeFileSync(join(root, ".boxd-turbo.json"), '{ "secrets": ["NPM_TOKEN"] }\n');
     const { calls, deps } = fake(["NPM_TOKEN"]);
     await secretCommand(ctx(root, ["NPM_TOKEN"]), ["rm", "NPM_TOKEN"], {}, capture().out, deps);
     expect(calls).toEqual(["delete NPM_TOKEN unattached acme"]);
-    expect(JSON.parse(readFileSync(join(root, ".boxd-ci.json"), "utf8")).secrets).toEqual([]);
+    expect(JSON.parse(readFileSync(join(root, ".boxd-turbo.json"), "utf8")).secrets).toEqual([]);
   });
 });

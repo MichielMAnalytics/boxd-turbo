@@ -14,7 +14,7 @@ const run = (results: TaskResult[], status: RunRecord["status"] = "success"): Ru
   status,
   results,
   machines: 2,
-  snapshot: "boxd-ci-web",
+  snapshot: "boxd-turbo-web",
   warnings: [],
 });
 const r = (id: string, status: TaskResult["status"], seconds = 3, logTail = ""): TaskResult => ({
@@ -22,7 +22,7 @@ const r = (id: string, status: TaskResult["status"], seconds = 3, logTail = ""):
   status,
   seconds,
   logTail,
-  machine: "bci-r1-1",
+  machine: "bt-r1-1",
 });
 
 describe("formatSeconds", () => {
@@ -40,16 +40,16 @@ describe("checkSummary", () => {
   test("a failed run says how to get onto the machines kept for the failed tasks", () => {
     const out = checkSummary(run([r("a#test", "failed", 3, "boom"), r("b#test", "ran")], "failure"));
     expect(out.summary).toContain(
-      "The machine of a failed task is kept for 24 hours, as the task left it: `boxd connect bci-r1-1`",
+      "The machine of a failed task is kept for 24 hours, as the task left it: `boxd connect bt-r1-1`",
     );
     expect(checkSummary(run([r("b#test", "ran")])).summary).not.toContain("kept for 24 hours");
   });
 
   test("only the machines the run kept are offered, when it kept fewer than failed", () => {
-    const failed = ["1", "2", "3", "4", "5"].map((n) => ({ ...r(`p${n}#test`, "failed"), machine: `bci-r1-${n}` }));
-    const out = checkSummary({ ...run(failed, "failure"), kept: ["bci-r1-1", "bci-r1-2", "bci-r1-3"] });
-    expect(out.summary).toContain("`boxd connect bci-r1-3`");
-    expect(out.summary).not.toContain("`boxd connect bci-r1-4`");
+    const failed = ["1", "2", "3", "4", "5"].map((n) => ({ ...r(`p${n}#test`, "failed"), machine: `bt-r1-${n}` }));
+    const out = checkSummary({ ...run(failed, "failure"), kept: ["bt-r1-1", "bt-r1-2", "bt-r1-3"] });
+    expect(out.summary).toContain("`boxd connect bt-r1-3`");
+    expect(out.summary).not.toContain("`boxd connect bt-r1-4`");
   });
 
   test("a skipped task is marked with a circle", () => {

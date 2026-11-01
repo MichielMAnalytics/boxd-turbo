@@ -1,4 +1,4 @@
-// boxd-ci init: start the server, build the snapshot, install the push automation, and say what CI runs.
+// boxd-turbo init: start the server, build the snapshot, install the push automation, and say what CI runs.
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -60,7 +60,7 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
     });
     if (ctx.json) out.json({ steps, runs });
     else {
-      out.line(`boxd-ci init would, for ${bold(ctx.repo)}:`);
+      out.line(`boxd-turbo init would, for ${bold(ctx.repo)}:`);
       for (const s of steps) out.line(`  · ${s}`);
       out.line(dim("Steps that are already done are skipped."));
       out.line(runs);
@@ -76,7 +76,7 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
       configPath,
       applyEdits(text, modify(text, ["org"], ctx.org, { formattingOptions: { insertSpaces: true, tabSize: 2 } })),
     );
-    say(`wrote ${CONFIG_FILE}. Commit it, so everyone's boxd-ci uses org ${ctx.org}.`);
+    say(`wrote ${CONFIG_FILE}. Commit it, so everyone's boxd-turbo uses org ${ctx.org}.`);
   }
 
   const boxd = connect();
@@ -89,7 +89,7 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
   if (github) {
     await installAutomation(boxd, server, store, say);
     access = await githubAccess(boxd, server, ctx.repo);
-    if (access === "ok") say(green(`the boxd GitHub App can read ${ctx.repo}, so every push gets a boxd-ci check`));
+    if (access === "ok") say(green(`the boxd GitHub App can read ${ctx.repo}, so every push gets a boxd-turbo check`));
     else say(yellow(GITHUB_HELP[access as keyof typeof GITHUB_HELP](ctx.repo)));
   }
 
@@ -108,7 +108,7 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
   out.line(
     `${green("✓")} ${bold(ctx.repo)} is set up on boxd. Runs start from ${record.snapshot} (${record.commit.slice(0, 7)}).`,
   );
-  out.line(`  ${bold("boxd-ci run")}   CI on your working copy, now`);
-  if (github && access === "ok") out.line(`  ${bold("git push")}      the boxd-ci check appears on the commit`);
+  out.line(`  ${bold("boxd-turbo run")}   CI on your working copy, now`);
+  if (github && access === "ok") out.line(`  ${bold("git push")}      the boxd-turbo check appears on the commit`);
   return 0;
 }

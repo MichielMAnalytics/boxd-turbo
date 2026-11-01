@@ -94,7 +94,7 @@ class FakeBoxd implements PoolBoxd {
 }
 
 const options = (o: Partial<PoolOptions> = {}): PoolOptions => ({
-  snapshot: "bci-app-a",
+  snapshot: "bt-app-a",
   org: "acme",
   baseCpus: 2,
   workdir: "/home/boxd/work/app",
@@ -112,12 +112,12 @@ describe("createPool", () => {
     const w = await pool.acquire();
     expect(boxd.lastCreate).toMatchObject({
       org: "acme",
-      fromSnapshot: "bci-app-a",
+      fromSnapshot: "bt-app-a",
       isolated: true,
       deleteAfter: 3600,
-      labels: { "boxd-ci": "worker", "boxd-ci/run": "20261030-091400-abc1234" },
+      labels: { "boxd-turbo": "worker", "boxd-turbo/run": "20261030-091400-abc1234" },
     });
-    expect(w.id).toMatch(/^bci-abc1234-[a-z0-9]{4}-1$/);
+    expect(w.id).toMatch(/^bt-abc1234-[a-z0-9]{4}-1$/);
     expect(pool.machines()).toBe(1);
   });
 
@@ -129,7 +129,7 @@ describe("createPool", () => {
     await w.run([node("b#test")]);
     const prepares = boxd.execs.filter((e) => e.script.includes("fetch -q origin abc1234def"));
     expect(prepares).toHaveLength(1);
-    expect(prepares[0]?.env).toEqual({ BOXD_CI_FETCH_TOKEN: "ghs_secret" });
+    expect(prepares[0]?.env).toEqual({ BOXD_TURBO_FETCH_TOKEN: "ghs_secret" });
     const turbo = boxd.execs.filter((e) => e.script.includes("turbo run"));
     expect(turbo.map((e) => e.env)).toEqual([
       { TURBO_TOKEN: "t0k", CI: "1" },
@@ -142,9 +142,9 @@ describe("createPool", () => {
     const patch = new TextEncoder().encode("diff --git a/x b/x\n");
     const pool = createPool(boxd, options({ prepare: { kind: "patch", base: "ba5e999", patch } }));
     await pool.acquire();
-    expect(boxd.uploads).toEqual([{ id: "m1", path: "/tmp/boxd-ci.patch", bytes: patch.length }]);
+    expect(boxd.uploads).toEqual([{ id: "m1", path: "/tmp/boxd-turbo.patch", bytes: patch.length }]);
     expect(boxd.execs[0]?.script).toContain("checkout -q -f ba5e999");
-    expect(boxd.execs[0]?.script).toContain("git apply --binary --whitespace=nowarn '/tmp/boxd-ci.patch'");
+    expect(boxd.execs[0]?.script).toContain("git apply --binary --whitespace=nowarn '/tmp/boxd-turbo.patch'");
   });
 
   test("every group cleans the declared outputs before Turborepo runs, and re-arms the timer", async () => {
@@ -313,7 +313,9 @@ describe("createPool", () => {
     const pool = createPool(boxd, options({ prepare: { kind: "commit", sha: "abc1234def", fetchToken } }));
     await pool.acquire();
     await pool.acquire();
-    const tokens = boxd.execs.filter((e) => e.script.includes("fetch -q origin")).map((e) => e.env.BOXD_CI_FETCH_TOKEN);
+    const tokens = boxd.execs
+      .filter((e) => e.script.includes("fetch -q origin"))
+      .map((e) => e.env.BOXD_TURBO_FETCH_TOKEN);
     expect(tokens).toEqual(["ghs_1", "ghs_2"]);
   });
 
@@ -321,11 +323,11 @@ describe("createPool", () => {
     const boxd = new FakeBoxd();
     await createPool(boxd, options({ secrets: ["DATABASE_URL", "NPM_TOKEN"] })).acquire();
     expect(boxd.lastCreate).toMatchObject({
-      fromSnapshot: "bci-app-a",
+      fromSnapshot: "bt-app-a",
       deleteAfter: 3600,
       spec: {
         isolated: true,
-        labels: { "boxd-ci": "worker", "boxd-ci/run": "20261030-091400-abc1234" },
+        labels: { "boxd-turbo": "worker", "boxd-turbo/run": "20261030-091400-abc1234" },
         secrets: ["DATABASE_URL", "NPM_TOKEN"],
       },
     });
@@ -340,7 +342,7 @@ describe("createPool", () => {
       return "ghs_x";
     };
     const pool = createPool(boxd, options({ prepare: { kind: "commit", sha: "abc1234def", fetchToken } }));
-    pool.setSnapshot("bci-app-run-1234abcd", { checkedOut: true });
+    pool.setSnapshot("bt-app-run-1234abcd", { checkedOut: true });
     await pool.acquire();
     const prepare = boxd.execs.find((e) => e.script.includes("checkout -q -f abc1234def"));
     expect(prepare?.script).not.toContain("fetch");
@@ -373,9 +375,9 @@ describe("createPool", () => {
   test("setSnapshot changes where the next machines start", async () => {
     const boxd = new FakeBoxd();
     const pool = createPool(boxd, options());
-    pool.setSnapshot("bci-app-deps-1234");
+    pool.setSnapshot("bt-app-deps-1234");
     await pool.acquire();
-    expect(boxd.lastCreate).toMatchObject({ fromSnapshot: "bci-app-deps-1234" });
+    expect(boxd.lastCreate).toMatchObject({ fromSnapshot: "bt-app-deps-1234" });
   });
 
   test("upload writes a file on the machine", async () => {

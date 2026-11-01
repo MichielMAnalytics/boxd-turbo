@@ -17,7 +17,7 @@ export type Plan = {
   warnings: string[];
   /** Why there is no task to run, when there is none: the run fails with it. */
   nothingToRun?: string;
-  /** The run settings from .boxd-ci.json (org and server stay with the CLI). */
+  /** The run settings from .boxd-turbo.json (org and server stay with the CLI). */
   config: Pick<Config, "maxMachines" | "packSeconds">;
   dry: TurboDryRun;
 };
@@ -49,7 +49,7 @@ const scriptsOf = (dir: string): string[] => {
 };
 const rootTurboJson = (cwd: string) => readJsonc(join(cwd, "turbo.json")) ?? readJsonc(join(cwd, "turbo.jsonc"));
 
-/** The oldest Turborepo with every flag boxd CI passes (`--continue=dependencies-successful` came in 2.4). */
+/** The oldest Turborepo with every flag boxd-turbo passes (`--continue=dependencies-successful` came in 2.4). */
 export const MIN_TURBO = [2, 4] as const;
 /** Task tags came in 2.11: an older turbo refuses a turbo.json that has them. */
 const TAGS_TURBO = "2.11";
@@ -65,7 +65,7 @@ export async function plan(o: PlanOptions): Promise<Plan> {
   const version = versionOf(versionText);
   if (version && older(version, MIN_TURBO)) {
     throw new Error(
-      `boxd CI needs turbo ${MIN_TURBO.join(".")} or newer, and this repository has ${version.join(".")}. Upgrade the turbo devDependency.`,
+      `boxd-turbo needs turbo ${MIN_TURBO.join(".")} or newer, and this repository has ${version.join(".")}. Upgrade the turbo devDependency.`,
     );
   }
   // An older turbo stops at the first `tags` key it meets, with a message about the key.

@@ -1,4 +1,4 @@
-// Command line parsing: `boxd-ci <command> [arguments] [--flags]`, strict about what each command takes.
+// Command line parsing: `boxd-turbo <command> [arguments] [--flags]`, strict about what each command takes.
 
 import { parseArgs } from "node:util";
 
@@ -47,24 +47,24 @@ export function parseCli(argv: string[]): Parsed {
   }
 }
 
-export const HELP = `boxd-ci: CI for Turborepo monorepos on boxd machines
+export const HELP = `boxd-turbo: CI for Turborepo monorepos on boxd machines
 
-  boxd-ci run                 CI on your working copy, now
-  boxd-ci init                set up CI for this repository (snapshot, cache, a GitHub check on every push)
-  boxd-ci ls                  the latest runs
-  boxd-ci logs [run]          a run's logs, the latest by default (--task <id>, --failed)
-  boxd-ci grep <text>         search the logs of recent runs
-  boxd-ci doctor              check the setup (--sweep deletes machines a finished run left behind)
-  boxd-ci secret set NAME     a secret for tasks and installs, typed hidden or piped in (also rm, ls)
+  boxd-turbo run              CI on your working copy, now
+  boxd-turbo init             set up CI for this repository (snapshot, cache, a GitHub check on every push)
+  boxd-turbo ls               the latest runs
+  boxd-turbo logs [run]       a run's logs, the latest by default (--task <id>, --failed)
+  boxd-turbo grep <text>      search the logs of recent runs
+  boxd-turbo doctor           check the setup (--sweep deletes machines a finished run left behind)
+  boxd-turbo secret set NAME  a secret for tasks and installs, typed hidden or piped in (also rm, ls)
 
   --json                      machine-readable output, for scripts and agents
-  --org <org>                 the boxd org (default: .boxd-ci.json, then your boxd CLI's active org)
-  --server <name>             the boxd-ci server machine (default: boxd-ci-server)
+  --org <org>                 the boxd org (default: .boxd-turbo.json, then your boxd CLI's active org)
+  --server <name>             the boxd-turbo server machine (default: boxd-turbo-server)
 
 CI runs the tasks turbo.json tags "ci", the way Vercel CI reads them, or the usual checks (lint,
 type checks, tests) when nothing is tagged.
 Sign in once with \`boxd auth login\` (or set BOXD_API_KEY).
-https://github.com/azin-tech/boxd-ci`;
+https://github.com/azin-tech/boxd-turbo`;
 
 /** An error as a person should read it: the SDK's sign-in errors become how to sign in. */
 export function explain(message: string): string {

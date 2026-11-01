@@ -70,9 +70,16 @@ export function bundled(name: string): Buffer {
   throw new Error(`${name} is missing. Run npm run build.`);
 }
 
+/** Where a repository that is not a Turborepo monorepo gets CI on boxd. */
+export const CI_RUNNERS_GUIDE = "https://docs.boxd.sh/use-cases/ci-runners";
+
 /** The repository's turbo.json (or turbo.jsonc). A folder without one is not a Turborepo monorepo. */
 export function requireTurboJson(root: string): string {
   const file = ["turbo.json", "turbo.jsonc"].map((f) => join(root, f)).find((f) => existsSync(f));
-  if (!file) throw new Error(`no turbo.json in ${root}. boxd-ci runs the tasks of a Turborepo monorepo.`);
+  if (!file) {
+    throw new Error(
+      `no turbo.json in ${root}. boxd-turbo runs Turborepo monorepos. For any other repository, the CI runners guide sets up CI on boxd: ${CI_RUNNERS_GUIDE}`,
+    );
+  }
   return file;
 }

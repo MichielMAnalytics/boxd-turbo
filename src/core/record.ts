@@ -1,4 +1,4 @@
-// What one run leaves behind: enough to show it in a GitHub check, in `boxd-ci ls` and `logs`, and
+// What one run leaves behind: enough to show it in a GitHub check, in `boxd-turbo ls` and `logs`, and
 // to learn task durations for the next run's priorities and packing.
 
 import type { TaskResult } from "./scheduler.js";
@@ -8,7 +8,7 @@ export type RunRecord = {
   repo: string;
   sha: string;
   ref: string;
-  /** "push": GitHub sent it. "local": `boxd-ci run` from a working copy. */
+  /** "push": GitHub sent it. "local": `boxd-turbo run` from a working copy. */
   trigger: "push" | "local";
   startedAt: string;
   finishedAt?: string;

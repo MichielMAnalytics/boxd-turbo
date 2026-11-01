@@ -7,7 +7,7 @@
 //
 // The look is boxd's, from the website's brand guide and its benchmark board: a monochrome UI, Inter
 // for prose and JetBrains Mono for labels and numbers, tiles on a grout frame, the notch from the
-// logo on every panel. Colour is data only, by emphasis: boxd CI's bars in emerald, everyone else's
+// logo on every panel. Colour is data only, by emphasis: boxd-turbo's bars in emerald, everyone else's
 // in grey, checked for colour-vision deficiency in both modes. Every bar carries its name and value,
 // so colour is never the only cue. The fonts are subset per picture and embedded, since GitHub shows
 // an SVG as an image, which loads no fonts of its own.
@@ -41,7 +41,7 @@ type Theme = {
   deep: string;
   /** A rule inside a tile, and a gridline. */
   rule: string;
-  /** Data: boxd CI by emphasis, everyone else in grey. */
+  /** Data: boxd-turbo by emphasis, everyone else in grey. */
   boxd: string;
   other: string;
   /** The logo's fill. */
@@ -311,7 +311,7 @@ const SERVER_PER_SECOND = (2 * VCPU_HOUR + 8 * GIB_HOUR) / 3600;
 const SERVER_TAIL_S = 60;
 
 export function boxdMedians() {
-  const rows = readFileSync(join(results, "boxd-ci.jsonl"), "utf8")
+  const rows = readFileSync(join(results, "boxd-turbo.jsonl"), "utf8")
     .split("\n")
     .filter(Boolean)
     .map((l) => JSON.parse(l) as BoxdRow)
@@ -319,7 +319,7 @@ export function boxdMedians() {
   const out: Record<string, { median: number; runs: number[]; usd: number; first: number }> = {};
   for (const s of SCENARIOS) {
     const rs = rows.filter((r) => r.scenario === s.key);
-    if (!rs.length) throw new Error(`no measured boxd-ci run for ${s.key}`);
+    if (!rs.length) throw new Error(`no measured boxd-turbo run for ${s.key}`);
     // Every machine for every second it was up, and the server for the run plus the minute after it.
     const usd = rs.map((r) => {
       const machines = Object.entries(r.machineSeconds ?? {}).reduce(
@@ -407,9 +407,9 @@ function vercelParts(): Record<string, Parts> {
   return out;
 }
 
-/** boxd CI, from its run records: the run's own start, its first task, and its end, when the check completes. */
+/** boxd-turbo, from its run records: the run's own start, its first task, and its end, when the check completes. */
 function boxdParts(): Record<string, Parts> {
-  const rows = readFileSync(join(results, "boxd-ci.jsonl"), "utf8")
+  const rows = readFileSync(join(results, "boxd-turbo.jsonl"), "utf8")
     .split("\n")
     .filter(Boolean)
     .map((l) => JSON.parse(l) as BoxdRow & { run_s: number })
@@ -438,8 +438,8 @@ function header(d: Doc, t: Theme, o: { kicker: string; title: string; subtitle: 
     const vercel = "Vercel CI";
     const right = d.w - 32;
     const vx = right - monoWidth(vercel, 11);
-    const bx = vx - 16 - 28 - monoWidth("boxd CI", 11);
-    d.body += logo(bx, 33, size, t.mark) + d.text(bx + 16, 42, "boxd CI", { font: "mono", size: 11, fill: t.quiet });
+    const bx = vx - 16 - 28 - monoWidth("boxd-turbo", 11);
+    d.body += logo(bx, 33, size, t.mark) + d.text(bx + 16, 42, "boxd-turbo", { font: "mono", size: 11, fill: t.quiet });
     d.body += triangle(vx - 16, 32.5, 11, t.quiet) + d.text(vx, 42, vercel, { font: "mono", size: 11, fill: t.quiet });
   }
   return 124;
@@ -480,7 +480,7 @@ function comparison(
     // Theirs first, ours last, as on the site's board.
     const rows = [
       { lane: "vercel" as const, name: "Vercel CI", value: v, y: y + 84 },
-      { lane: "boxd" as const, name: "boxd CI", value: b, y: y + 122 },
+      { lane: "boxd" as const, name: "boxd-turbo", value: b, y: y + 122 },
     ];
     for (const r of rows) {
       const ours = r.lane === "boxd";
@@ -511,8 +511,8 @@ function comparison(
           ? "about even"
           : `Vercel CI ${(1 / ratio).toFixed(1)}× ${o.better}`;
     d.body += `<line x1="${x}" y1="${y + 156}" x2="${right}" y2="${y + 156}" stroke="${t.rule}" stroke-width="1"/>`;
-    d.body += d.text(x, y + 177, "boxd CI vs", { font: "mono", size: 11, fill: t.muted });
-    d.body += d.text(x + monoWidth("boxd CI vs ", 11), y + 177, say, { font: "mono", size: 11, fill: t.ink });
+    d.body += d.text(x, y + 177, "boxd-turbo vs", { font: "mono", size: 11, fill: t.muted });
+    d.body += d.text(x + monoWidth("boxd-turbo vs ", 11), y + 177, say, { font: "mono", size: 11, fill: t.ink });
   });
   o.notes.forEach((n, i) => {
     d.body += d.text(32, top + tileH + 30 + i * 18, n, { font: "mono", size: 11, fill: t.deep });
@@ -534,18 +534,18 @@ function whereTimeGoes(t: Theme, vercel: Record<string, Parts>, boxd: Record<str
   const top = 124;
   const notes = [
     "The median of 3 pushes each, from git push to the result on GitHub. Each change on its own scale.",
-    "Vercel CI from vercel ci inspect, boxd CI from its run records. Raw data in bench/.",
+    "Vercel CI from vercel ci inspect, boxd-turbo from its run records. Raw data in bench/.",
   ];
   const H = top + tileH + 30 + notes.length * 18 + 18;
   const d = new Doc(
     W,
     H,
-    "Where the time goes: before the first task, the tasks, and after the last task, for boxd CI and Vercel CI",
+    "Where the time goes: before the first task, the tasks, and after the last task, for boxd-turbo and Vercel CI",
   );
   hatch(d, t);
   d.body += panel(d, t);
   header(d, t, {
-    kicker: "boxd CI vs Vercel CI, on vercel/ai",
+    kicker: "boxd-turbo vs Vercel CI, on vercel/ai",
     title: "Where the time goes",
     subtitle: "Waiting before the first task and after the last one, against the tasks themselves.",
   });
@@ -571,7 +571,7 @@ function whereTimeGoes(t: Theme, vercel: Record<string, Parts>, boxd: Record<str
     d.body += d.text(x, y + 54, s.sub, { font: "mono", size: 11, fill: t.muted });
     const rows = [
       { lane: "vercel" as const, name: "Vercel CI", p: v, y: y + 84 },
-      { lane: "boxd" as const, name: "boxd CI", p: b, y: y + 128 },
+      { lane: "boxd" as const, name: "boxd-turbo", p: b, y: y + 128 },
     ];
     for (const r of rows) {
       const ours = r.lane === "boxd";
@@ -736,7 +736,7 @@ function howItWorks(t: Theme) {
     `<path d="M${x1},${y1} C${(x1 + x2) / 2},${y1} ${(x1 + x2) / 2},${y2} ${x2 - 5},${y2}" fill="none" stroke="${t.grout}" stroke-width="1.5"/>` +
     `<path d="M${x2 - 7},${y2 - 4} L${x2},${y2} L${x2 - 7},${y2 + 4}" fill="none" stroke="${t.grout}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`;
   const mid = 236;
-  d.body += node(32, mid - 32, 132, 64, "git push", "or boxd-ci run", true);
+  d.body += node(32, mid - 32, 132, 64, "git push", "or boxd-turbo run", true);
   d.body += node(196, mid - 40, 196, 80, "Plan", "turbo run --dry");
   d.body += d.text(212, mid + 26, "against the cache", { font: "mono", size: 11, fill: t.muted });
   const machines = ["@ai-sdk/mistral#test", "@ai-sdk/mistral#type-check", "ai#test"];
@@ -757,7 +757,7 @@ function howItWorks(t: Theme) {
   return d.render();
 }
 
-// ── the demo: a real `boxd-ci run`, replayed at its own pace ───────────────────────────────────────
+// ── the demo: a real `boxd-turbo run`, replayed at its own pace ───────────────────────────────────────
 
 /**
  * An animated terminal from a captured run (bench/results/demo-run.txt, the CLI's plain output), in
@@ -773,7 +773,7 @@ function demo(captured: string) {
       at: 0,
       parts: [
         ["$ ", TERM.prompt],
-        ["npx github:azin-tech/boxd-ci run", TERM.command],
+        ["npx github:azin-tech/boxd-turbo run", TERM.command],
       ],
     },
   ];
@@ -811,7 +811,7 @@ function demo(captured: string) {
   const chrome = 38;
   const top = chrome + 26;
   const H = top + lines.length * lh + 16;
-  const d = new Doc(W, H, "An animated terminal: boxd-ci run on vercel/ai");
+  const d = new Doc(W, H, "An animated terminal: boxd-turbo run on vercel/ai");
   d.body += `<rect x="0.5" y="0.5" width="${W - 1}" height="${H - 1}" rx="12" fill="${TERM.ground}" stroke="${TERM.edge}"/>`;
   d.body += `<path d="M12.5,0.5 H${W - 12.5} A12,12 0 0 1 ${W - 0.5},12.5 V${chrome} H0.5 V12.5 A12,12 0 0 1 12.5,0.5 Z" fill="${TERM.chrome}"/>`;
   d.body += `<line x1="0.5" y1="${chrome}" x2="${W - 0.5}" y2="${chrome}" stroke="${TERM.chromeEdge}"/>`;
@@ -819,7 +819,7 @@ function demo(captured: string) {
   d.body += [0, 1, 2]
     .map((i) => `<circle cx="${20 + i * 16}" cy="${chrome / 2}" r="5" fill="${TERM.light}"/>`)
     .join("");
-  d.body += d.text(W / 2, chrome / 2 + 4, "boxd-ci run · a real run on vercel/ai, at its real speed", {
+  d.body += d.text(W / 2, chrome / 2 + 4, "boxd-turbo run · a real run on vercel/ai, at its real speed", {
     font: "mono",
     size: 11,
     fill: TERM.dim,
@@ -858,7 +858,7 @@ for (const t of THEMES) {
   writeFileSync(
     join(assets, `race-${t.name}.svg`),
     await comparison(t, {
-      kicker: "boxd CI vs Vercel CI",
+      kicker: "boxd-turbo vs Vercel CI",
       title: "Push to green on vercel/ai",
       subtitle: "Median of 3 pushes each, from git push to the result on GitHub. Same commit, same tasks.",
       value: (lane, s) => (lane === "boxd" ? (boxd[s]?.median ?? 0) : (vercel[s]?.median_s ?? 0)),
@@ -873,7 +873,7 @@ for (const t of THEMES) {
   writeFileSync(
     join(assets, `cost-${t.name}.svg`),
     await comparison(t, {
-      kicker: "boxd CI vs Vercel CI",
+      kicker: "boxd-turbo vs Vercel CI",
       title: "What one run costs",
       subtitle: "Median per push, at list prices. boxd: every machine while it was up, the server until it sleeps.",
       value: (lane, s) => (lane === "boxd" ? (boxd[s]?.usd ?? 0) : (vercel[s]?.usd_per_run ?? 0)),
@@ -888,7 +888,7 @@ for (const t of THEMES) {
   writeFileSync(
     join(assets, `timeline-${t.name}.svg`),
     await timeline(t, runFile, {
-      kicker: "boxd CI, one real run",
+      kicker: "boxd-turbo, one real run",
       title: "A core change, task by task",
       subtitle: `${ran} tasks on ${runFile.machines} machines, each starting when its dependencies were done.`,
       notes: [
@@ -913,7 +913,7 @@ const rows = SCENARIOS.map((s) => {
 writeFileSync(
   join(results, "summary.md"),
   [
-    "| Push to green on vercel/ai | boxd CI | Vercel CI | | Cost, boxd CI | Cost, Vercel CI |",
+    "| Push to green on vercel/ai | boxd-turbo | Vercel CI | | Cost, boxd-turbo | Cost, Vercel CI |",
     "|---|---|---|---|---|---|",
     ...rows,
     "",
