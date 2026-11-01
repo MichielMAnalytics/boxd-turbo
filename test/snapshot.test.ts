@@ -177,6 +177,7 @@ class FakeBoxd implements SnapshotBoxd {
   notAncestor = false;
   /** With notAncestor: the commit is the default branch's head on GitHub (a force-push). */
   isHead = false;
+  compareFails = false;
   config = "";
   private n = 0;
   private polls = 0;
@@ -214,6 +215,8 @@ class FakeBoxd implements SnapshotBoxd {
       this.log.push(step);
       if (step === this.failOn) return { stdout: "", stderr: `${step} broke`, exitCode: 1 };
       if (step === "hash") return { stdout: `${this.depsHash}\n`, stderr: "", exitCode: 0 };
+      if (step === "ancestor" && this.compareFails)
+        return { stdout: "", stderr: "fatal: could not read Username", exitCode: 128 };
       if (step === "ancestor") {
         const answer = !this.notAncestor ? "newer" : this.isHead ? "head" : "older";
         return { stdout: `${answer}\n`, stderr: "", exitCode: 0 };
@@ -429,6 +432,21 @@ describe("promote", () => {
     expect(ancestor?.env).toEqual({ BOXD_TURBO_FETCH_TOKEN: "ghs_x" });
   });
 
+  test("a comparison that fails is an error that says why, not an older commit", async () => {
+    const boxd = new FakeBoxd();
+    boxd.compareFails = true;
+    await expect(promote(boxd, opts(record()))).rejects.toThrow(
+      "comparing commits failed: fatal: could not read Username",
+    );
+    expect(boxd.log.at(-1)).toBe("delete b1");
+  });
+
+  test("the new record takes the commit's machine budget, the most a branch's run may use", async () => {
+    const boxd = new FakeBoxd();
+    boxd.config = '{ "maxMachines": 64 }';
+    expect((await promote(boxd, opts(record())))?.maxMachines).toBe(64);
+  });
+
   test("the builder gets the snapshot's secrets, and the new record takes the commit's list", async () => {
     const boxd = new FakeBoxd();
     boxd.config = '{ "secrets": ["NPM_TOKEN", "DATABASE_URL"] }';
@@ -520,5 +538,12 @@ describe("pruneSnapshots", () => {
     const next = await pruneSnapshots(boxd, r, { now });
     expect(deleted).toEqual(["bt-acme-web-0000001"]);
     expect(next.retired).toEqual([{ name: "bt-acme-web-0000002", at: "2026-10-30T17:00:00Z" }]);
+  });
+
+  test("a snapshot whose delete failed stays listed, so the next prune tries again", async () => {
+    const boxd = { snapshots: { delete: async () => Promise.reject(new Error("UNAVAILABLE")) } };
+    const old = { name: "bt-acme-web-0000001", at: "2026-10-30T10:00:00Z" };
+    const next = await pruneSnapshots(boxd, record({ retired: [old] }), { now: Date.parse("2026-10-30T20:00:00Z") });
+    expect(next.retired).toEqual([old]);
   });
 });

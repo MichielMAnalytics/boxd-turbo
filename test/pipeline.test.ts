@@ -36,6 +36,9 @@ const planJson = (specs: Spec[], selectors: string[]) =>
   });
 
 const ok = (stdout = "") => ({ stdout, stderr: "", exitCode: 0 });
+/** A plan with other settings, selectors or warnings than planJson's. */
+const planWith = (specs: Spec[], over: Record<string, unknown>) =>
+  JSON.stringify({ ...JSON.parse(planJson(specs, [])), ...over });
 
 class FakePool implements Pool {
   created = 0;
@@ -53,6 +56,7 @@ class FakePool implements Pool {
   keptNames: string[] = [];
 
   async acquire(cpus?: number): Promise<BoxWorker> {
+    this.acquired.push(cpus);
     const p = this.parked.findIndex((w) => w.cpus === (cpus ?? 2));
     if (p >= 0) return this.parked.splice(p, 1)[0] as BoxWorker;
     this.created += 1;
@@ -78,7 +82,10 @@ class FakePool implements Pool {
         pool.live.delete(id);
       },
       async sh(script: string) {
-        if (script.includes(DEPS_HASH_MARK)) return ok(`${pool.depsHash}\n`);
+        if (script.includes(DEPS_HASH_MARK))
+          return pool.hashFails
+            ? { stdout: "", stderr: "git: not a repository", exitCode: 128 }
+            : ok(`${pool.depsHash}\n`);
         if (script.includes("boxd-turbo-planner.mjs")) return pool.plan;
         if (script.includes("--frozen-lockfile")) {
           pool.installs += 1;
@@ -89,6 +96,8 @@ class FakePool implements Pool {
       async upload() {},
     };
   }
+  acquired: (number | undefined)[] = [];
+  hashFails = false;
   setSnapshot(name: string, o?: { checkedOut?: boolean }) {
     this.snapshots.push(name);
     this.snapshotOpts.push([name, o]);
@@ -178,7 +187,76 @@ const push = (ref = "main"): RunInput => ({
   prepare: { kind: "commit", sha: "d00d2fe" },
 });
 
+describe("runPipeline and what a plan may ask for", () => {
+  const big = (over: Record<string, unknown>) =>
+    ok(planWith([{ id: "a#test" }], { selectors: [{ selector: "a#test", cpus: 64 }], ...over }));
+
+  test("machine sizes stay within boxd's, and the budget within 1 to 256, whatever the plan says", async () => {
+    const { pool, deps, events } = setup();
+    pool.plan = big({ config: { maxMachines: 5000, packSeconds: 10 } });
+    await runPipeline(deps, push("main"));
+    expect(pool.acquired.filter((c) => c !== undefined && c !== 2)).toEqual([8]);
+    expect(events.find((e) => e.type === "plan")).toMatchObject({ maxMachines: 256 });
+  });
+
+  test("a branch gets the default branch's machine budget at most", async () => {
+    const one = setup();
+    one.pool.plan = big({ config: { maxMachines: 200, packSeconds: 10 } });
+    await runPipeline(one.deps, push("feature"));
+    expect(one.events.find((e) => e.type === "plan")).toMatchObject({ maxMachines: 32 });
+
+    const two = setup();
+    two.pool.plan = big({ config: { maxMachines: 200, packSeconds: 10 } });
+    await runPipeline(two.deps, { ...push("feature"), repo: { ...repo, maxMachines: 64 } });
+    expect(two.events.find((e) => e.type === "plan")).toMatchObject({ maxMachines: 64 });
+  });
+});
+
 describe("runPipeline", () => {
+  test("control characters in an error, a warning or a task id never reach the stored run", async () => {
+    const { pool, deps } = setup();
+    pool.plan = ok(
+      planWith([{ id: "a#te\u001b]52;c;ZXZpbA==\u0007st" }], {
+        selectors: [{ selector: "a#te\u001b]52;c;ZXZpbA==\u0007st" }],
+        warnings: ["a \u001b[31mred\u001b[0m warning"],
+      }),
+    );
+    pool.fail.add("a#te\u001b]52;c;ZXZpbA==\u0007st");
+    const r = await runPipeline(deps, push("feature"));
+    const stored = JSON.stringify(r);
+    expect(stored.includes("\\u001b") || stored.includes("\u001b")).toBe(false);
+    expect(r.warnings).toEqual(["a red warning"]);
+    expect(r.results[0]?.id).toBe("a#test");
+
+    const failing = setup();
+    const link = "bad \u001b]8;;https://x\u001b\\link\u001b]8;;\u001b\\";
+    failing.pool.plan = { stdout: JSON.stringify({ error: link }), stderr: "", exitCode: 1 };
+    const f = await runPipeline(failing.deps, push("feature"));
+    expect(f.error).toBe("planning failed: bad link");
+  });
+
+  test("dependency files that cannot be hashed are a warning, not a silent skip", async () => {
+    const { pool, deps } = setup();
+    pool.hashFails = true;
+    pool.plan = ok(planJson([{ id: "a#test", hit: true }], ["a#test"]));
+    const r = await runPipeline(deps, push("feature"));
+    expect(r.warnings).toContain(
+      "could not hash the dependency files (git: not a repository), so the run uses the snapshot's dependencies",
+    );
+  });
+
+  test("a cancelled run records why, and is marked cancelled", async () => {
+    const { pool, deps } = setup();
+    const ctl = new AbortController();
+    pool.plan = ok(planJson([{ id: "a#test" }], ["a#test"]));
+    deps.signal = ctl.signal;
+    deps.onEvent = (e) => {
+      if (e.type === "phase" && e.message.startsWith("planning")) ctl.abort(new Error("superseded by d00d2fe"));
+    };
+    const r = await runPipeline(deps, push("feature"));
+    expect(r).toMatchObject({ status: "failure", cancelled: true, error: "superseded by d00d2fe" });
+  });
+
   test("a plan with nothing to run fails the run with the planner's reason", async () => {
     const { pool, deps } = setup();
     pool.plan = ok(

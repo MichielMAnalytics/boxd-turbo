@@ -25,6 +25,7 @@ const MARK: Record<TaskResult["status"], string> = { failed: "✗", ran: "✓", 
 function title(r: RunRecord): string {
   const failed = r.results.filter((t) => t.status === "failed").map((t) => t.id);
   if (r.status === "running") return "running";
+  if (r.cancelled) return `cancelled: ${r.error ?? "the run was cancelled"}`;
   if (r.status === "failure") {
     if (failed.length === 0) return `failed: ${r.error ?? "unknown error"}`;
     const shown =

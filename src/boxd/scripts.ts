@@ -130,6 +130,9 @@ type SummaryTask = {
 // biome-ignore lint/suspicious/noControlCharactersInRegex: matching control characters is the point
 const ANSI = /\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)?|\x1b[@-_]?|[\x00-\x08\x0b-\x1f\x7f]/g;
 
+/** Text with every terminal control sequence and control character (but newline and tab) removed. */
+export const stripControl = (text: string): string => text.replace(ANSI, "");
+
 /** Turns a worker's output into one result per task it was asked to run. */
 export function parseRunOutput(raw: string, tasks: TaskNode[], machine: string): TaskResult[] {
   const stdout = raw.replace(ANSI, "");

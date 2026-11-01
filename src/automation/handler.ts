@@ -101,6 +101,24 @@ export function createHandler(deps: AutomationDeps) {
     return next;
   };
 
+  /** After every push: retired snapshots old enough are deleted, in the same queue as promotions. */
+  const queuePrune = (repo: string) => {
+    const next = (promotions.get(repo) ?? Promise.resolve())
+      .catch(() => {})
+      .then(async () => {
+        const record = await readJson<RepoRecord>(deps.store, paths.repo(repo));
+        if (!record?.retired?.length) return;
+        const pruned = await pruneSnapshots(deps.boxd, record, org ? { org } : {});
+        if (pruned.retired?.length !== record.retired.length) await writeJson(deps.store, paths.repo(repo), pruned);
+      })
+      .catch((err: Error) => deps.log(`${repo}: could not delete retired snapshots: ${err.message}`));
+    promotions.set(repo, next);
+    return next;
+  };
+
+  /** The run in progress per branch: a newer push to the branch cancels it. */
+  const inProgress = new Map<string, AbortController>();
+
   return async function handle(e: PushEvent): Promise<void> {
     if (!e.ref.startsWith("refs/heads/") || e.deleted || /^0+$/.test(e.after)) return;
     const name = e.repository.full_name;
@@ -112,6 +130,10 @@ export function createHandler(deps: AutomationDeps) {
     const say = (l: string) =>
       deps.log(`${name}@${e.after.slice(0, 7)} ${formatSeconds((Date.now() - t0) / 1000).padStart(6)}  ${l}`);
     say(`push to ${branch}`);
+    const key = `${name.toLowerCase()}#${branch}`;
+    inProgress.get(key)?.abort(new Error(`superseded by ${e.after.slice(0, 7)}`));
+    const run = new AbortController();
+    inProgress.set(key, run);
 
     const delays = deps.retryDelaysMs ?? [2000, 10_000];
     const check = await retry(delays, async () => startCheck(await deps.github.client(), name, e.after)).catch(
@@ -144,6 +166,7 @@ export function createHandler(deps: AutomationDeps) {
             );
         },
         promote: ({ run, selectors }) => queuePromotion(name, run.sha, selectors),
+        signal: run.signal,
       },
       {
         repo,
@@ -155,5 +178,7 @@ export function createHandler(deps: AutomationDeps) {
         ...(check !== null ? { checkId: check } : {}),
       },
     );
+    if (inProgress.get(key) === run) inProgress.delete(key);
+    await queuePrune(name);
   };
 }

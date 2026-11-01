@@ -3,7 +3,7 @@
 //   restore the planner's machine → check the dependency files → plan with Turborepo
 //   → schedule the uncached tasks on machines → store the record → report → promote
 
-import { q } from "./boxd/scripts.js";
+import { q, stripControl } from "./boxd/scripts.js";
 import type { BoxdLike, ExecOutput } from "./boxd/sdk.js";
 import {
   depsHashScript,
@@ -19,6 +19,7 @@ import {
 } from "./boxd/snapshot.js";
 import type { Store } from "./boxd/store.js";
 import { PATCH_PATH, type Pool, type PoolOptions, type PrepareSpec } from "./boxd/worker.js";
+import { DEFAULT_CONFIG } from "./core/config.js";
 import { buildGraph, closureOutputs, type TaskGraph, toRun } from "./core/graph.js";
 import { newRunId, type RunRecord } from "./core/record.js";
 import { type SchedulerEvent, schedule } from "./core/scheduler.js";
@@ -42,7 +43,7 @@ export type RunInput = {
 export type PipelineEvent =
   | SchedulerEvent
   | { type: "phase"; message: string }
-  | { type: "plan"; tasks: number; toRun: number; restored: number };
+  | { type: "plan"; tasks: number; toRun: number; restored: number; maxMachines: number };
 
 export type PipelineDeps = {
   boxd: { snapshots: Pick<BoxdLike["snapshots"], "create" | "get" | "list" | "delete"> };
@@ -74,6 +75,14 @@ export function cacheEnv(cache: { url: string; token: string }, repo: string): R
     CI: "1",
   };
 }
+
+/** boxd's machine sizes: a task asking for another gets the next one up, and 8 at most. */
+const SIZES = [1, 2, 4, 8];
+const machineSize = (cpus: unknown): number | undefined =>
+  typeof cpus === "number" && Number.isFinite(cpus) && cpus > 0 ? (SIZES.find((s) => s >= cpus) ?? 8) : undefined;
+/** A run's machine budget, 1 to 256, whatever the plan (made on a machine the commit's code ran on) says. */
+const budget = (n: unknown): number =>
+  Math.min(256, Math.max(1, Math.round(typeof n === "number" && Number.isFinite(n) ? n : DEFAULT_CONFIG.maxMachines)));
 
 /** Every secret value replaced, so a task that prints its environment shows none in a check or a log. */
 const redact = (text: string, secrets: string[]) =>
@@ -146,8 +155,14 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     let planner = await pool.acquire();
     cancelled();
 
-    const hash = (await planner.sh(depsHashScript(repo.workdir))).stdout.trim();
-    if (/^[0-9a-f]{16}$/.test(hash) && hash !== repo.depsHash) {
+    const hashed = await planner.sh(depsHashScript(repo.workdir));
+    const hash = hashed.stdout.trim();
+    if (hashed.exitCode !== 0 || !/^[0-9a-f]{16}$/.test(hash)) {
+      const why = stripControl(`${hashed.stderr}\n${hashed.stdout}`.trim().split("\n").at(-1) ?? "").slice(0, 200);
+      record.warnings.push(
+        `could not hash the dependency files (${why || `exit code ${hashed.exitCode}`}), so the run uses the snapshot's dependencies`,
+      );
+    } else if (hash !== repo.depsHash) {
       // A dependency snapshot holds whatever its install ran, so who made it decides who restores it.
       const local = input.trigger === "local";
       const shared = depsSnapshotName(repo.repo, hash);
@@ -188,10 +203,19 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
       await planner.sh(`cd ${q(repo.workdir)} && node ${PLANNER_PATH} .`, { env, timeout: 15 * 60_000 }),
     );
     cancelled();
-    record.warnings = plan.warnings;
+    record.warnings = [...record.warnings, ...plan.warnings.map(stripControl)];
     if (plan.selectors.length === 0) throw new Error(plan.nothingToRun ?? "nothing to run");
     selectors = plan.selectors.map((s) => s.selector);
-    graph = buildGraph(plan.dry, plan.selectors);
+    const sized = plan.selectors.map((s) => {
+      const cpus = machineSize(s.cpus);
+      return { selector: s.selector, ...(cpus ? { cpus } : {}) };
+    });
+    // A branch runs within the default branch's budget: its own .boxd-turbo.json cannot raise it.
+    let maxMachines = budget(deps.maxMachines ?? plan.config.maxMachines);
+    if (input.trigger === "push" && input.ref !== repo.defaultBranch) {
+      maxMachines = Math.min(maxMachines, budget(repo.maxMachines ?? DEFAULT_CONFIG.maxMachines));
+    }
+    graph = buildGraph(plan.dry, sized);
     // Tasks without a script are in the graph only to connect others: they are not counted.
     const real = [...graph.nodes.values()].filter((n) => !n.noop);
     deps.onEvent?.({
@@ -199,6 +223,7 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
       tasks: real.length,
       toRun: toRun(graph).length,
       restored: real.filter((n) => n.cached).length,
+      maxMachines,
     });
     pool.park(planner); // the first task group of its size runs where the planner did
 
@@ -206,8 +231,8 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     const started = new Map<string, number>();
     const t0 = Date.parse(record.startedAt);
     const results = await schedule(graph, pool, {
-      maxWorkers: deps.maxMachines ?? plan.config.maxMachines,
-      packSeconds: plan.config.packSeconds,
+      maxWorkers: maxMachines,
+      packSeconds: Math.min(600, Math.max(0, Number(plan.config.packSeconds) || 0)),
       durations,
       ...(deps.signal ? { signal: deps.signal } : {}),
       onEvent: (e) => {
@@ -219,7 +244,9 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     for (const r of results) {
       const at = started.get(r.id);
       if (at !== undefined) r.at = at;
-      r.logTail = redact(r.logTail, secretValues);
+      // Task ids come from the commit's package names and turbo.json: stored and shown, so made safe to print.
+      r.id = stripControl(r.id);
+      r.logTail = stripControl(redact(r.logTail, secretValues));
       if (r.status === "ran" || r.status === "failed") logs[r.id] = r.logTail;
     }
     // The record keeps the logs a reader needs first; every log is in the run's logs file.
@@ -227,7 +254,11 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
     record.status = results.some((r) => r.status === "failed") ? "failure" : "success";
   } catch (e) {
     record.status = "failure";
-    record.error = deps.signal?.aborted ? "the run was cancelled" : redact((e as Error).message, secretValues);
+    if (deps.signal?.aborted) {
+      const reason = deps.signal.reason as unknown;
+      record.cancelled = true;
+      record.error = reason instanceof Error && reason.name !== "AbortError" ? reason.message : "the run was cancelled";
+    } else record.error = stripControl(redact((e as Error).message, secretValues));
   } finally {
     await pool.drain();
     record.machines = pool.machines();

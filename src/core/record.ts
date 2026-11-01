@@ -24,6 +24,8 @@ export type RunRecord = {
   error?: string;
   /** The machines of failed tasks that were kept for debugging, by name. */
   kept?: string[];
+  /** Stopped before it finished: Ctrl-C, or a newer push to the same branch. `error` says which. */
+  cancelled?: boolean;
   /** The GitHub check run that reports it (pushes), so a restarted automation can close it. */
   checkId?: number;
 };

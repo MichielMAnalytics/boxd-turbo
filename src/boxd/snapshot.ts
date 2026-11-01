@@ -33,6 +33,8 @@ export type RepoRecord = {
   builtAt: string;
   /** The boxd secrets every machine of a push's run gets: .boxd-turbo.json's list at the snapshot's commit. */
   secrets?: string[];
+  /** .boxd-turbo.json's maxMachines at the snapshot's commit: the most a branch's run may use. */
+  maxMachines?: number;
 };
 
 export type SnapshotBoxd = {
@@ -369,8 +371,8 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
           `if git merge-base --is-ancestor ${commit(r.commit)} ${commit(o.sha)}; then echo newer; else case "$(git ls-remote origin ${q(`refs/heads/${r.defaultBranch}`)} | cut -c1-40)" in ${o.sha}*) echo head ;; *) echo older ;; esac; fi`,
         ].join(" && "),
         o.fetchToken ? { BOXD_TURBO_FETCH_TOKEN: o.fetchToken } : undefined,
-      ).catch(() => null);
-      const answer = order?.stdout.trim();
+      );
+      const answer = order.stdout.trim();
       if (answer !== "newer" && answer !== "head") {
         say(`${o.sha.slice(0, 7)} is older than the snapshot's ${r.commit.slice(0, 7)}, so the snapshot stays`);
         return null;
@@ -378,7 +380,8 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
       const config = (
         await sh("reading .boxd-turbo.json", `cat ${q(`${r.workdir}/.boxd-turbo.json`)} 2>/dev/null || true`)
       ).stdout;
-      const secrets = parseConfig(config.trim() ? config : undefined).config.secrets;
+      const settings = parseConfig(config.trim() ? config : undefined).config;
+      const secrets = settings.secrets;
       const depsHash = (await sh("hashing the dependency files", depsHashScript(r.workdir))).stdout.trim();
       if (depsHash !== r.depsHash) {
         say("the dependency files changed, installing them");
@@ -397,6 +400,7 @@ export async function promote(boxd: SnapshotBoxd, o: PromoteOptions): Promise<Re
         depsHash,
         builtAt: now,
         retired,
+        maxMachines: settings.maxMachines,
         ...(secrets?.length ? { secrets } : {}),
       };
     },
@@ -465,7 +469,14 @@ export async function pruneSnapshots(
   const keep: NonNullable<RepoRecord["retired"]> = [];
   for (const old of r.retired ?? []) {
     if (old.name === r.snapshot || now - Date.parse(old.at) < RETIRED_KEEP_MS) keep.push(old);
-    else await boxd.snapshots.delete(old.name, o.org ? { org: o.org } : undefined).catch(() => {});
+    else {
+      // One that could not be deleted stays listed, so the next prune tries again.
+      const gone = await boxd.snapshots.delete(old.name, o.org ? { org: o.org } : undefined).then(
+        () => true,
+        () => false,
+      );
+      if (!gone) keep.push(old);
+    }
   }
   return { ...r, retired: keep };
 }

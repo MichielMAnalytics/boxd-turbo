@@ -26,7 +26,7 @@ export type ChecksApi = {
         repo: string;
         check_run_id: number;
         status: "in_progress" | "completed";
-        conclusion?: "success" | "failure";
+        conclusion?: "success" | "failure" | "cancelled";
         completed_at?: string;
         output: Output;
       }): Promise<unknown>;
@@ -66,7 +66,11 @@ export async function updateCheck(gh: ChecksApi, repo: string, id: number, recor
   const done = {
     ...base,
     status: "completed" as const,
-    conclusion: record.status === "success" ? ("success" as const) : ("failure" as const),
+    conclusion: record.cancelled
+      ? ("cancelled" as const)
+      : record.status === "success"
+        ? ("success" as const)
+        : ("failure" as const),
     completed_at: record.finishedAt ?? new Date().toISOString(),
   };
   try {

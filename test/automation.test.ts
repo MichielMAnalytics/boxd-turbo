@@ -39,7 +39,7 @@ const planJson = JSON.stringify({
 });
 
 /** Every machine plans and runs successfully, unless `fail` names the task. */
-const fakePool = (fail = false): Pool => {
+const fakePool = (fail = false, slow = 0): Pool => {
   let n = 0;
   const worker = (): BoxWorker => {
     n += 1;
@@ -60,7 +60,10 @@ const fakePool = (fail = false): Pool => {
   };
   const parked: BoxWorker[] = [];
   return {
-    acquire: async () => parked.pop() ?? worker(),
+    acquire: async () => {
+      if (slow) await new Promise((r) => setTimeout(r, slow));
+      return parked.pop() ?? worker();
+    },
     setSnapshot: () => {},
     park: (w) => parked.push(w),
     drain: async () => {},
@@ -84,7 +87,14 @@ const repo: RepoRecord = {
 };
 
 const setup = async (
-  o: { fail?: boolean; refuseText?: boolean; record?: RepoRecord; clientFailures?: number[] } = {},
+  o: {
+    fail?: boolean;
+    refuseText?: boolean;
+    record?: RepoRecord;
+    clientFailures?: number[];
+    slowFirst?: number;
+    failDelete?: boolean;
+  } = {},
 ) => {
   const store = fsStore(mkdtempSync(join(tmpdir(), "boxd-turbo-auto-")));
   await writeJson(store, paths.repo("acme/web"), o.record ?? repo);
@@ -109,9 +119,17 @@ const setup = async (
   const clients = { n: 0 };
   const pools: PoolOptions[] = [];
   const deletedMachines: string[] = [];
+  const deletedSnapshots: string[] = [];
   const deps: AutomationDeps = {
     boxd: {
-      snapshots: { create: async () => ({ version: 1 }), get: async () => Promise.reject(new Error("none")) },
+      snapshots: {
+        create: async () => ({ version: 1 }),
+        get: async () => Promise.reject(new Error("none")),
+        delete: async (name: string) => {
+          if (o.failDelete) throw new Error("UNAVAILABLE");
+          deletedSnapshots.push(name);
+        },
+      },
       machines: {
         list: async (q: { labels: Record<string, string> }) =>
           q.labels["boxd-turbo/run"] === "20261030-100000-d00d2fe"
@@ -135,7 +153,7 @@ const setup = async (
     },
     pool: (opts) => {
       pools.push(opts);
-      return fakePool(o.fail);
+      return fakePool(o.fail, pools.length === 1 ? (o.slowFirst ?? 0) : 0);
     },
     retryDelaysMs: [0, 0],
     promoteSnapshot: async (_boxd, { record, sha }) => {
@@ -146,7 +164,18 @@ const setup = async (
     },
     log: () => {},
   };
-  return { store, checks, promoted, chain, clients, pools, deletedMachines, deps, handle: createHandler(deps) };
+  return {
+    store,
+    checks,
+    promoted,
+    chain,
+    clients,
+    pools,
+    deletedMachines,
+    deletedSnapshots,
+    deps,
+    handle: createHandler(deps),
+  };
 };
 
 const event = (o: Partial<PushEvent> = {}): PushEvent => ({
@@ -218,12 +247,16 @@ describe("the push handler", () => {
   });
 
   test("promotions of one repository run one after another, each from the record the last one wrote", async () => {
-    const { chain, handle } = await setup();
-    await Promise.all([handle(event({ after: "aaaa111" })), handle(event({ after: "bbbb222" }))]);
+    const { chain, checks, handle } = await setup();
+    const first = handle(event({ after: "aaaa111" }));
+    // The second push lands while the first is promoting, after its run has reported.
+    while (!checks.some((c) => c.op === "update" && c.status === "completed"))
+      await new Promise((r) => setTimeout(r, 1));
+    await Promise.all([first, handle(event({ after: "bbbb222" }))]);
     expect(chain).toHaveLength(2);
-    const [first, second] = chain.map((c) => c.split("->"));
-    expect(first?.[0]).toBe("c0ffee1");
-    expect(second?.[0]).toBe(first?.[1]);
+    const [one, two] = chain.map((c) => c.split("->"));
+    expect(one?.[0]).toBe("c0ffee1");
+    expect(two?.[0]).toBe(one?.[1]);
   });
 
   test("a push from another repository whose name maps to the same record is ignored", async () => {
@@ -254,6 +287,45 @@ describe("the push handler", () => {
     await handle(event());
     expect(checks).toEqual([]);
     expect(promoted).toEqual(["d00d2fe1234567"]);
+  });
+});
+
+describe("the push handler, between pushes", () => {
+  test("a newer push to the same branch cancels the older run, whose check concludes cancelled", async () => {
+    const { checks, handle } = await setup({ slowFirst: 60 });
+    const first = handle(event({ ref: "refs/heads/feature", after: "aaaa1111" }));
+    await new Promise((r) => setTimeout(r, 10));
+    await Promise.all([first, handle(event({ ref: "refs/heads/feature", after: "bbbb2222" }))]);
+    const done = checks.filter((c) => c.op === "update" && c.status === "completed") as unknown as {
+      conclusion: string;
+      output: { title: string };
+    }[];
+    expect(done.map((c) => c.conclusion).sort()).toEqual(["cancelled", "success"]);
+    expect(done.find((c) => c.conclusion === "cancelled")?.output.title).toBe("cancelled: superseded by bbbb222");
+  });
+
+  test("pushes to different branches run side by side", async () => {
+    const { checks, handle } = await setup({ slowFirst: 30 });
+    await Promise.all([
+      handle(event({ ref: "refs/heads/one", after: "aaaa1111" })),
+      handle(event({ ref: "refs/heads/two", after: "bbbb2222" })),
+    ]);
+    const done = checks.filter((c) => c.op === "update" && c.status === "completed") as unknown as {
+      conclusion: string;
+    }[];
+    expect(done.map((c) => c.conclusion)).toEqual(["success", "success"]);
+  });
+
+  test("retired snapshots are deleted after any push, and one that could not be stays listed", async () => {
+    const old = { name: "bt-acme-web-0000001", at: new Date(Date.now() - 7 * 3600_000).toISOString() };
+    const ok = await setup({ record: { ...repo, retired: [old] } });
+    await ok.handle(event({ ref: "refs/heads/feature" }));
+    expect(ok.deletedSnapshots).toEqual(["bt-acme-web-0000001"]);
+    expect((await readJson<RepoRecord>(ok.store, paths.repo("acme/web")))?.retired).toEqual([]);
+
+    const failing = await setup({ record: { ...repo, retired: [old] }, failDelete: true });
+    await failing.handle(event({ ref: "refs/heads/feature" }));
+    expect((await readJson<RepoRecord>(failing.store, paths.repo("acme/web")))?.retired).toEqual([old]);
   });
 });
 
