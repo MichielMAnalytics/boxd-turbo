@@ -48,7 +48,7 @@ Each platform's median run per scenario, split at its first task's start and its
 
 | File | What it holds |
 |---|---|
-| `results/boxd-turbo.jsonl` | every boxd-turbo push: scenario, time, result, tasks, machines, machine seconds |
+| `results/boxd-turbo.jsonl` | every boxd-turbo push: scenario, time, result, tasks, machines, machine seconds. Its rows say `boxd-ci`, the project's name when they were recorded. |
 | `results/experiment-2026-10-29.jsonl` | the rows the tables use from the earlier lanes: Vercel CI, and the boxd prototype that ran fixed test shards |
 | `results/experiment-2026-10-29-summary.json` | their medians and cost per run (the prototype's at the prices used then) |
 | `results/core-run.json` | the run record behind the task-by-task chart |

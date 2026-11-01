@@ -59,7 +59,6 @@ export type BoxdLike = {
     waitUntilReady(id: string, p?: { timeout?: number }): Promise<unknown>;
     exec(id: string, p: { command: string[]; env?: Record<string, string>; timeout?: number }): Promise<ExecOutput>;
     resize(id: string, p: { vcpu: number; memory: string }): Promise<unknown>;
-    pause(id: string): Promise<unknown>;
     hibernate(id: string): Promise<unknown>;
     setAutoHibernateTimeout(id: string, seconds: number): Promise<unknown>;
     delete(id: string): Promise<void>;

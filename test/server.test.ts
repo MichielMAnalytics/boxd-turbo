@@ -28,7 +28,7 @@ class FakeBoxd implements ServerBoxd {
     waitUntilReady: async () => {},
     exec: async (_id: string, p: { command: string[]; env?: Record<string, string> }): Promise<ExecOutput> => {
       const script = p.command[2] ?? "";
-      if (script.includes("turborepo-remote-cache@")) {
+      if (script.includes("npm ci --ignore-scripts")) {
         this.log.push("setup");
         this.setupEnv = p.env;
         return {
@@ -66,8 +66,9 @@ const healthy = async () => true;
 
 describe("serverSetupScript", () => {
   const s = serverSetupScript();
-  test("pins the cache server and keeps its artifacts on disk", () => {
-    expect(s).toContain("turborepo-remote-cache@2.14.5");
+  test("installs the cache server from its lockfile, with no install scripts, and keeps its artifacts on disk", () => {
+    expect(s).toContain("npm ci --ignore-scripts");
+    expect(s).not.toContain("npm install");
     expect(s).toContain("STORAGE_PATH_USE_TMP_FOLDER=false");
     expect(s).toContain("STORAGE_PATH=/home/boxd/boxd-turbo/cache");
   });
@@ -99,7 +100,13 @@ describe("ensureServer", () => {
       token: boxd.setupEnv?.BOXD_TURBO_CACHE_TOKEN,
     });
     const saved = JSON.parse(boxd.files.get("/home/boxd/boxd-turbo/server.json") ?? "{}");
-    expect(saved).toEqual({ version: SERVER_VERSION, cacheUrl: s.cacheUrl, token: s.token });
+    expect(saved).toEqual({ version: SERVER_VERSION, cacheUrl: s.cacheUrl, token: s.token, org: "acme" });
+    // Every package the cache server runs is pinned by the lockfile that ships with boxd-turbo.
+    const lock = JSON.parse(boxd.files.get("/home/boxd/boxd-turbo/cache-server/package-lock.json") ?? "{}");
+    expect(lock.packages?.["node_modules/turborepo-remote-cache"]?.version).toBe("2.14.5");
+    expect(JSON.parse(boxd.files.get("/home/boxd/boxd-turbo/cache-server/package.json") ?? "{}").dependencies).toEqual({
+      "turborepo-remote-cache": "2.14.5",
+    });
   });
 
   test("an up-to-date server is reused as it is", async () => {

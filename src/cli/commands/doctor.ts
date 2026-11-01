@@ -129,11 +129,14 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
   const left = leftovers(machines, (repo, run) => statuses.get(`runs/${repo}/${run}.json`));
   if (!left.length) add({ ok: true, what: "no machine of a finished run is left running" });
   else if (flags.sweep) {
-    await Promise.all(left.map((m) => boxd.machines.delete(m.id).catch(() => {})));
-    add({
-      ok: true,
-      what: `deleted ${left.length} machines finished runs left behind: ${left.map((m) => m.name).join(", ")}`,
-    });
+    const done = await Promise.allSettled(left.map((m) => boxd.machines.delete(m.id)));
+    const deleted = left.filter((_, i) => done[i]?.status === "fulfilled").map((m) => m.name);
+    const stuck = left.filter((_, i) => done[i]?.status === "rejected").map((m) => m.name);
+    if (deleted.length)
+      add({ ok: true, what: `deleted ${deleted.length} machines finished runs left behind: ${deleted.join(", ")}` });
+    if (stuck.length) {
+      add({ ok: false, what: `could not delete ${stuck.join(", ")}`, fix: "boxd-turbo doctor --sweep tries again" });
+    }
   } else {
     add({
       ok: "warn",

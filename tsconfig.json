@@ -18,6 +18,6 @@
       "@boxd/run": ["./src/automation/boxd-run.ts"]
     }
   },
-  "include": ["src", "test", "scripts", "bench", "automation", "*.ts"],
+  "include": ["src", "test", "scripts", "bench", "*.ts"],
   "exclude": ["node_modules", "dist", "test/fixtures"]
 }

@@ -128,7 +128,9 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
   const cancelled = () => {
     if (deps.signal?.aborted) throw new Cancelled("the run was cancelled");
   };
-  await writeJson(deps.store, paths.run(repo.repo, id), record).catch(() => {});
+  await writeJson(deps.store, paths.run(repo.repo, id), record).catch((e: Error) =>
+    phase(`could not record the run's start: ${e.message}`),
+  );
   await deps.onStart?.(record);
 
   const env = cacheEnv(deps.cache, repo.repo);
@@ -280,7 +282,9 @@ export async function runPipeline(deps: PipelineDeps, input: RunInput): Promise<
   } catch (e) {
     phase(`could not report the run: ${(e as Error).message}`);
   }
-  await pruneDepsSnapshots(deps.boxd, repo.repo, deps.org ? { org: deps.org } : {}).catch(() => {});
+  await pruneDepsSnapshots(deps.boxd, repo.repo, deps.org ? { org: deps.org } : {}).catch((e: Error) =>
+    phase(`could not delete old dependency snapshots: ${e.message}`),
+  );
 
   const green = record.status === "success" && input.trigger === "push" && input.ref === repo.defaultBranch;
   if (green && deps.promote) {

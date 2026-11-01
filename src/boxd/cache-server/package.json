@@ -1,0 +1,7 @@
+{
+  "name": "boxd-turbo-cache",
+  "private": true,
+  "dependencies": {
+    "turborepo-remote-cache": "2.14.5"
+  }
+}

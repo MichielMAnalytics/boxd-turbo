@@ -3,15 +3,16 @@
 // cached run still answers in seconds.
 
 import { randomBytes } from "node:crypto";
+import cachePackage from "./cache-server/package.json" with { type: "json" };
+import cacheLock from "./cache-server/package-lock.json" with { type: "json" };
 import type { BoxdLike } from "./sdk.js";
 import { machineStore, type Store } from "./store.js";
 
 /** Bumped when the setup script changes, so existing servers are set up again. */
-export const SERVER_VERSION = 1;
+export const SERVER_VERSION = 2;
 export const SERVER_ROOT = "/home/boxd/boxd-turbo";
 export const DEFAULT_SERVER_NAME = "boxd-turbo-server";
 const CACHE_PORT = 3000;
-const CACHE_SERVER = "turborepo-remote-cache@2.14.5";
 const TOKEN_LINE = "boxd-turbo-token=";
 
 export type ServerInfo = { machineId: string; name: string; cacheUrl: string; token: string };
@@ -22,7 +23,8 @@ export type ServerBoxd = {
 
 /**
  * Installs the cache as a systemd service (artifacts on disk, kept 14 days) and the state folders.
- * Safe to run again: an existing token is kept, the service restarts on the pinned version.
+ * Safe to run again: an existing token is kept, the service restarts on the pinned version. The
+ * cache server and every package under it come from the lockfile in src/boxd/cache-server.
  */
 export function serverSetupScript(): string {
   const root = SERVER_ROOT;
@@ -32,8 +34,8 @@ umask 077
 mkdir -p '${root}/cache-server' '${root}/cache' '${root}/repos' '${root}/runs'
 chmod 700 '${root}'
 cd '${root}/cache-server'
-[ -f package.json ] || printf '{"private":true}\\n' > package.json
-npm install --no-fund --no-audit --loglevel=error ${CACHE_SERVER} >/dev/null
+# package.json and package-lock.json were uploaded first: every package is pinned, and none runs a script.
+npm ci --ignore-scripts --no-fund --no-audit --loglevel=error >/dev/null
 if [ ! -f '${env}' ]; then
   printf 'TURBO_TOKEN=%s\\nSTORAGE_PROVIDER=local\\nSTORAGE_PATH=${root}/cache\\nSTORAGE_PATH_USE_TMP_FOLDER=false\\nPORT=${CACHE_PORT}\\nLOG_LEVEL=warn\\nBODY_LIMIT=1048576000\\n' "$BOXD_TURBO_CACHE_TOKEN" > '${env}'
 fi
@@ -126,6 +128,10 @@ export async function ensureServer(boxd: ServerBoxd, o: EnsureServerOptions = {}
 
   if (saved.version !== SERVER_VERSION || !token) {
     say("installing the Turborepo cache on the server");
+    await m.exec(id, { command: ["bash", "-c", `mkdir -p ${SERVER_ROOT}/cache-server`] });
+    const json = (v: unknown) => new TextEncoder().encode(`${JSON.stringify(v, null, 2)}\n`);
+    await m.files.upload(id, `${SERVER_ROOT}/cache-server/package.json`, json(cachePackage));
+    await m.files.upload(id, `${SERVER_ROOT}/cache-server/package-lock.json`, json(cacheLock));
     const out = await m.exec(id, {
       command: ["bash", "-c", serverSetupScript()],
       env: { BOXD_TURBO_CACHE_TOKEN: token || randomBytes(24).toString("hex") },
@@ -137,7 +143,11 @@ export async function ensureServer(boxd: ServerBoxd, o: EnsureServerOptions = {}
     }
     token = line.slice(TOKEN_LINE.length).trim();
     if (!(await m.proxies.list(id)).some((p) => p.name === "cache")) await m.proxies.create(id, "cache", CACHE_PORT);
-    await store.write("server.json", JSON.stringify({ version: SERVER_VERSION, cacheUrl, token }));
+    // The automation reads the org from here: the machines it starts belong to the server's org.
+    await store.write(
+      "server.json",
+      JSON.stringify({ version: SERVER_VERSION, cacheUrl, token, ...(o.org ? { org: o.org } : {}) }),
+    );
   }
 
   const health = o.health ?? cacheAnswers;

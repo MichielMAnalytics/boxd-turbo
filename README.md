@@ -156,7 +156,8 @@ thing is a few thousand lines of TypeScript under the MIT license.
    first, so every file in `dist` comes from this run or from the cache.
 4. **Report.** A `boxd-turbo` check on the commit shows every task that ran, its time and its machine, and
    the end of every failed log. A failed task's machine is hibernated and kept for a day, as the task
-   left it, so `boxd connect` lands on its disk. A run keeps at most three.
+   left it, so `boxd connect` lands on its disk. A run keeps at most three. A newer push to the same
+   branch cancels the run, and its check says so.
 5. **Promote.** After a green push to the default branch, a new snapshot of that commit is saved,
    with every task's output in its local Turborepo cache, and runs start from it. The one before is
    deleted six hours later, after any run still restoring from it.
@@ -274,22 +275,29 @@ run that dies halfway leaves nothing running for long. `boxd-turbo doctor --swee
 
 boxd-turbo is for repositories where you trust everyone who can push a branch.
 
-- **The cache is shared.** Every task gets the cache token, and every run of a repository reads and
-  writes one cache namespace. A branch could upload a result under the hash of a task on the default
-  branch, which would then restore it instead of running the task. Pull requests from forks are not
-  run.
+- **The cache is shared.** Every task gets the cache token, and every repository that uses one server
+  shares it. A branch of any of them could upload a result under the hash of a task on a default
+  branch, which would then restore it instead of running the task. So all repositories on one server
+  are one trust domain. Give a repository its own server (`"server"` in `.boxd-turbo.json`) when that
+  does not hold for it. Pull requests from forks are not run.
 - **Task machines are isolated.** Nothing else on your boxd account can reach them, and they hold no
   boxd credentials.
 - **The GitHub token.** A machine that fetches a commit gets a GitHub App installation token for that
   one command, as a header for github.com only. It reaches git through the environment, on no command
   line, and git runs with hooks off. The token can read every repository the boxd GitHub App can, for
-  up to an hour. A machine restored from a snapshot that a branch's install made never gets one. It
-  checks out a commit it already has.
+  up to an hour. When a branch changes the dependency files, the run's first machine fetches the commit
+  and then runs the branch's install, so the branch's code runs on a machine the token was on. A
+  machine restored from the snapshot that install made never gets the token. It checks out a commit
+  it already has.
 - **Secrets** from `boxd-turbo secret set` reach boxd-turbo's machines only, and every task of a run can read
-  them, as in any CI. Pushes take the list of names from the default branch, so a branch cannot ask
-  for more.
-- **Logs.** The cache token is replaced before a log is stored or posted, and terminal control
-  sequences are removed. Other secrets a task prints stay in its log.
+  them, as in any CI. Pushes and `boxd-turbo run` take the list of names from the default branch, so a
+  branch cannot ask for more.
+- **Limits a branch cannot raise.** A run uses at most 256 machines of at most 8 vCPU, and a branch at
+  most the default branch's `maxMachines`. A newer push to a branch cancels the run in progress there.
+- **Logs.** The cache token is replaced before a log is stored or posted. Terminal control sequences
+  are removed from logs, errors, warnings and task names. Other secrets a task prints stay in its log.
+- **The server's packages** are installed from a lockfile that ships with boxd-turbo, with install
+  scripts off.
 - **Files on the server** that hold the cache token and the run history are readable by their owner
   only.
 - The first snapshot of a private repository clones it with your `gh` login, once, on a machine that is
@@ -316,14 +324,14 @@ the secrets.
 {
   "org": "acme",                  // the boxd org that runs CI (default: your boxd CLI's active org)
   "server": "boxd-turbo-server",  // the server machine
-  "maxMachines": 32,              // machines one run may use at once (1 to 256)
+  "maxMachines": 32,              // machines one run may use at once (1 to 256, a branch at most main's)
   "packSeconds": 10,              // tasks shorter than this share a machine (0: every task alone)
   "secrets": ["NPM_TOKEN"]        // boxd secrets every machine of a run gets
 }
 ```
 
-The run settings are read at the commit being tested, so they change with your code. Pushes take
-`secrets` from the default branch.
+The run settings are read at the commit being tested, so they change with your code. `secrets`, and
+the most machines a branch may use, come from the default branch.
 
 ## Limits
 
