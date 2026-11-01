@@ -260,7 +260,7 @@ an agent checks its own change before it pushes.
 
 | | What | When it costs |
 |---|---|---|
-| `boxd-turbo-server` | the Turborepo remote cache and the run history, 2 vCPU, 8 GiB | while awake. Asleep it bills the RAM it holds (about 1.7¢ an hour) and its disk, and after four idle hours only its disk. A push wakes it. |
+| `boxd-turbo-<id>` | the server: the Turborepo remote cache and the run history, 2 vCPU, 8 GiB | while awake. Asleep it bills the RAM it holds (about 1.7¢ an hour) and its disk, and after four idle hours only its disk. A push wakes it. |
 | `bt-<repo>-<commit>` | the snapshot runs start from, named after its commit | storage |
 | `bt-<repo>-deps-*` | dependency snapshots made by pushes to the default branch, for lockfiles that differ from the snapshot's | storage, deleted after a week |
 | `bt-<repo>-dev-*` | dependency snapshots made by `boxd-turbo run` | storage, deleted after a week |
@@ -309,7 +309,7 @@ The server belongs to whoever ran `init`. To give everyone in the boxd org the s
 history, share it once:
 
 ```bash
-boxd machine share boxd-turbo-server
+boxd machine share boxd-turbo-1a2b3c   # your server's name, as init and doctor print it
 ```
 
 Everyone in the org can then use the server as its owner does: read the cache token, and run commands
@@ -323,7 +323,7 @@ the secrets.
 ```jsonc
 {
   "org": "acme",                  // the boxd org that runs CI (default: your boxd CLI's active org)
-  "server": "boxd-turbo-server",  // the server machine
+  "server": "boxd-turbo-1a2b3c",  // the server machine, needed only when the org has more than one
   "maxMachines": 32,              // machines one run may use at once (1 to 256, a branch at most main's)
   "packSeconds": 10,              // tasks shorter than this share a machine (0: every task alone)
   "secrets": ["NPM_TOKEN"]        // boxd secrets every machine of a run gets

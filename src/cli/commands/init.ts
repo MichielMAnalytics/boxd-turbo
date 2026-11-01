@@ -15,7 +15,8 @@ import { bold, clock, dim, green, type Out, yellow } from "../ui.js";
 export type InitFacts = {
   repo: string;
   org?: string;
-  server: string;
+  /** The server's name, when one is chosen. Without one, the org's only server, or a new one. */
+  server?: string;
   hasServer: boolean;
   hasSnapshot: boolean;
   github: boolean;
@@ -26,10 +27,18 @@ export type InitFacts = {
 export function initPlan(f: InitFacts): string[] {
   const steps: string[] = [];
   if (f.org && f.writeConfig !== false) steps.push(`write ${CONFIG_FILE} (org ${f.org})`);
-  if (!f.hasServer) steps.push(`start ${f.server}${f.org ? ` in ${f.org}` : ""}: the Turborepo cache and run history`);
+  if (!f.hasServer) {
+    steps.push(
+      f.server
+        ? `start ${f.server}${f.org ? ` in ${f.org}` : ""}: the Turborepo cache and run history`
+        : `start the org's boxd-turbo server, if it has none: the Turborepo cache and run history`,
+    );
+  }
   if (!f.hasSnapshot) steps.push(`build the first snapshot of ${f.repo} from its default branch`);
   if (f.github) {
-    steps.push(`install the push automation on ${f.server} and check the boxd GitHub App can read ${f.repo}`);
+    steps.push(
+      `install the push automation on ${f.server ?? "the server"} and check the boxd GitHub App can read ${f.repo}`,
+    );
   }
   return steps;
 }
@@ -54,7 +63,7 @@ export async function initCommand(ctx: Ctx, flags: Record<string, string | boole
     const steps = initPlan({
       repo: ctx.repo,
       ...(ctx.org ? { org: ctx.org } : {}),
-      server: ctx.serverName,
+      ...(ctx.serverName ? { server: ctx.serverName } : {}),
       hasServer: false,
       hasSnapshot: false,
       github,

@@ -59,7 +59,7 @@ export const HELP = `boxd-turbo: CI for Turborepo monorepos on boxd machines
 
   --json                      machine-readable output, for scripts and agents
   --org <org>                 the boxd org (default: .boxd-turbo.json, then your boxd CLI's active org)
-  --server <name>             the boxd-turbo server machine (default: boxd-turbo-server)
+  --server <name>             the boxd-turbo server machine (default: the org's only one)
 
 CI runs the tasks turbo.json tags "ci", the way Vercel CI reads them, or the usual checks (lint,
 type checks, tests) when nothing is tagged.

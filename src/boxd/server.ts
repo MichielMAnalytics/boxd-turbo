@@ -1,4 +1,4 @@
-// The server: one machine per boxd account that runs the Turborepo remote cache and keeps boxd-turbo's
+// The server: one machine per boxd org that runs the Turborepo remote cache and keeps boxd-turbo's
 // state (repositories, snapshots, runs). It sleeps when idle and wakes on the next request, so a
 // cached run still answers in seconds.
 
@@ -11,7 +11,6 @@ import { machineStore, type Store } from "./store.js";
 /** Bumped when the setup script changes, so existing servers are set up again. */
 export const SERVER_VERSION = 2;
 export const SERVER_ROOT = "/home/boxd/boxd-turbo";
-export const DEFAULT_SERVER_NAME = "boxd-turbo-server";
 const CACHE_PORT = 3000;
 const TOKEN_LINE = "boxd-turbo-token=";
 
@@ -87,24 +86,40 @@ export async function cacheAnswers(url: string, token: string): Promise<boolean>
 
 export type EnsureServerOptions = {
   org?: string;
+  /** The server's machine name. Without one, the org's only server, or a new one. */
   name?: string;
   health?: (url: string, token: string) => Promise<boolean>;
   healthTimeoutMs?: number;
   onProgress?: (line: string) => void;
 };
 
-/** Finds the account's server, or starts and sets one up. */
+/** The org's server among the machines labeled as one: the one named, or else the only one. */
+export function pickServer<T extends { name: string }>(servers: T[], name?: string): T | undefined {
+  if (name) return servers.find((s) => s.name === name);
+  if (servers.length > 1) {
+    throw new Error(
+      `this org has ${servers.length} boxd-turbo servers (${servers.map((s) => s.name).join(", ")}). Pick one with --server, or "server" in .boxd-turbo.json.`,
+    );
+  }
+  return servers[0];
+}
+
+/** Machine names are global on boxd (each one is a subdomain), so a new server gets its own. */
+export const newServerName = () => `boxd-turbo-${randomBytes(3).toString("hex")}`;
+
+/** Finds the org's server, or starts and sets one up. */
 export async function ensureServer(boxd: ServerBoxd, o: EnsureServerOptions = {}): Promise<ServerInfo> {
   const m = boxd.machines;
-  const name = o.name ?? DEFAULT_SERVER_NAME;
   const say = o.onProgress ?? (() => {});
-  const found = (await m.list({ ...(o.org ? { org: o.org } : {}), labels: { "boxd-turbo": "server" } })).find(
-    (x) => x.name === name,
+  const found = pickServer(
+    await m.list({ ...(o.org ? { org: o.org } : {}), labels: { "boxd-turbo": "server" } }),
+    o.name,
   );
 
   let id: string;
   if (found) id = found.id;
   else {
+    const name = o.name ?? newServerName();
     say(`starting the boxd-turbo server (${name}): the Turborepo cache and run history`);
     const created = await m
       .create({

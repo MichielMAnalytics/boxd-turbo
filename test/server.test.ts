@@ -17,7 +17,7 @@ class FakeBoxd implements ServerBoxd {
     },
     get: async (id: string): Promise<MachineInfo> => ({
       id,
-      name: "boxd-turbo-server",
+      name: this.servers.find((x) => x.id === id)?.name ?? this.created?.name ?? "boxd-turbo-server",
       status: "running",
       access: { domain: "boxd.sh" },
     }),
@@ -107,6 +107,37 @@ describe("ensureServer", () => {
     expect(JSON.parse(boxd.files.get("/home/boxd/boxd-turbo/cache-server/package.json") ?? "{}").dependencies).toEqual({
       "turborepo-remote-cache": "2.14.5",
     });
+  });
+
+  test("with no name and no server, starts one under a name of its own, since machine names are global", async () => {
+    const boxd = new FakeBoxd();
+    const s = await ensureServer(boxd, { org: "acme", health: healthy });
+    expect(boxd.created?.name).toMatch(/^boxd-turbo-[0-9a-f]{6}$/);
+    expect(s.name).toBe(boxd.created?.name);
+    expect(s.cacheUrl).toBe(`https://cache.${s.name}.boxd.sh`);
+  });
+
+  test("with no name, the org's server is the one machine labeled as it, whatever it is called", async () => {
+    const boxd = new FakeBoxd();
+    boxd.servers = [{ id: "s1", name: "boxd-turbo-1a2b3c", status: "running", access: { domain: "boxd.sh" } }];
+    const s = await ensureServer(boxd, { org: "acme", health: healthy });
+    expect(boxd.created).toBeUndefined();
+    expect(s.machineId).toBe("s1");
+    expect(s.name).toBe("boxd-turbo-1a2b3c");
+  });
+
+  test("with no name and two servers in the org, asks which one", async () => {
+    const boxd = new FakeBoxd();
+    boxd.servers = ["boxd-turbo-1a2b3c", "boxd-turbo-4d5e6f"].map((name, i) => ({
+      id: `s${i}`,
+      name,
+      status: "running" as const,
+      access: { domain: "boxd.sh" },
+    }));
+    await expect(ensureServer(boxd, { org: "acme", health: healthy })).rejects.toThrow(
+      /boxd-turbo-1a2b3c, boxd-turbo-4d5e6f.*--server/,
+    );
+    expect(boxd.created).toBeUndefined();
   });
 
   test("an up-to-date server is reused as it is", async () => {

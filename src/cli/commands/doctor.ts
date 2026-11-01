@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { connect } from "../../boxd/sdk.js";
-import { cacheAnswers, SERVER_ROOT } from "../../boxd/server.js";
+import { cacheAnswers, pickServer, SERVER_ROOT } from "../../boxd/server.js";
 import { type RepoRecord, snapshotReady } from "../../boxd/snapshot.js";
 import { machineStore } from "../../boxd/store.js";
 import { ciTaggedTasks, ownConfigs, usualChecks } from "../../core/ci-tasks.js";
@@ -54,9 +54,19 @@ export async function doctorCommand(ctx: Ctx, flags: Record<string, string | boo
   if (!servers) return finish(ctx, out, checks);
   add({ ok: true, what: `signed in to boxd${ctx.org ? ` (org ${ctx.org})` : ""}` });
 
-  const server = servers.find((s) => s.name === ctx.serverName);
+  let server: (typeof servers)[number] | undefined;
+  try {
+    server = pickServer(servers, ctx.serverName);
+  } catch (e) {
+    add({ ok: false, what: (e as Error).message });
+    return finish(ctx, out, checks);
+  }
   if (!server) {
-    add({ ok: false, what: `no server ${ctx.serverName}`, fix: "boxd-turbo init (or boxd-turbo run) starts it" });
+    add({
+      ok: false,
+      what: ctx.serverName ? `no server ${ctx.serverName}` : `no boxd-turbo server${ctx.org ? ` in ${ctx.org}` : ""}`,
+      fix: "boxd-turbo init (or boxd-turbo run) starts it",
+    });
     return finish(ctx, out, checks);
   }
   const store = machineStore(boxd, server.id, SERVER_ROOT);

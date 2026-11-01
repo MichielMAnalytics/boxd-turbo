@@ -5,7 +5,7 @@ import { existsSync, lstatSync, readFileSync, renameSync, writeFileSync } from "
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type BoxdLike, cliCredentialsPath } from "../boxd/sdk.js";
-import { DEFAULT_SERVER_NAME, ensureServer, SERVER_ROOT, type ServerInfo } from "../boxd/server.js";
+import { ensureServer, SERVER_ROOT, type ServerInfo } from "../boxd/server.js";
 import { machineStore, type Store } from "../boxd/store.js";
 import { CONFIG_FILE, type Config, parseConfig } from "../core/config.js";
 import { originUrl, parseRemote, repoRoot } from "./git.js";
@@ -17,7 +17,8 @@ export type Ctx = {
   config: Config;
   warnings: string[];
   org?: string;
-  serverName: string;
+  /** The server named with --server or in .boxd-turbo.json. Without one, the org's only server. */
+  serverName?: string;
   json: boolean;
 };
 
@@ -38,6 +39,7 @@ export function loadContext(cwd: string, flags: Record<string, string | boolean>
   const file = join(root, CONFIG_FILE);
   const { config, warnings } = parseConfig(existsSync(file) ? readFileSync(file, "utf8") : undefined);
   const org = (flags.org as string | undefined) ?? config.org ?? process.env.BOXD_ORG ?? cliActiveOrg();
+  const server = (flags.server as string | undefined) ?? config.server;
   return {
     root,
     repo,
@@ -45,7 +47,7 @@ export function loadContext(cwd: string, flags: Record<string, string | boolean>
     config,
     warnings,
     ...(org ? { org } : {}),
-    serverName: (flags.server as string | undefined) ?? config.server ?? DEFAULT_SERVER_NAME,
+    ...(server ? { serverName: server } : {}),
     json: flags.json === true,
   };
 }
@@ -57,7 +59,7 @@ export async function openServer(
 ): Promise<{ server: ServerInfo; store: Store }> {
   const server = await ensureServer(boxd, {
     ...(ctx.org ? { org: ctx.org } : {}),
-    name: ctx.serverName,
+    ...(ctx.serverName ? { name: ctx.serverName } : {}),
     onProgress: say,
   });
   return { server, store: machineStore(boxd, server.machineId, SERVER_ROOT) };

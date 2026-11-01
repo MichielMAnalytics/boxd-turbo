@@ -187,6 +187,14 @@ describe("init --dry-run", () => {
       "install the push automation on boxd-turbo-server and check the boxd GitHub App can read acme/web",
     ]);
   });
+
+  test("without a server name, the org's server, whatever it is called", () => {
+    const steps = initPlan({ repo: "acme/web", hasServer: false, hasSnapshot: true, github: true });
+    expect(steps).toEqual([
+      "start the org's boxd-turbo server, if it has none: the Turborepo cache and run history",
+      "install the push automation on the server and check the boxd GitHub App can read acme/web",
+    ]);
+  });
 });
 
 describe("repository records", () => {
